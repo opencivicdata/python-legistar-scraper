@@ -36,3 +36,5 @@ collected_static
 logs
 settings_local.py
 .python_history
+
+stuff/*
