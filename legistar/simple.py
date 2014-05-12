@@ -688,11 +688,11 @@ class FormsMeta:
 
     def _gen_form_types(self):
         for pupatype in PUPATYPE_PREFIXES:
-            yield getattr(self.inst, pupatype + '_SEARCH_FORM_CLASS')
+            yield getattr(self.inst, pupatype + '_FORM_CLASS')
 
     def _gen_table_types(self):
         for pupatype in PUPATYPE_PREFIXES:
-            yield getattr(self.inst, pupatype + '_SEARCH_TABLE_CLASS')
+            yield getattr(self.inst, pupatype + '_TABLE_CLASS')
 
     FormMeta = namedtuple('FormMeta', 'pupatype, formtype, tabletype')
 
