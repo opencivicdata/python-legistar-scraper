@@ -1,4 +1,5 @@
 import logging
+import logging.config
 from urllib.parse import urlparse
 from collections import namedtuple, ChainMap
 
@@ -11,6 +12,31 @@ from legistar.base.ctx import CtxMixin
 
 PUPATYPES = ('events', 'orgs', 'people', 'bills')
 PUPATYPE_PREFIXES = [s.upper() for s in PUPATYPES]
+
+LOGGING_CONFIG = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'standard': {
+            'format': "%(asctime)s %(levelname)s %(name)s: %(message)s",
+            'datefmt': '%H:%M:%S'
+        }
+    },
+    'handlers': {
+        'default': {'level': 'DEBUG',
+                    'class': 'legistar.utils.ansistrm.ColorizingStreamHandler',
+                    'formatter': 'standard'},
+    },
+    'loggers': {
+        'legistar': {
+            'handlers': ['default'], 'level': 'DEBUG', 'propagate': False
+        },
+        'requests': {
+            'handlers': ['default'], 'level': 'DEBUG', 'propagate': False
+        },
+    },
+}
+logging.config.dictConfig(LOGGING_CONFIG)
 
 
 def resolve_name(name, module_name=None, raise_exc=True):

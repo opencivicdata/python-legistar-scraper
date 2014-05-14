@@ -40,29 +40,29 @@ class LegistarScraper(View):
         '''
         yield from self.get_pupatype_searchview(pupatype)
 
+    @classmethod
+    def get_scraper(cls, url=None, ocd_id=None, **kwargs):
+        '''Get the correct scraper by url or ocd_id.
+        '''
+        if url is not None:
+            data = urlparse(url)
+            try:
+                config_type = JXN_CONFIGS[data.netloc]
+            except KeyError:
+                msg = ("There doesn't appear to be a scraper defined for "
+                       "url %s yet.")
+                raise ScraperNotFound(msg % url)
+        elif ocd_id is not None:
+            try:
+                config_type = JXN_CONFIGS[ocd_id]
+            except KeyError:
+                msg = ("There doesn't appear to be a scraper defined for "
+                       "jurisdiction %s yet.")
+                raise ScraperNotFound(msg % ocd_id)
+        else:
+            raise Exception('Please supply the jurisdiction\'s url or ocd_id.')
 
-def get_scraper(url=None, ocd_id=None, **kwargs):
-    '''Get the correct scraper by url or ocd_id.
-    '''
-    if url is not None:
-        data = urlparse(url)
-        try:
-            config_type = JXN_CONFIGS[data.netloc]
-        except KeyError:
-            msg = ("There doesn't appear to be a scraper defined for "
-                   "url %s yet.")
-            raise ScraperNotFound(msg % url)
-    elif ocd_id is not None:
-        try:
-            config_type = JXN_CONFIGS[ocd_id]
-        except KeyError:
-            msg = ("There doesn't appear to be a scraper defined for "
-                   "jurisdiction %s yet.")
-            raise ScraperNotFound(msg % ocd_id)
-    else:
-        raise Exception('Please supply the jurisdiction\'s url or ocd_id.')
-
-    config_obj = config_type()
-    scraper = LegistarScraper(**kwargs)
-    scraper.set_parent_ctx(config_obj.ctx)
-    return scraper
+        config_obj = config_type()
+        scraper = cls(**kwargs)
+        scraper.set_parent_ctx(config_obj.ctx)
+        return scraper
