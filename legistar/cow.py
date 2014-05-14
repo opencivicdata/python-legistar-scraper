@@ -11,7 +11,6 @@ if __name__ == '__main__':
     import pprint
     url = 'http://legistar.council.nyc.gov/'
     scraper = get_scraper(url)
-    for obj in scraper.gen_events():
-        pprint.pprint(obj.asdict())
-        pprint.pprint(obj.detail_page.asdict())
+    for data in scraper.gen_events():
+        pprint.pprint(data)
         import pdb; pdb.set_trace()

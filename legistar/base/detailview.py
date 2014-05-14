@@ -1,8 +1,8 @@
 import io
 import re
 import contextlib
-from urllib.parse import urlparse, parse_qs, urljoin
-from collections import namedtuple, OrderedDict, defaultdict
+from urllib.parse import urlparse
+from collections import defaultdict
 
 import visitors
 import visitors.ext.etree
@@ -157,8 +157,8 @@ class DetailField(FieldAccessor):
         return self.data['node']
 
     def get_text(self):
-        text = TextRenderer().visit(self.node)
-        if not self._is_blank_placeholder(text):
+        text = TextRenderer().visit(self.node).strip()
+        if not self._is_blank(text):
             return text
 
     def get_url(self):
@@ -166,13 +166,14 @@ class DetailField(FieldAccessor):
             if 'href' in descendant:
                 return descendant['href']
 
-    def _is_blank_placeholder(self, text):
+    def _is_blank(self, text):
+        if not text:
+            return True
         if text == 'Not available':
             return True
 
     def is_blank(self):
-        if self._is_blank_placeholder(self.text):
-            return True
+        return self._is_blank(self.text)
 
     def get_mimetype(self):
         for descendant in self.node.parent.find().filter(tag='img'):

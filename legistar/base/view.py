@@ -29,25 +29,6 @@ class View(CtxMixin):
         msg = 'Please set `sources_note` on this class: %r' % self.__class__
         raise NotImplementedError(msg)
 
-    # @property
-    # def doc(self):
-    #     '''self.doc fetches and parsed the html document with lxml.
-    #     '''
-    #     if self.ctx['doc'] is None:
-    #         resp = self.cfg.client.get(self.url)
-    #         doc = lxml.html.fromstring(resp.text)
-    #         doc.make_links_absolute(self.url)
-    #         self.ctx['doc'] = doc
-    #     else:
-    #         doc = self.ctx['doc']
-    #     with DictSetDefault(self.ctx, 'sources', {}) as sources:
-    #         sources[self.sources_note] = self.url
-    #     return doc
-
-    # @doc.setter
-    # def doc(self, doc):
-    #     self.ctx['doc'] = doc
-
     # ------------------------------------------------------------------------
     # Access to configable properties.
     # ------------------------------------------------------------------------

@@ -25,7 +25,8 @@ class Form(CtxMixin):
     def get_next_page(self):
         '''Is the current view paginated?
         '''
-        import pdb; pdb.set_trace()
+        if 'search' in self.__class__.__qualname__.lower():
+            import pdb; pdb.set_trace()
         a = self.doc.xpath(self.cfg.PGN_NEXT_PAGE_XPATH)
         if not a:
             return
@@ -42,9 +43,9 @@ class Form(CtxMixin):
         if not self.skip_first_submit:
             self.submit(self.get_query())
         table = self.make_child(Table, view=self.view)
-        yield table
+        yield from table
         while True:
             if not self.submit_next_page():
                 break
             table = self.make_child(Table, view=self.view)
-            yield table
+            yield from table

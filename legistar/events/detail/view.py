@@ -21,13 +21,6 @@ class DetailView(DetailView, EventFields):
     def get_location(self):
         return self.field_data[self.cfg.EVT_DETAIL_TEXT_LOCATION].text
 
-    def cow(self):
-        form = self.viewtype_meta.Form(self)
-        for table in form:
-            print(table)
-            for row in table:
-                import pdb; pdb.set_trace()
-        # sources.append(dict(url=self.get_detail_url()))
-        # sources.append(dict(url=self.get_ical_url()))
-
-        return data
+    @make_item('agenda', wrapwith=list)
+    def gen_agenda(self):
+        yield from self.viewtype_meta.Form(self)

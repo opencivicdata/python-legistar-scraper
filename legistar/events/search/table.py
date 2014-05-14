@@ -39,7 +39,22 @@ class TableRow(TableRow, EventFields):
         return dt
 
     def asdict(self):
-        return dict(gen_items(self))
+        '''Combine the detail page data with the table row data.
+        '''
+        data = dict(gen_items(self))
+        detail_data = dict(self.detail_page.asdict())
+
+        # Add any keys detail has that table row doesn't.
+        for key in detail_data.keys() - data.keys():
+            data[key] = detail_data[key]
+
+        # Add sources and documents.
+        listy_fields = ('sources', 'documents', 'participants')
+        for key in listy_fields:
+            for obj in detail_data[key]:
+                if obj not in data[key]:
+                    data[key].append(obj)
+        return data
 
 
 class Table(Table):

@@ -68,3 +68,19 @@ class FieldAggregator(ItemGenerator, CtxMixin):
         '''
         key = 'TEXT_%s' % key.upper()
         return self.get_config_value(key)
+
+    def get_field_data(self, label_text):
+        key = self.get_label_text(label_text)
+        return self.field_data.get(key)
+
+    def get_field_text(self, label_text):
+        field_data = self.get_field_data(label_text)
+        if field_data is not None:
+            if field_data.is_blank():
+                return
+            return field_data.get_text()
+
+    def get_field_url(self, label_text):
+        field_data = self.get_field_data(label_text)
+        if field_data is not None:
+            return field_data.get_url() or None

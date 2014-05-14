@@ -27,6 +27,9 @@ class TableRow(FieldAggregator):
         detail_view.inherit_ctx_from(self.view)
         return detail_view
 
+    def asdict(self):
+        return dict(self)
+
 
 class TableCell(FieldAccessor):
     '''Provides access to table cells.
@@ -48,11 +51,18 @@ class TableCell(FieldAccessor):
                 buf.write(' ')
             buf.write(chunk)
             first = False
-        return buf.getvalue()
+        text = buf.getvalue().strip()
+        if not self._is_blank(text):
+            return text
+
+    def _is_blank(self, text):
+        if not text:
+            return True
+        if text.strip().replace('\xa0', ' ') == 'Not available':
+            return True
 
     def is_blank(self):
-        if self.text.strip().replace('\xa0', ' ') == 'Not available':
-            return True
+        return self._is_blank(self.text)
 
     def get_mimetype(self):
         gif_url = self.td.xpath('string(.//img/@src)')
@@ -113,7 +123,7 @@ class Table(CtxMixin):
             # Create a super wrappy set of wrapped wrappers.
             data = zip(header_text, cells)
             record = self.make_child(TableRow, data, view=self.view)
-            yield record
+            yield record.asdict()
 
     def __iter__(self):
         yield from self.gen_rows()

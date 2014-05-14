@@ -1,3 +1,4 @@
+import logging
 from urllib.parse import urlparse
 from collections import namedtuple, ChainMap
 
@@ -179,6 +180,11 @@ class ConfigMeta(type):
 
 
 class Config(CtxMixin, metaclass=ConfigMeta):
+    '''
+    '''
+    def __init__(self, *args, **kwargs):
+        self.args = args
+        self.kwargs = kwargs
 
     SESSION_CLASS = requests.Session
 
@@ -313,7 +319,6 @@ class Config(CtxMixin, metaclass=ConfigMeta):
     EVT_DETAIL_TEXT_SUMMARY = 'Published summary'
 
     EVT_DETAIL_DATETIME_FORMAT = EVT_TABLE_DATETIME_FORMAT
-
     EVT_DETAIL_PUPA_KEY_NAME = EVT_DETAIL_TEXT_TOPIC
     EVT_DETAIL_PUPA_KEY_LOCATION = EVT_DETAIL_TEXT_LOCATION
 
@@ -327,6 +332,21 @@ class Config(CtxMixin, metaclass=ConfigMeta):
         EVT_DETAIL_TEXT_NOTICE,
         EVT_DETAIL_TEXT_VIDEO,
         ]
+
+    # REadable text for the agenda table of related bills.
+    EVT_AGENDA_TABLE_TEXT_FILE_NUMBER = 'File #'
+    EVT_AGENDA_TABLE_TEXT_VERSION = 'Ver.'
+    EVT_AGENDA_TABLE_TEXT_NAME = 'Name'
+    EVT_AGENDA_TABLE_TEXT_AGENDA_NOTE = 'Agenda Note'
+    EVT_AGENDA_TABLE_TEXT_AGENDA_NUMBER = 'Agenda #'
+    EVT_AGENDA_TABLE_TEXT_TYPE = 'Type'
+    EVT_AGENDA_TABLE_TEXT_TITLE = 'Title'
+    EVT_AGENDA_TABLE_TEXT_ACTION = 'Action'
+    EVT_AGENDA_TABLE_TEXT_RESULT = 'Result'
+    EVT_AGENDA_TABLE_TEXT_ACTION_DETAILS = 'Action Details'
+    EVT_AGENDA_TABLE_TEXT_VIDEO = 'Video'
+    EVT_AGENDA_TABLE_TEXT_AUDIO = 'Audio'
+    EVT_AGENDA_TABLE_TEXT_TRANSCRIPT = 'Transcript'
 
     # ------------------------------------------------------------------------
     # Bill search config.
@@ -353,11 +373,25 @@ class Config(CtxMixin, metaclass=ConfigMeta):
         self.ctx['client'] = client
         return client
 
+    def get_logger(self):
+        logger = logging.getLogger('legistar')
+        if 'loglevel' in self.kwargs:
+            logger.setLevel(self.kwargs['loglevel'])
+        return logger
+
     @CachedAttr
     def ctx(self):
         '''An inheritable/overriddable dict for this config's helper
         views to access. Make it initially point back to this config object.
         '''
+        logger = self.get_logger()
         ctx = ChainMap()
-        ctx.update(config=self, url=self.root_url)
+        ctx.update(
+            config=self,
+            url=self.root_url,
+            info=logger.info,
+            error=logger.error,
+            debug=logger.debug,
+            warning=logger.warning,
+            critical=logger.critical)
         return ctx
