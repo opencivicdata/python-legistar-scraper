@@ -1,13 +1,14 @@
 import lxml.html
+from legistar.base.ctx import CtxMixin
 
 
-class Form:
+class Form(CtxMixin):
     '''Handles posting data to a form and paging through the results.
     '''
     skip_first_submit = False
 
     def __init__(self, view):
-        self.view = view
+        self.view = self.inherit_ctx_from(view)
 
     def submit(self, formdata=None):
         resp = self.cfg.client.post(self.url, formdata)
@@ -15,18 +16,11 @@ class Form:
         doc.make_links_absolute(self.url)
         self.doc = doc
 
-    @property
-    def form(self):
-        '''All pages on the site conveniently seem to have only one
-        form each.
-        '''
-        form = self.doc.forms[0]
-        # Test our assumption that this is that page's main form.
-        assert self.url.endswith(form.action)
-        return form
-
     def get_query(self, **kwargs):
-        raise NotImplemented()
+        '''This function returns the dictionary of POST data
+        the form requires.
+        '''
+        raise NotImplementedError()
 
     def get_next_page(self):
         '''Is the current view paginated?
@@ -44,9 +38,13 @@ class Form:
         # self.doc = self.lxmlize(formdata)
 
     def __iter__(self):
+        Table = self.view.viewtype_meta.Table
         if not self.skip_first_submit:
             self.submit(self.get_query())
-        yield self.TableClass(self.doc, self.cfg)
+        table = self.make_child(Table, view=self.view)
+        yield table
         while True:
-            self.submit_next_page()
-            yield self.TableClass(self.doc, self.cfg)
+            if not self.submit_next_page():
+                break
+            table = self.make_child(Table, view=self.view)
+            yield table

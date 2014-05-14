@@ -1,10 +1,11 @@
-from collections import namedtuple
+from urllib.parse import urlparse
+from collections import namedtuple, ChainMap
 
 import requests
-
 from hercules import CachedAttr
 
 from legistar.client import Client
+from legistar.base.ctx import CtxMixin
 
 
 PUPATYPES = ('events', 'orgs', 'people', 'bills')
@@ -160,12 +161,30 @@ class ViewsMeta:
                 return meta
 
 
-class Config:
+JXN_CONFIGS = {}
+
+
+class ConfigMeta(type):
+    def __new__(meta, name, bases, attrs):
+        cls = type.__new__(meta, name, bases, attrs)
+        root_url = attrs.get('root_url')
+        if root_url is not None:
+            data = urlparse(cls.root_url)
+            JXN_CONFIGS[data.netloc] = cls
+        ocd_id = attrs.get('ocd_id')
+        if ocd_id is not None:
+            JXN_CONFIGS[ocd_id] = cls
+
+        return cls
+
+
+class Config(CtxMixin, metaclass=ConfigMeta):
 
     SESSION_CLASS = requests.Session
 
     # Preceding slashes are necessary
     MIMETYPE_GIF_PDF = '/Images/PDF.gif'
+    # MIMETYPE_GIF_VIDEO = '/Images/PDF.gif'
 
     TAB_TEXT_ID = 'ctl00_tabTop'
     TAB_TEXT_XPATH_TMPL = 'string(//div[@id="%s"]//a[contains(@class, "rtsSelected")])'
@@ -327,4 +346,18 @@ class Config:
 
     @CachedAttr
     def client(self):
-        return Client(self)
+        '''The requests.Session-like object used to make web requests;
+        usually a scrapelib.Scraper.
+        '''
+        client = Client(self)
+        self.ctx['client'] = client
+        return client
+
+    @CachedAttr
+    def ctx(self):
+        '''An inheritable/overriddable dict for this config's helper
+        views to access. Make it initially point back to this config object.
+        '''
+        ctx = ChainMap()
+        ctx.update(config=self, url=self.root_url)
+        return ctx

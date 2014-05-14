@@ -1,47 +1,11 @@
-from urllib.parse import urljoin
+from urllib.parse import urljoin, urlparse
 
+from legistar.jxn_config import JXN_CONFIGS
 from legistar.base.view import View
 
 
-class Root(View):
-    '''Here we don't know what the view is.
-    '''
-    def get_current_tabmeta(self):
-        '''Inspect the nav tabs to get metadata for the current tab.
-        '''
-        current_tab = self.get_active_tab()
-        tabmeta = self.cfg.tabs.by_text(current_tab['text'])
-        return tabmeta
+class LegistarScraper(View):
 
-    def get_current_pupatype(self):
-        '''Inspect the current page to determine what pupa type is displayed.
-        '''
-        tabmeta = self.get_current_tabmeta()
-        return tabmeta.pupatype
-
-    def get_pupatype_viewmeta(self, pupatype):
-        '''Get the View subclass defined for each pupa type.
-        '''
-        return self.cfg.viewmeta.get_by_pupatype(pupatype)
-
-    def get_pupatype_view(self, pupatype):
-        '''Where pupa model is one of 'bills', 'orgs', 'events'
-        or 'people', return a matching View subclass.
-        '''
-        tabmeta = self.cfg.tabs.get_by_pupatype(pupatype)
-        url = urljoin(self.cfg.root_url, tabmeta.path)
-        view_meta = self.get_pupatype_viewmeta(pupatype)
-        return view view_meta.search.View(self.cfg, url=url)
-
-
-    def yield_pupatype_objects(self, pupatype):
-        '''Given a pupa type, page through the search results and
-        yield each object.
-        '''
-        for page in self.get_pupatype_view(pupatype):
-            yield from page
-
-    # Generators for each specific pupa type.
     def gen_events(self):
         yield from self.yield_pupatype_objects('events')
 
@@ -53,3 +17,41 @@ class Root(View):
 
     def gen_orgs(self):
         yield from self.yield_pupatype_objects('orgs')
+
+    events = meetings = gen_events
+    bills = legislation = gen_bills
+    people = members = gen_people
+    orgs = organizations = committees = gen_orgs
+
+    def get_pupatype_searchview(self, pupatype):
+        '''Where pupa model is one of 'bills', 'orgs', 'events'
+        or 'people', return a matching View subclass.
+        '''
+        tabmeta = self.cfg.tabs.get_by_pupatype(pupatype)
+        url = urljoin(self.cfg.root_url, tabmeta.path)
+        view_meta = self.cfg.viewmeta.get_by_pupatype(pupatype)
+        view = view_meta.search.View(url=url)
+        view.inherit_ctx_from(self.cfg)
+        return view
+
+    def yield_pupatype_objects(self, pupatype):
+        '''Given a pupa type, page through the search results and
+        yield each object.
+        '''
+        for page in self.get_pupatype_searchview(pupatype):
+            yield from page
+
+
+def get_scraper(url=None, ocd_id=None):
+    if url is not None:
+        data = urlparse(url)
+        config_type = JXN_CONFIGS[data.netloc]
+    elif ocd_id is not None:
+        config_type = JXN_CONFIGS[ocd_id]
+    else:
+        raise Exception('Please supply the jurisdiction\'s url or ocd_id.')
+
+    config_obj = config_type()
+    scraper = LegistarScraper()
+    scraper.set_parent_ctx(config_obj.ctx)
+    return scraper

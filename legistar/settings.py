@@ -23,4 +23,5 @@ LOGGING_CONFIG = {
             'handlers': ['default'], 'level': 'DEBUG', 'propagate': False
         },
     },
+}
 logging.config.dictConfig(LOGGING_CONFIG)

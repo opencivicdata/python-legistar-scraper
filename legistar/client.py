@@ -22,7 +22,6 @@ class Client:
             self.state[key] = form.get(key)
 
     def get(self, url, **kwargs):
-        self.logger.info("GET'ing ", url)
         _kwargs = dict(self.cfg.requests_kwargs)
         _kwargs.update(kwargs)
         resp = self.session.get(url, **kwargs)
@@ -30,7 +29,6 @@ class Client:
         return resp
 
     def post(self, url, data=None, **kwargs):
-        self.logger.info("POST'ing ", url)
         _kwargs = dict(self.cfg.requests_kwargs)
         _kwargs.update(kwargs)
         resp = self.session.post(url, data, **kwargs)

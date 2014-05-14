@@ -1,80 +1,46 @@
-from hercules import CachedAttr
+import re
+from datetime import datetime
 
-import legistar.events.detail.view
+from hercules import CachedAttr, DictSetDefault
+
 from legistar.base.table import Table, TableRow
+from legistar.utils.itemgenerator import make_item, gen_items
+from legistar.events.field import EventFields
 
 
-class TableRow(TableRow):
-    DetailClass = 'legistar.events.detail.view.DetailView'
+class TableRow(TableRow, EventFields):
+    KEY_PREFIX = 'EVT_TABLE'
 
+    def get_detail_url(self):
+        key = self.get_label_text('details')
+        return self.field_data[key].get_url()
+
+    @CachedAttr
+    def ical_data(self):
+        ical_url = self.get_ical_url()
+        resp = self.cfg.client.session.get(ical_url)
+        with DictSetDefault(self.ctx, 'sources', {}) as sources:
+            sources['Event icalendar data (end date)'] = ical_url
+        return resp.text
+
+    def get_ical_url(self):
+        key = self.get_label_text('ical')
+        return self.field_data[key].get_url()
+
+    @make_item('name')
     def get_name(self):
-        return self[self.cfg.EVT_TABLE_TEXT_TOPIC].text
+        key = self.get_label_text('topic')
+        return self.field_data[key].get_text()
 
-    def get_when(self):
-        date = self[self.cfg.EVT_TABLE_TEXT_DATE].text
-        time = self[self.cfg.EVT_TABLE_TEXT_TIME].text
-        dt = datetime.strptime(
-            '%s %s' % (date, time), self.cfg.EVT_TABLE_DATETIME_FORMAT)
-        return dt
-
+    @make_item('end')
     def get_end(self):
         end_time = re.search(r'DTEND:([\dT]+)', self.ical_data).group(1)
         dt = datetime.strptime(end_time, r'%Y%m%dT%H%M%S')
         return dt
 
-    def get_location(self):
-        return self[self.cfg.EVT_TABLE_TEXT_LOCATION].text
-
-    @CachedAttr
-    def ical_data(self):
-        print('getting ical data')
-        ical_url = self.get_ical_url()
-        resp = self.cfg.client.session.get(ical_url)
-        return resp.text
-
-    def get_detail_url(self):
-        return self[self.cfg.EVT_TABLE_TEXT_DETAILS].url
-
-    def get_ical_url(self):
-        return self[self.cfg.EVT_TABLE_TEXT_ICAL].url
-
     def asdict(self):
-        data = {}
-        data['name'] = self.get_name()
-        data['when'] = self.get_when()
-        data['end'] = self.get_end()
-        data['location'] = self.get_location()
-
-        # Documents
-        documents = data['documents'] = []
-        for key in self.cfg.EVT_TABLE_PUPA_DOCUMENTS:
-            cell = self.get(key)
-            # This column isn't present on this legistar instance.
-            if cell is None:
-                continue
-            if cell.is_blank():
-                continue
-            document = dict(
-                name=cell.text,
-                url=cell.url,
-                mimetype=cell.mimetype)
-            documents.append(document)
-
-        # Participants
-        participants = data['participants'] = []
-        for entity_type, keys in self.cfg.EVT_TABLE_PUPA_PARTICIPANTS.items():
-            for key in keys:
-                cell = self[key]
-                participant = dict(name=cell.text, type=entity_type)
-                participants.append(participant)
-
-        sources = data['sources'] = []
-        # sources.append(dict(url=self.form_url))
-        sources.append(dict(url=self.get_detail_url()))
-        sources.append(dict(url=self.get_ical_url()))
-
-        return data
+        return dict(gen_items(self))
 
 
 class Table(Table):
-    RowClass = TableRow
+    sources_note = 'Events search table'

@@ -1,3 +1,5 @@
+import io
+import re
 import contextlib
 from urllib.parse import urlparse, parse_qs, urljoin
 from collections import namedtuple, OrderedDict, defaultdict
@@ -7,9 +9,12 @@ import visitors.ext.etree
 from hercules import CachedAttr
 
 from legistar.base.view import View
+from legistar.base.field import FieldAggregator, FieldAccessor
 
 
-class DetailView(View):
+class DetailView(View, FieldAggregator):
+    VIEWTYPE = 'detail'
+    KEY_PREFIX = 'EVT_DETAIL'
 
     @CachedAttr
     def field_data(self):
@@ -17,13 +22,12 @@ class DetailView(View):
         return DetailVisitor(self.cfg).visit(G)
 
     def asdict(self):
-        raise NotImplemented()
+        return dict(self)
 
 
 class DetailVisitor(visitors.Visitor):
     '''Visits a detail page and collects all the displayed fields into a
-    dictionary mapping label text to values; text if it's a text field,
-    text and an href for links, etc.
+    dictionary that maps label text to taterized DOM nodes.
 
     Effectively groups different elements and their attributes by the unique
     sluggy part of their verbose aspx id names. For example, the 'Txt' part
@@ -31,6 +35,7 @@ class DetailVisitor(visitors.Visitor):
     '''
     # ------------------------------------------------------------------------
     # These methods customize the visitor.
+    # ------------------------------------------------------------------------
     def __init__(self, config_obj):
         self.data = defaultdict(dict)
         self.config_obj = self.cfg = config_obj
@@ -43,7 +48,7 @@ class DetailVisitor(visitors.Visitor):
         newdata = {}
         for id_attr, data in tuple(self.data.items()):
             alias = data.get('label', id_attr).strip(':')
-            value = DetailField(data, self.cfg)
+            value = self.cfg.make_child(DetailField, data)
             newdata[alias] = value
             if alias != id_attr:
                 newdata[id_attr] = value
@@ -55,6 +60,8 @@ class DetailVisitor(visitors.Visitor):
         '''
         yield node['tag']
 
+    # ------------------------------------------------------------------------
+    # The DOM visitor methods.
     # ------------------------------------------------------------------------
     def visit_a(self, node):
         if 'id' not in node:
@@ -113,56 +120,62 @@ class TextRenderer(visitors.Visitor):
     def __init__(self):
         self.buf = io.StringIO()
 
+    def scrub_text(self, text):
+        return text.replace('\xa0', ' ').strip()
+
     @contextlib.contextmanager
     def generic_visit(self, node):
         # Add a space if we're writing to an in-progress buffer.
         if self.buf.getvalue():
             self.buf.write(' ')
         # Write in this node's text.
-        self.buf.write(node.get('text', '').strip())
+        text = node.get('text', '')
+        text = self.scrub_text(text)
+        self.buf.write(text)
         # Allow the visitor to do the same for this node's children.
         yield
         # Now write in this node's tail text.
-        self.buf.write(node.get('tail', '').strip())
+        text = node.get('tail', '')
+        text = self.scrub_text(text)
+        self.buf.write(text)
         # Don't visit children--already visited them above.
         raise self.Continue()
 
     def finalize(self):
         text = self.buf.getvalue()
-        text = text.replace('\xa0', ' ')
         return text
 
 
-class DetailField:
+class DetailField(FieldAccessor):
     '''Support the field accessor interface same as TableCell.
     '''
-    def __init__(self, data, config_obj):
+    def __init__(self, data):
         self.data = data
-        self.cfg = config_obj
 
     @property
     def node(self):
         return self.data['node']
 
-    @property
-    def text(self):
-        if self.is_blank():
-            return
-        return TextRenderer().visit(self.node)
+    def get_text(self):
+        text = TextRenderer().visit(self.node)
+        if not self._is_blank_placeholder(text):
+            return text
 
-    @property
-    def url(self):
+    def get_url(self):
         for descendant in self.node.find():
             if 'href' in descendant:
                 return descendant['href']
 
-    def is_blank(self):
-        if self.text.strip().replace('\xa0', ' ') == 'Not available':
+    def _is_blank_placeholder(self, text):
+        if text == 'Not available':
             return True
 
-    @property
-    def mimetype(self):
-        for descendant in self.node.find().filter(tag='img'):
+    def is_blank(self):
+        if self._is_blank_placeholder(self.text):
+            return True
+
+    def get_mimetype(self):
+        for descendant in self.node.parent.find().filter(tag='img'):
             if 'src' not in descendant:
                 continue
             gif_url = descendant['src']
@@ -174,3 +187,11 @@ class DetailField:
             }
             mimetype = mimetypes[path]
             return mimetype
+
+    def get_video_url(self):
+        key = self.get_label_text('video')
+        field_data = self.field_data[key]
+        onclick = field_data.data['node']['onclick']
+        matchobj = re.search(r"\Video.+?\'", onclick)
+        if matchobj:
+            return matchobj.group()

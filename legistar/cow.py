@@ -1,14 +1,17 @@
+from urllib.parse import urlparse
 
+from legistar import settings
 from legistar.jxn_config import Config
-from legistar.rootview import Root
-from legistar.jurisdictions.nyc import Config as NycConfig
+from legistar.rootview import get_scraper
+# from legistar.jurisdictions.nyc import Config as NycConfig
+import legistar.jurisdictions
+
 
 if __name__ == '__main__':
     import pprint
-    jxn_config = type('Config', (NycConfig, Config,), {})
-    site = Root(jxn_config)
-    # print(site.get_active_tab())
-    for obj in site.gen_events():
+    url = 'http://legistar.council.nyc.gov/'
+    scraper = get_scraper(url)
+    for obj in scraper.gen_events():
         pprint.pprint(obj.asdict())
-        deets = obj.detail_page.asdict()
+        pprint.pprint(obj.detail_page.asdict())
         import pdb; pdb.set_trace()

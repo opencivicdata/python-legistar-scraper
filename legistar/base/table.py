@@ -1,6 +1,11 @@
+import io
+from urllib.parse import urlparse
 from collections import OrderedDict
 
 from hercules import CachedAttr
+
+from legistar.base.field import FieldAggregator, FieldAccessor
+from legistar.base.ctx import CtxMixin
 
 
 class NoRecordsFound(Exception):
@@ -8,33 +13,31 @@ class NoRecordsFound(Exception):
     '''
 
 
-class TableRow(OrderedDict):
+class TableRow(FieldAggregator):
     '''Provides access to table rows.
     '''
-    def __init__(self, *args, config=None, **kwargs):
-        if config is None:
-            raise Exception('Pass in the config object please.')
-        self.config = self.cfg = config
-        super().__init__(*args, **kwargs)
+    def __init__(self, *args, view, **kwargs):
+        self.view = view
+        self.field_data = OrderedDict(*args, **kwargs)
 
     @CachedAttr
     def detail_page(self):
-        return self.DetailClass(self.cfg, url=self.get_detail_url())
+        DetailView = self.view.viewmeta.detail.View
+        detail_view = DetailView(url=self.get_detail_url())
+        detail_view.inherit_ctx_from(self.view)
+        return detail_view
 
 
-class TableCell:
+class TableCell(FieldAccessor):
     '''Provides access to table cells.
     '''
-    def __init__(self, td, config_obj):
+    def __init__(self, td):
         self.td = td
-        self.config_obj = self.cfg = config_obj
 
-    @property
-    def url(self):
+    def get_url(self):
         return self.td.xpath('string(.//a/@href)')
 
-    @property
-    def text(self):
+    def get_text(self):
         buf = io.StringIO()
         first = True
         for chunk in self.td.itertext():
@@ -51,8 +54,7 @@ class TableCell:
         if self.text.strip().replace('\xa0', ' ') == 'Not available':
             return True
 
-    @property
-    def mimetype(self):
+    def get_mimetype(self):
         gif_url = self.td.xpath('string(.//img/@src)')
         path = urlparse(gif_url).path
         if gif_url is None:
@@ -64,28 +66,13 @@ class TableCell:
         return mimetype
 
 
-class Table:
+class Table(CtxMixin):
     '''Provides access to row data in tabular search results data.
+    Tables inherit the context of the view's form. So self.doc on a table
+    is really self.doc on the form.
     '''
-    RowClass = TableRow
-    CellClass = TableCell
-
     def __init__(self, view):
         self.view = view
-
-    @property
-    def doc(self):
-        return self.view.doc
-
-    @property
-    def config_obj(self):
-        return self.view.config_obj
-
-    cfg = config_obj
-
-    @property
-    def row_class(self):
-        return self.cfg.viewmeta
 
     @property
     def table_element(self):
@@ -105,22 +92,27 @@ class Table:
     def gen_rows(self):
         '''Yield table row objects.
         '''
+        TableCell = self.view.viewtype_meta.TableCell
+        TableRow = self.view.viewtype_meta.TableRow
         header_text = self.get_header_text()
-        for tr in self.doc.xpath('//tr[contains(@class, "rgRow")]'):
+
+        for tr in self.table_element.xpath('.//tr')[1:]:
 
             # Complain if no records.
             if self.cfg.NO_RECORDS_FOUND_TEXT in tr.text_content():
                 raise NoRecordsFound()
 
-            tds = []
+            cells = []
             for el in tr.xpath('.//td'):
-                tds.append(self.CellClass(el, self.cfg))
+                cell = self.make_child(TableCell, el)
+                cells.append(cell)
 
-            # Complain if number of cells isn't right.
-            assert len(tds) == len(header_text)
+            # Complain if number of cells doesn't align with the headers.
+            assert len(cells) == len(header_text)
 
             # Create a super wrappy set of wrapped wrappers.
-            record = self.RowClass(zip(header_text, tds), config=self.cfg)
+            data = zip(header_text, cells)
+            record = self.make_child(TableRow, data, view=self.view)
             yield record
 
     def __iter__(self):
