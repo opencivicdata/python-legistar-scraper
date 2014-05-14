@@ -75,13 +75,12 @@ class DetailVisitor(visitors.Visitor):
         matchobj = re.search(r'_hyp(.+)', node['id'])
         if matchobj:
             key = matchobj.group(1)
-            if key == 'Name':
-                import pdb; pdb.set_trace()
             data = self.data[key]
             data.update(url=node['href'], node=node)
             if 'label' not in data:
                 label = get_text(node).strip(':')
                 data['label'] = label
+                raise self.Continue()
             return
 
     def visit_span(self, node):
@@ -94,7 +93,7 @@ class DetailVisitor(visitors.Visitor):
             key = matchobj.group(1)
             label = get_text(node).strip(':')
             self.data[key]['label'] = label
-            return
+            raise self.Continue()
 
         matchobj = re.search(r'_lbl(.+)', node['id'])
         if matchobj:
@@ -143,8 +142,6 @@ class TextRenderer(visitors.Visitor):
         text = node.get('tail', '')
         text = self.scrub_text(text)
         self.buf.write(text)
-        # Don't visit children--already visited them above.
-        raise self.Continue()
 
     def finalize(self):
         text = self.buf.getvalue()
