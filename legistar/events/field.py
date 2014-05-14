@@ -7,20 +7,9 @@ from legistar.utils.itemgenerator import make_item
 
 class EventFields(FieldAggregator):
 
-    @make_item('when')
-    def get_when(self):
-        date_key = self.get_label_text('date')
-        date = self.field_data[date_key].get_text()
-        time_key = self.get_label_text('time')
-        time = self.field_data[time_key].get_text()
-        datetime_format = self.get_config_value('DATETIME_FORMAT')
-        dt = datetime.strptime('%s %s' % (date, time), datetime_format)
-        return dt
-
     @make_item('location')
     def get_location(self):
-        key = self.get_label_text('location')
-        return self.field_data[key].get_text()
+        return self.get_field_text('location')
 
     @make_item('documents', wrapwith=list)
     def gen_documents(self):
@@ -33,6 +22,11 @@ class EventFields(FieldAggregator):
                 continue
             elif field.get_url() is None:
                 continue
+
+            if field.get_mimetype() is None:
+                print("ASDF")
+                import pdb; pdb.set_trace()
+
             document = dict(
                 name=field.get_text(),
                 url=field.get_url(),

@@ -30,6 +30,9 @@ def resolve_name(name, module_name=None, raise_exc=True):
 
 
 class TabMeta:
+    '''Desceriptor to help in aggregating TAB* metadata on jxn config types.
+    '''
+    TabItemMeta = namedtuple('TabMeta', 'path, text, pupatype')
 
     def __get__(self, inst, type_=None):
         self.inst = inst
@@ -37,7 +40,8 @@ class TabMeta:
 
     def _gen_tabs(self):
         for pupatype in PUPATYPE_PREFIXES:
-            yield getattr(self.inst, pupatype + '_TAB_META')
+            data = getattr(self.inst, pupatype + '_TAB_META')
+            yield self.TabItemMeta(*data)
 
     def get_by_pupatype(self, pupatype):
         for tab in self._gen_tabs():
@@ -48,6 +52,24 @@ class TabMeta:
         for tab in self._gen_tabs():
             if tabtext == tab.text:
                 return tab
+
+
+class MimetypeGifMeta:
+    '''The fact that this class exists just proves that opening up
+    government data is really important. All it does is aggregate the
+    MIMETYPE_GIF_ settings and convert them to a dict that relates
+    gif urls to mimetypes.
+    '''
+    def __get__(self, inst, type_=None):
+        self.inst = inst
+        return dict(self._gen_items(inst))
+
+    def _gen_items(self, inst):
+        prefixes = ('MIMETYPE_GIF_', 'MIMETYPE_EXT_')
+        for name in dir(inst):
+            for prefix in prefixes:
+                if name.startswith(prefix):
+                    yield getattr(inst, name)
 
 
 _viewmeta_fields = (
@@ -166,6 +188,9 @@ JXN_CONFIGS = {}
 
 
 class ConfigMeta(type):
+    '''Metaclass that aggregates jurisdiction config types by root_url
+    and ocd_id.
+    '''
     def __new__(meta, name, bases, attrs):
         cls = type.__new__(meta, name, bases, attrs)
         root_url = attrs.get('root_url')
@@ -180,17 +205,25 @@ class ConfigMeta(type):
 
 
 class Config(CtxMixin, metaclass=ConfigMeta):
+    '''The base configuration for a Legistar instance. Various parts can be
+    overridden.
     '''
-    '''
-    def __init__(self, *args, **kwargs):
-        self.args = args
+    def __init__(self, **kwargs):
+        '''Thinking it'd be helpful to store get_scraper kwargs here,
+        in case the Config subtype is the most convenient place to put
+        a helper function.
+        '''
         self.kwargs = kwargs
 
     SESSION_CLASS = requests.Session
 
+    gif_mimetypes = MimetypeGifMeta()
     # Preceding slashes are necessary
-    MIMETYPE_GIF_PDF = '/Images/PDF.gif'
-    # MIMETYPE_GIF_VIDEO = '/Images/PDF.gif'
+    MIMETYPE_GIF_PDF = ('/images/pdf.gif', 'application/pdf')
+    MIMETYPE_EXT_PDF = ('pdf', 'application/pdf')
+    MIMETYPE_GIF_VIDEO = ('/images/video.gif', 'application/x-shockwave-flash')
+    MIMETYPE_EXT_DOC = ('doc', 'application/vnd.msword')
+    MIMETYPE_EXT_DOCX = ('docx', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document')
 
     TAB_TEXT_ID = 'ctl00_tabTop'
     TAB_TEXT_XPATH_TMPL = 'string(//div[@id="%s"]//a[contains(@class, "rtsSelected")])'
@@ -198,24 +231,18 @@ class Config(CtxMixin, metaclass=ConfigMeta):
 
     # These are config options that can be overridden.
     tabs = TabMeta()
-    TabItemMeta = namedtuple('TabMeta', 'path, text, pupatype')
-    EVENTS_TAB_META = TabItemMeta('Calendar.aspx', 'Calendar', 'events')
-    ORGS_TAB_META = TabItemMeta('Departments.aspx', 'Committees', 'orgs')
-    BILLS_TAB_META = TabItemMeta('Legislation.aspx', 'Legislation', 'bills')
-    PEOPLE_TAB_META = TabItemMeta('MainBody.aspx', 'City Council', 'people')
+    EVENTS_TAB_META = ('Calendar.aspx', 'Calendar', 'events')
+    ORGS_TAB_META = ('Departments.aspx', 'Committees', 'orgs')
+    BILLS_TAB_META = ('Legislation.aspx', 'Legislation', 'bills')
+    PEOPLE_TAB_META = ('MainBody.aspx', 'City Council', 'people')
 
-    # Url paths.
-    EVENT_DETAIL_PATH = 'MeetingDetail.aspx'
-    ORG_DETAIL_PATH = 'DepartmentDetail.aspx'
-
-    # Pagination.
+    # Pagination xpaths.
     PGN_CURRENT_PAGE_TMPL = '//*[contains(@class, "%s")]'
     PGN_CURRENT_PAGE_CLASS = 'rgCurrentPage'
     PGN_CURRENT_PAGE_XPATH = PGN_CURRENT_PAGE_TMPL % PGN_CURRENT_PAGE_CLASS
     PGN_NEXT_PAGE_TMPL = '%s/following-sibling::a[1]'
-    PGN_NEXT_PAGE_XPATH = '%s/following-sibling::a[1]' % PGN_CURRENT_PAGE_XPATH
+    PGN_NEXT_PAGE_XPATH = 'string(%s/following-sibling::a[1]/@href)' % PGN_CURRENT_PAGE_XPATH
 
-    # XXX lazy loading stuff good here?
     viewmeta = ViewsMeta()
     EVENTS_SEARCH_VIEW_CLASS = 'legistar.events.search.view.SearchView'
     EVENTS_DETAIL_VIEW_CLASS = 'legistar.events.detail.view.DetailView'
@@ -261,16 +288,17 @@ class Config(CtxMixin, metaclass=ConfigMeta):
     BILLS_DETAIL_TABLECELL_CLASS = 'legistar.base.table.TableCell'
     BILLS_DETAIL_FORM_CLASS = 'legistar.bills.detail.form.Form'
 
-    NO_RECORDS_FOUND_TEXT = 'No records were found'
+    NO_RECORDS_FOUND_TEXT = ['No records were found', 'No records to display.']
     RESULTS_TABLE_XPATH = '//table[contains(@class, "rgMaster")]'
 
     # ------------------------------------------------------------------------
-    # Events config
+    # Events general config.
     # ------------------------------------------------------------------------
-    EVENTS_DEFAULT_TIME_PERIOD = 'This Year'
-    EVENTS_DEFAULT_BODIES = 'All Committees'
-    EVENTS_BODIES_EL_NAME = 'ctl00$ContentPlaceHolder1$lstBodies'
-    EVENTS_TIME_PERIOD_EL_NAME = 'ctl00$ContentPlaceHolder1$lstYears'
+    EVENTS_SEARCH_TIME_PERIOD = 'This Year'
+    EVENTS_SEARCH_BODIES = 'All Committees'
+    EVENTS_SEARCH_BODIES_EL_NAME = 'ctl00$ContentPlaceHolder1$lstBodies'
+    EVENTS_SEARCH_TIME_PERIOD_EL_NAME = 'ctl00$ContentPlaceHolder1$lstYears'
+    EVENTS_SEARCH_CLIENTSTATE_EL_NAME = 'ctl00_ContentPlaceHolder1_lstYears_ClientState'
 
     # ------------------------------------------------------------------------
     # Events table config.
@@ -363,17 +391,17 @@ class Config(CtxMixin, metaclass=ConfigMeta):
     requests_kwargs = dict(
         proxies=proxies,
         headers=headers)
+    requests_kwargs = {}
 
-    @CachedAttr
-    def client(self):
+    def get_client(self):
         '''The requests.Session-like object used to make web requests;
         usually a scrapelib.Scraper.
         '''
-        client = Client(self)
-        self.ctx['client'] = client
-        return client
+        return Client(self)
 
     def get_logger(self):
+        '''Get a configured logger.
+        '''
         logger = logging.getLogger('legistar')
         if 'loglevel' in self.kwargs:
             logger.setLevel(self.kwargs['loglevel'])
@@ -381,14 +409,17 @@ class Config(CtxMixin, metaclass=ConfigMeta):
 
     @CachedAttr
     def ctx(self):
-        '''An inheritable/overriddable dict for this config's helper
+        '''An inheritable/overridable dict for this config's helper
         views to access. Make it initially point back to this config object.
+
+        Other objects that inherit this ctx can access self.info, etc.
         '''
         logger = self.get_logger()
         ctx = ChainMap()
         ctx.update(
             config=self,
             url=self.root_url,
+            client=self.get_client(),
             info=logger.info,
             error=logger.error,
             debug=logger.debug,

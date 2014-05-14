@@ -17,7 +17,7 @@ LOGGING_CONFIG = {
     },
     'loggers': {
         'legistar': {
-            'handlers': ['default'], 'level': 'INFO', 'propagate': False
+            'handlers': ['default'], 'level': 'DEBUG', 'propagate': False
         },
         'requests': {
             'handlers': ['default'], 'level': 'DEBUG', 'propagate': False

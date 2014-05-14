@@ -1,4 +1,8 @@
+import re
+import itertools
+
 import lxml.html
+
 from legistar.base.ctx import CtxMixin
 
 
@@ -9,8 +13,17 @@ class Form(CtxMixin):
 
     def __init__(self, view):
         self.view = self.inherit_ctx_from(view)
+        # We need to seed the client with the ASP viewstate nonsense
+        # before trying to post to the form. This does that:
+        doc = self.doc
+        self.count = itertools.count(2)
+
+    @property
+    def formdata(self):
+        return dict(self.doc.forms[0].fields)
 
     def submit(self, formdata=None):
+        self.debug('%r is fetching %s', self, self.url)
         resp = self.cfg.client.post(self.url, formdata)
         doc = lxml.html.fromstring(resp.text)
         doc.make_links_absolute(self.url)
@@ -22,30 +35,31 @@ class Form(CtxMixin):
         '''
         raise NotImplementedError()
 
-    def get_next_page(self):
-        '''Is the current view paginated?
-        '''
-        if 'search' in self.__class__.__qualname__.lower():
-            import pdb; pdb.set_trace()
-        a = self.doc.xpath(self.cfg.PGN_NEXT_PAGE_XPATH)
-        if not a:
-            return
-
     def submit_next_page(self):
-        next_page = self.get_next_page()
-        # event_target = next_page[0].attrib['href'].split("'")[1]
-        # formdata = dict(doc.forms[0].fields)
-        # formdata['__EVENTTARGET'] = event_target
-        # self.doc = self.lxmlize(formdata)
+        '''Submits the next page in the search results.
+        '''
+        js = self.doc.xpath(self.cfg.PGN_NEXT_PAGE_XPATH)
+        if not js:
+            # There are no more pages.
+            msg = 'No more pages of search results.'
+            self.info(msg)
+            raise StopIteration()
+
+        # Parse the pagination control id name thingy.
+        event_target = js.split("'")[1]
+        formdata = dict(__EVENTTARGET=event_target)
+
+        # Re-submit the form.
+        msg = '%r requesting page %d of search results: %r'
+        self.info(msg, self, next(self.count), formdata)
+        self.submit(formdata)
 
     def __iter__(self):
         Table = self.view.viewtype_meta.Table
         if not self.skip_first_submit:
             self.submit(self.get_query())
-        table = self.make_child(Table, view=self.view)
-        yield from table
+        yield from self.make_child(Table, view=self.view)
+
         while True:
-            if not self.submit_next_page():
-                break
-            table = self.make_child(Table, view=self.view)
-            yield from table
+            self.submit_next_page()
+            yield from self.make_child(Table, view=self.view)

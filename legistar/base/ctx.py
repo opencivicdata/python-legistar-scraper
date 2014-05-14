@@ -30,11 +30,21 @@ class CtxValue:
 
 
 class Doc(CtxValue):
-
+    '''This one's expensive, so fetch it lazily and cache it.
+    '''
     def get_value(self, inst, owner):
+        # Blab.
+        msg_args = (inst, inst.url)
+        inst.debug('%s is fetching %s', *msg_args)
+
+        # Fetch the page, parse.
         resp = inst.cfg.client.get(inst.url)
         doc = lxml.html.fromstring(resp.text)
         doc.make_links_absolute(inst.url)
+
+        # Cache it and blab some more.
+        inst.ctx['doc'] = doc
+        inst.debug('%s cached parsed lxml doc %s', *msg_args)
         return doc
 
     def add_to_sources(self, inst, *args):

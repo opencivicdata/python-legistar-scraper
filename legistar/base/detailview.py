@@ -69,14 +69,18 @@ class DetailVisitor(visitors.Visitor):
         if 'href' not in node:
             return
 
+        self.cfg.critical(node['id'])
+
         # If it's a field label, collect the text and href.
         matchobj = re.search(r'_hyp(.+)', node['id'])
         if matchobj:
             key = matchobj.group(1)
+            if key == 'Name':
+                import pdb; pdb.set_trace()
             data = self.data[key]
             data.update(url=node['href'], node=node)
             if 'label' not in data:
-                label = TextRenderer().visit(node).strip().strip(':')
+                label = get_text(node).strip(':')
                 data['label'] = label
             return
 
@@ -88,7 +92,7 @@ class DetailVisitor(visitors.Visitor):
         matchobj = re.search(r'_lbl(.+?)X', node['id'])
         if matchobj:
             key = matchobj.group(1)
-            label = node.children[0]['text'].strip().strip(':')
+            label = get_text(node).strip(':')
             self.data[key]['label'] = label
             return
 
@@ -118,6 +122,7 @@ class TextRenderer(visitors.Visitor):
     '''Render some nesty html text into a string, adding spaces for sanity.
     '''
     def __init__(self):
+        import pudb; pudb.set_trace()
         self.buf = io.StringIO()
 
     def scrub_text(self, text):
@@ -146,6 +151,10 @@ class TextRenderer(visitors.Visitor):
         return text
 
 
+def get_text(node):
+    return TextRenderer().visit(node).strip()
+
+
 class DetailField(FieldAccessor):
     '''Support the field accessor interface same as TableCell.
     '''
@@ -157,7 +166,7 @@ class DetailField(FieldAccessor):
         return self.data['node']
 
     def get_text(self):
-        text = TextRenderer().visit(self.node).strip()
+        text = get_text(self.node)
         if not self._is_blank(text):
             return text
 
@@ -176,18 +185,20 @@ class DetailField(FieldAccessor):
         return self._is_blank(self.text)
 
     def get_mimetype(self):
+        key = None
+        # First try looking for mimetype gif.
         for descendant in self.node.parent.find().filter(tag='img'):
             if 'src' not in descendant:
                 continue
             gif_url = descendant['src']
             path = urlparse(gif_url).path
-            if gif_url is None:
-                return
-            mimetypes = {
-                self.cfg.MIMETYPE_GIF_PDF: 'application/pdf',
-            }
-            mimetype = mimetypes[path]
-            return mimetype
+            if gif_url:
+                key = path
+        # Fall back to url filename ext.
+        if key is None:
+            _, extension = self.get_url().rsplit('.', 1)
+            key = extension
+        return self.cfg.gif_mimetypes.get(key.lower())
 
     def get_video_url(self):
         key = self.get_label_text('video')

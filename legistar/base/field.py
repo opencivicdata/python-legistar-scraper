@@ -71,7 +71,11 @@ class FieldAggregator(ItemGenerator, CtxMixin):
 
     def get_field_data(self, label_text):
         key = self.get_label_text(label_text)
-        return self.field_data.get(key)
+        try:
+            return self.field_data[key]
+        except KeyError:
+            # The data wasn't found, so we skip it.
+            raise self.SkipItem()
 
     def get_field_text(self, label_text):
         field_data = self.get_field_data(label_text)

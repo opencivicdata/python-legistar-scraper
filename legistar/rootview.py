@@ -41,12 +41,9 @@ class LegistarScraper(View):
         yield from self.get_pupatype_searchview(pupatype)
 
 
-def get_scraper(*args, **kwargs):
+def get_scraper(url=None, ocd_id=None, **kwargs):
     '''Get the correct scraper by url or ocd_id.
     '''
-    url = kwargs.pop('url')
-    ocd_id = kwargs.pop('ocd_id')
-
     if url is not None:
         data = urlparse(url)
         try:
@@ -66,6 +63,6 @@ def get_scraper(*args, **kwargs):
         raise Exception('Please supply the jurisdiction\'s url or ocd_id.')
 
     config_obj = config_type()
-    scraper = LegistarScraper(*args, **kwargs))
+    scraper = LegistarScraper(**kwargs)
     scraper.set_parent_ctx(config_obj.ctx)
     return scraper

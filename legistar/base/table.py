@@ -67,13 +67,12 @@ class TableCell(FieldAccessor):
     def get_mimetype(self):
         gif_url = self.td.xpath('string(.//img/@src)')
         path = urlparse(gif_url).path
-        if gif_url is None:
-            return
-        mimetypes = {
-            self.cfg.MIMETYPE_GIF_PDF: 'application/pdf',
-        }
-        mimetype = mimetypes[path]
-        return mimetype
+        if gif_url:
+            key = path
+        else:
+            _, extension = self.get_url().rsplit('.', 1)
+            key = extension
+        return self.cfg.gif_mimetypes.get(key.lower())
 
 
 class Table(CtxMixin):
@@ -91,7 +90,7 @@ class Table(CtxMixin):
         return els.pop()
 
     def _gen_header_text(self):
-        for th in self.table_element.xpath('.//th'):
+        for th in self.table_element.xpath('.//th[contains(@class, "rgHeader")]'):
             # Remove nonbreaking spaces.
             text = th.text_content().replace('\xa0', ' ')
             yield text.strip()
@@ -108,10 +107,24 @@ class Table(CtxMixin):
 
         for tr in self.table_element.xpath('.//tr')[1:]:
 
-            # Complain if no records.
-            if self.cfg.NO_RECORDS_FOUND_TEXT in tr.text_content():
-                raise NoRecordsFound()
+            # Skip the pagination rows.
+            if 'rgPager' in tr.attrib.get('class', ''):
+                continue
 
+            if tr.xpath('.//td[contains(@class, "rgPagerCell")]'):
+                continue
+
+            # Skip weird col rows.
+            if tr.xpath('.//th[@scope="col"]'):
+                continue
+
+            # Complain if no records.
+            if tr.text_content().strip() in self.cfg.NO_RECORDS_FOUND_TEXT:
+                msg = 'No records found in %r. Moving on.'
+                self.debug(msg % self)
+                raise StopIteration()
+
+            # Collect all the cells.
             cells = []
             for el in tr.xpath('.//td'):
                 cell = self.make_child(TableCell, el)
