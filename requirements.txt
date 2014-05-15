@@ -1,0 +1,26 @@
+Django==1.6.4
+EasyProcess==0.0.0
+PyVirtualDisplay==0.1.5
+Pygments==1.6
+-e git+git@github.com:twneale/banzai.git@5ac7adf53df0d1ddb9f2450f92d95b3a768a3a19#egg=banzai-master
+dj-database-url==0.3.0
+djorm-ext-pgarray==0.10
+-e git+git@github.com:twneale/hercules.git@a27686aa9448694f9fd7d7da6ebbfe2f46c3a323#egg=hercules-master
+lxml==3.3.5
+mock==1.0.1
+-e git+git@github.com:twneale/nmmd.git@3bb2e3f2baa7a487ea71e56f4567bda08039e05a#egg=nmmd-master
+pudb==2014.1
+-e git+git@github.com:opencivicdata/pupa.git@bf17f0cfe9c358280f267aca161cce17101a9e41#egg=pupa-dev
+py==1.4.20
+pytest==2.5.2
+readline==6.2.4.1
+requests==2.2.1
+-e git+git@github.com:twneale/rexlex.git@21e6fba8cfed43f4197deb342fea9c909009d70e#egg=rexlex-master
+scrapelib==0.9.1
+selenium==2.41.0
+six==1.6.1
+-e git+git@github.com:twneale/treebie.git@805ad218c6f7e0f7b2817177d7d56f7231ff6b7e#egg=treebie-master
+urllib3==1.8.2
+urwid==1.2.1
+validictory==0.9.3
+-e git+git@github.com:twneale/visitors.git@f58885b216c8bd244ed1fcd27b2d832ff03afad0#egg=visitors-master
