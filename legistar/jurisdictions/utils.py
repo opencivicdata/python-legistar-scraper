@@ -24,7 +24,7 @@ def resolve_name(name, module_name=None, raise_exc=True):
 class Tabs:
     '''Desceriptor to help in aggregating TAB* metadata on jxn config types.
     '''
-    TabItemMeta = namedtuple('TabMeta', 'path, text, pupatype')
+    TabItemMeta = namedtuple('TabMeta', 'path, pupatype')
 
     def __get__(self, inst, type_=None):
         self.inst = inst
@@ -38,11 +38,6 @@ class Tabs:
     def get_by_pupatype(self, pupatype):
         for tab in self._gen_tabs():
             if pupatype == tab.pupatype:
-                return tab
-
-    def get_by_text(self, tabtext):
-        for tab in self._gen_tabs():
-            if tabtext == tab.text:
                 return tab
 
 
@@ -176,3 +171,8 @@ class Views:
         for meta in self._gen_meta():
             if pupatype == meta.pupatype:
                 return meta
+        msg = (
+            'No viewmeta found for pupatype %r. '
+            'Available pupatypes are %r')
+        types = [meta.pupatype for meta in self._gen_meta()]
+        raise Exception(msg % (pupatype, types))

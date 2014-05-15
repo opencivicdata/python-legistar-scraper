@@ -12,7 +12,7 @@ if __name__ == '__main__':
     if key.startswith('http'):
         scraper = get_scraper(url=key)
     else:
-        scraper = get_scraper(key=key)
-    for data in scraper.gen_events():
+        scraper = get_scraper(key)
+    for data in scraper.gen_people():
         pprint.pprint(data)
         import pdb; pdb.set_trace()

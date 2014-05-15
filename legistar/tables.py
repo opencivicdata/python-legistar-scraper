@@ -56,7 +56,12 @@ class Table(Base):
         for tr in self.table_element.xpath('.//tr')[1:]:
 
             # Skip the pagination rows.
-            if 'rgPager' in tr.attrib.get('class', ''):
+            class_attr = tr.attrib.get('class', '')
+            if 'rgPager' in class_attr:
+                continue
+
+            # Skip filter rows.
+            if 'rgFilterRow' in class_attr:
                 continue
 
             if tr.xpath('.//td[contains(@class, "rgPagerCell")]'):

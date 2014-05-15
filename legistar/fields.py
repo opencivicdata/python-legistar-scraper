@@ -67,7 +67,11 @@ class FieldAggregator(Base, ItemGenerator):
         self.get_label_text('topic') --> self.cfg.EVT_TABLE_TEXT_TOPIC
         '''
         key = 'TEXT_%s' % key.upper()
-        return self.get_config_value(key)
+        try:
+            return self.get_config_value(key)
+        except:
+            self.info('No field %s found on %r. Skipping.', key, self)
+            raise self.SkipItem()
 
     def get_field_data(self, label_text):
         key = self.get_label_text(label_text)
@@ -142,8 +146,6 @@ class ElementAccessor(FieldAccessor):
         else:
             _, extension = self.get_url().rsplit('.', 1)
             key = extension
-        if self.cfg.mimetypes.get(key.lower()) is None:
-            import pdb; pdb.set_trace()
         return self.cfg.mimetypes.get(key.lower())
 
     def get_video_url(self):

@@ -64,10 +64,10 @@ class Config(Base, metaclass=ConfigMeta):
 
     # These are config options that can be overridden.
     tabs = Tabs()
-    EVENTS_TAB_META = ('Calendar.aspx', 'Calendar', 'events')
-    ORGS_TAB_META = ('Departments.aspx', 'Committees', 'orgs')
-    BILLS_TAB_META = ('Legislation.aspx', 'Legislation', 'bills')
-    PEOPLE_TAB_META = ('MainBody.aspx', 'City Council', 'people')
+    EVENTS_TAB_META = ('Calendar.aspx', 'events')
+    ORGS_TAB_META = ('Departments.aspx', 'orgs')
+    BILLS_TAB_META = ('Legislation.aspx', 'bills')
+    PEOPLE_TAB_META = ('People.aspx', 'people')
 
     # Pagination xpaths.
     PGN_CURRENT_PAGE_TMPL = '//*[contains(@class, "%s")]'
@@ -88,38 +88,38 @@ class Config(Base, metaclass=ConfigMeta):
     EVENTS_DETAIL_TABLECELL_CLASS = 'legistar.fields.ElementAccessor'
     EVENTS_DETAIL_FORM_CLASS = 'legistar.events.DetailForm'
 
-    # ORGS_SEARCH_VIEW_CLASS = 'legistar.orgs.SearchView'
-    # ORGS_DETAIL_VIEW_CLASS = 'legistar.orgs.DetailView'
-    # ORGS_SEARCH_TABLE_CLASS = 'legistar.orgs.SearchTable'
-    # ORGS_SEARCH_TABLEROW_CLASS = 'legistar.orgs.search.table.TableRow'
-    # ORGS_SEARCH_TABLECELL_CLASS = 'legistar.fields.ElementAccessor'
-    # ORGS_SEARCH_FORM_CLASS = 'legistar.orgs.search.form.Form'
-    # ORGS_DETAIL_TABLE_CLASS = 'legistar.orgs.detail.table.Table'
-    # ORGS_DETAIL_TABLEROW_CLASS = 'legistar.orgs.detail.table.TableRow'
-    # ORGS_DETAIL_TABLECELL_CLASS = 'legistar.fields.ElementAccessor'
-    # ORGS_DETAIL_FORM_CLASS = 'legistar.orgs.detail.form.Form'
+    ORGS_SEARCH_VIEW_CLASS = 'legistar.orgs.SearchView'
+    ORGS_DETAIL_VIEW_CLASS = 'legistar.orgs.DetailView'
+    ORGS_SEARCH_TABLE_CLASS = 'legistar.orgs.SearchTable'
+    ORGS_SEARCH_TABLEROW_CLASS = 'legistar.orgs.SearchTableRow'
+    ORGS_SEARCH_TABLECELL_CLASS = 'legistar.fields.ElementAccessor'
+    ORGS_SEARCH_FORM_CLASS = 'legistar.orgs.SearchForm'
+    ORGS_DETAIL_TABLE_CLASS = 'legistar.orgs.DetailTable'
+    ORGS_DETAIL_TABLEROW_CLASS = 'legistar.orgs.DetailTableRow'
+    ORGS_DETAIL_TABLECELL_CLASS = 'legistar.fields.ElementAccessor'
+    ORGS_DETAIL_FORM_CLASS = 'legistar.orgs.DetailForm'
 
-    # PEOPLE_SEARCH_VIEW_CLASS = 'legistar.people.SearchView'
-    # PEOPLE_DETAIL_VIEW_CLASS = 'legistar.people.DetailView'
-    # PEOPLE_SEARCH_TABLE_CLASS = 'legistar.people.search.table.Table'
-    # PEOPLE_SEARCH_TABLEROW_CLASS = 'legistar.people.search.table.TableRow'
-    # PEOPLE_SEARCH_TABLECELL_CLASS = 'legistar.fields.ElementAccessor'
-    # PEOPLE_SEARCH_FORM_CLASS = 'legistar.people.search.form.Form'
-    # PEOPLE_DETAIL_TABLE_CLASS = 'legistar.people.detail.table.Table'
-    # PEOPLE_DETAIL_TABLEROW_CLASS = 'legistar.people.detail.table.TableRow'
-    # PEOPLE_DETAIL_TABLECELL_CLASS = 'legistar.fields.ElementAccessor'
-    # PEOPLE_DETAIL_FORM_CLASS = 'legistar.people.detail.form.Form'
+    PEOPLE_SEARCH_VIEW_CLASS = 'legistar.people.SearchView'
+    PEOPLE_DETAIL_VIEW_CLASS = 'legistar.people.DetailView'
+    PEOPLE_SEARCH_TABLE_CLASS = 'legistar.people.SearchTable'
+    PEOPLE_SEARCH_TABLEROW_CLASS = 'legistar.people.SearchTableRow'
+    PEOPLE_SEARCH_TABLECELL_CLASS = 'legistar.fields.ElementAccessor'
+    PEOPLE_SEARCH_FORM_CLASS = 'legistar.people.SearchForm'
+    PEOPLE_DETAIL_TABLE_CLASS = 'legistar.people.DetailTable'
+    PEOPLE_DETAIL_TABLEROW_CLASS = 'legistar.people.DetailTableRow'
+    PEOPLE_DETAIL_TABLECELL_CLASS = 'legistar.fields.ElementAccessor'
+    PEOPLE_DETAIL_FORM_CLASS = 'legistar.people.DetailForm'
 
-    # BILLS_SEARCH_VIEW_CLASS = 'legistar.bills.SearchView'
-    # BILLS_DETAIL_VIEW_CLASS = 'legistar.bills.DetailView'
-    # BILLS_SEARCH_TABLE_CLASS = 'legistar.bills.search.table.Table'
-    # BILLS_SEARCH_TABLEROW_CLASS = 'legistar.bills.search.table.TableRow'
-    # BILLS_SEARCH_TABLECELL_CLASS = 'legistar.fields.ElementAccessor'
-    # BILLS_SEARCH_FORM_CLASS = 'legistar.bills.search.form.Form'
-    # BILLS_DETAIL_TABLE_CLASS = 'legistar.bills.detail.table.Table'
-    # BILLS_DETAIL_TABLEROW_CLASS = 'legistar.bills.detail.table.TableRow'
-    # BILLS_DETAIL_TABLECELL_CLASS = 'legistar.fields.ElementAccessor'
-    # BILLS_DETAIL_FORM_CLASS = 'legistar.bills.detail.form.Form'
+    BILLS_SEARCH_VIEW_CLASS = 'legistar.bills.SearchView'
+    BILLS_DETAIL_VIEW_CLASS = 'legistar.bills.DetailView'
+    BILLS_SEARCH_TABLE_CLASS = 'legistar.bills.SearchTable'
+    BILLS_SEARCH_TABLEROW_CLASS = 'legistar.bills.SearchTableRow'
+    BILLS_SEARCH_TABLECELL_CLASS = 'legistar.fields.ElementAccessor'
+    BILLS_SEARCH_FORM_CLASS = 'legistar.bills.SearchForm'
+    BILLS_DETAIL_TABLE_CLASS = 'legistar.bills.DetailTable'
+    BILLS_DETAIL_TABLEROW_CLASS = 'legistar.bills.DetailTableRow'
+    BILLS_DETAIL_TABLECELL_CLASS = 'legistar.fields.ElementAccessor'
+    BILLS_DETAIL_FORM_CLASS = 'legistar.bills.DetailForm'
 
     NO_RECORDS_FOUND_TEXT = ['No records were found', 'No records to display.']
     RESULTS_TABLE_XPATH = '//table[contains(@class, "rgMaster")]'
@@ -210,6 +210,24 @@ class Config(Base, metaclass=ConfigMeta):
     EVT_AGENDA_TABLE_TEXT_VIDEO = 'Video'
     EVT_AGENDA_TABLE_TEXT_AUDIO = 'Audio'
     EVT_AGENDA_TABLE_TEXT_TRANSCRIPT = 'Transcript'
+
+    # ------------------------------------------------------------------------
+    # People search config.
+    PPL_TABLE_TEXT_FULLNAME = 'Person Name'
+    PPL_TABLE_TEXT_WEBSITE =  'Web Site'
+    PPL_TABLE_TEXT_EMAIL =  'E-mail'
+
+    PPL_DETAIL_TEXT_FIRSTNAME = 'First name'
+    PPL_DETAIL_TEXT_LASTNAME = 'Last name'
+    PPL_DETAIL_TEXT_WEBSITE =  'Web site'
+    PPL_DETAIL_TEXT_EMAIL =  'E-mail'
+    PPL_DETAIL_TEXT_DISTRICT =  'Notes'
+
+    PPL_MEMB_TABLE_TEXT_ORG = 'Department Name'
+    PPL_MEMB_TABLE_TEXT_ROLE = 'Title'
+    PPL_MEMB_TABLE_TEXT_START_DATE = 'Start Date'
+    PPL_MEMB_TABLE_TEXT_END_DATE = 'End Date'
+    PPL_MEMB_TABLE_TEXT_APPOINTED_BY = 'Appointed By'
 
     # ------------------------------------------------------------------------
     # Bill search config.
