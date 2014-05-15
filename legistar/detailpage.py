@@ -9,7 +9,7 @@ from legistar.fields import ElementAccessor
 
 class Visitor(Base, visitors.Visitor):
     '''Visits a detail page and collects all the displayed fields into a
-    dictionary that maps label text to taterized DOM nodes.
+    dictionary that maps label text to DOM nodes.
 
     Effectively groups different elements and their attributes by the unique
     sluggy part of their verbose aspx id names. For example, the 'Txt' part
@@ -36,8 +36,7 @@ class Visitor(Base, visitors.Visitor):
         return newdata
 
     def get_nodekey(self, el):
-        '''We're visiting a treebie-ized lxml.html document, so dispatch is
-        based on the tag attribute.
+        '''We're visiting an lxml.html doc, so dispatch based on the tag.
         '''
         # The weird Comment tag.
         tag = el.tag
