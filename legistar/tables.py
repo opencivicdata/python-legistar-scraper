@@ -2,7 +2,7 @@ import io
 from urllib.parse import urlparse
 from collections import OrderedDict
 
-from legistar.base import Base, CachedAttr
+from legistar.base import Base
 from legistar.fields import FieldAggregator, FieldAccessor
 
 
@@ -13,8 +13,7 @@ class TableRow(FieldAggregator):
         self.view = view
         self.field_data = OrderedDict(*args, **kwargs)
 
-    @CachedAttr
-    def detail_page(self):
+    def get_detail_page(self):
         DetailView = self.view.viewmeta.detail.View
         detail_view = DetailView(url=self.get_detail_url())
         detail_view.inherit_chainmap_from(self.view)

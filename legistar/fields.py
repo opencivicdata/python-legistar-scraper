@@ -146,3 +146,5 @@ class ElementAccessor(FieldAccessor):
             import pdb; pdb.set_trace()
         return self.cfg.mimetypes.get(key.lower())
 
+    def get_video_url(self):
+        raise NotImplementedError()

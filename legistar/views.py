@@ -6,7 +6,7 @@ from legistar.base import Base, CachedAttr
 from legistar.fields import FieldAggregator
 from legistar import detailpage
 import legistar.jurisdictions.config
-from legistar.jurisdictions.base import JXN_CONFIGS
+from legistar.jurisdictions.base import Config, JXN_CONFIGS
 
 
 class View(Base):
@@ -111,17 +111,17 @@ class LegistarScraper(View):
         yield from self.get_pupatype_searchview(pupatype)
 
     @classmethod
-    def get_scraper(cls, url=None, ocd_id=None, **kwargs):
+    def get_scraper(cls, *args, url=None, ocd_id=None, **kwargs):
         '''Get the correct scraper by url or ocd_id.
         '''
+        config_type = None
+
         if url is not None:
             data = urlparse(url)
             try:
                 config_type = JXN_CONFIGS[data.netloc]
             except KeyError:
-                msg = ("There doesn't appear to be a scraper defined for "
-                       "url %s yet.")
-                raise ScraperNotFound(msg % url)
+                pass
         elif ocd_id is not None:
             try:
                 config_type = JXN_CONFIGS[ocd_id]
@@ -129,8 +129,17 @@ class LegistarScraper(View):
                 msg = ("There doesn't appear to be a scraper defined for "
                        "jurisdiction %s yet.")
                 raise ScraperNotFound(msg % ocd_id)
-        else:
-            raise Exception('Please supply the jurisdiction\'s url or ocd_id.')
+        elif args:
+            for key in args:
+                if key in JXN_CONFIGS:
+                    config_type = JXN_CONFIGS[key]
+                    break
+
+        if config_type is None:
+            if url is not None:
+                config_type = type('Config', (Config,), dict(root_url=url))
+            else:
+                raise Exception('Please supply the jurisdiction\'s url or ocd_id.')
 
         config_obj = config_type()
         scraper = cls(**kwargs)

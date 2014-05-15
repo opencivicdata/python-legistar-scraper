@@ -55,18 +55,15 @@ class Visitor(Base, visitors.Visitor):
         attrib = el.attrib
         if 'id' not in attrib:
             return
-        if 'href' not in attrib:
-            return
 
         # If it's a field label, collect the text and href.
         matchobj = re.search(r'_hyp(.+)', attrib['id'])
         if matchobj:
             key = matchobj.group(1)
             data = self.data[key]
-            data.update(url=attrib['href'], el=el)
+            data.update(el=el)
             if 'label' not in data:
                 label = el.text_content().strip(':')
-                data['label'] = label
                 raise self.Continue()
             return
 
@@ -81,7 +78,7 @@ class Visitor(Base, visitors.Visitor):
             key = matchobj.group(1)
             label = el.text_content().strip(':')
             self.data[key]['label'] = label
-            raise self.Continue()
+            return
 
         matchobj = re.search(r'_lbl(.+)', idattr)
         if matchobj:

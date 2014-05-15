@@ -19,13 +19,21 @@ class ConfigMeta(type):
     '''
     def __new__(meta, name, bases, attrs):
         cls = type.__new__(meta, name, bases, attrs)
+
+        # Track by domain.
         root_url = attrs.get('root_url')
         if root_url is not None:
             data = urlparse(cls.root_url)
             JXN_CONFIGS[data.netloc] = cls
+
+        # Also OCD id.
         ocd_id = attrs.get('ocd_id')
         if ocd_id is not None:
             JXN_CONFIGS[ocd_id] = cls
+
+        # Also nicknames.
+        for name in attrs.get('nicknames', []):
+            JXN_CONFIGS[name] = cls
 
         return cls
 
@@ -156,6 +164,8 @@ class Config(Base, metaclass=ConfigMeta):
 
     # ------------------------------------------------------------------------
     # Events detail config.
+    EVT_DETAIL_AVAILABLE = True
+
     EVT_DETAIL_TEXT_NAME = EVT_TABLE_TEXT_NAME
     EVT_DETAIL_TEXT_TOPIC = EVT_TABLE_TEXT_TOPIC
     EVT_DETAIL_TEXT_DETAILS = EVT_TABLE_TEXT_DETAILS

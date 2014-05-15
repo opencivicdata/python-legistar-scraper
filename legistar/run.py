@@ -8,8 +8,11 @@ if __name__ == '__main__':
     # url = 'http://legistar.council.nyc.gov/'
     # url = 'https://chicago.legistar.com'
     # url = 'https://sfgov.legistar.com'
-    url = sys.argv[1]
-    scraper = get_scraper(url)
+    key = sys.argv[1]
+    if key.startswith('http'):
+        scraper = get_scraper(url=key)
+    else:
+        scraper = get_scraper(key=key)
     for data in scraper.gen_events():
         pprint.pprint(data)
         import pdb; pdb.set_trace()

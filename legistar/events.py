@@ -102,8 +102,12 @@ class SearchTableRow(TableRow, EventFields):
         '''Combine the detail page data with the table row data.
         '''
         # Get the final data for both.
-        data = NoClobberDict(gen_items(self))
-        detail_data = dict(self.detail_page.asdict())
+        data = dict(gen_items(self))
+        if not self.cfg.EVT_DETAIL_AVAILABLE:
+            return data
+
+        data = NoClobberDict(data)
+        detail_data = dict(self.get_detail_page().asdict())
 
         # Add any keys detail has that table row doesn't.
         for key in detail_data.keys() - data.keys():
