@@ -3,7 +3,7 @@ from datetime import datetime
 
 from hercules import CachedAttr
 
-from legistar.base.ctx import CtxMixin
+from legistar.base.chainmap import CtxMixin
 from legistar.utils.itemgenerator import make_item, ItemGenerator
 
 
@@ -88,4 +88,49 @@ class FieldAggregator(ItemGenerator, CtxMixin):
         field_data = self.get_field_data(label_text)
         if field_data is not None:
             return field_data.get_url() or None
+
+
+class ElementAccessor(FieldAccessor):
+    '''Provides access to text, url, etc., on DOM elements from the
+    lxml.html doc.
+    '''
+    def __init__(self, el):
+        self.el = el
+
+    def get_url(self):
+        return self.el.xpath('string(.//a/@href)')
+
+    def get_text(self):
+        buf = io.StringIO()
+        first = True
+        for chunk in self.el.itertext():
+            chunk = chunk.strip()
+            if not chunk:
+                continue
+            if not first:
+                buf.write(' ')
+            buf.write(chunk)
+            first = False
+        text = buf.getvalue().strip()
+        if not self._is_blank(text):
+            return text
+
+    def _is_blank(self, text):
+        if not text:
+            return True
+        if text.strip().replace('\xa0', ' ') == 'Not available':
+            return True
+
+    def is_blank(self):
+        return self._is_blank(self.text)
+
+    def get_mimetype(self):
+        gif_url = self.el.xpath('string(.//img/@src)')
+        path = urlparse(gif_url).path
+        if gif_url:
+            key = path
+        else:
+            _, extension = self.get_url().rsplit('.', 1)
+            key = extension
+        return self.cfg.gif_mimetypes.get(key.lower())
 

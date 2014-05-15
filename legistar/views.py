@@ -4,12 +4,13 @@ import lxml.html
 import visitors.ext.etree
 import hercules import DictSetDefault
 
+import legistar
 from legistar.jxn_config import JXN_CONFIGS
-from legistar.ctx import CtxMixin
+from legistar import Base
 from legistar.fields import FieldAggregator
 
 
-class View(CtxMixin):
+class View(legistar.Base):
     '''Base class for Legistar views. Pass in a config_obj and
     either url or parse lxml.html doc.
 
@@ -21,11 +22,11 @@ class View(CtxMixin):
 
     def __init__(self, url=None, doc=None):
         # Setting doc to None forces the view to fetch the page.
-        self.ctx['doc'] = doc
+        self.chainmap['doc'] = doc
 
-        # Allow the url to fall back to the parent ctx url.
+        # Allow the url to fall back to the parent chainmap url.
         if url is not None:
-            self.ctx['url'] = url
+            self.chainmap['url'] = url
 
     # ------------------------------------------------------------------------
     # Managed attributes
@@ -62,15 +63,12 @@ class SearchView(View):
         yield from Form(self)
 
 
-
 class DetailView(View, FieldAggregator):
     VIEWTYPE = 'detail'
-    KEY_PREFIX = 'EVT_DETAIL'
 
     @CachedAttr
     def field_data(self):
-        G = visitors.ext.etree.from_html(self.doc)
-        return DetailVisitor(self.cfg).visit(G)
+        return DetailVisitor(self.cfg).visit(self.doc)
 
     def asdict(self):
         return dict(self)
@@ -103,7 +101,7 @@ class LegistarScraper(View):
         url = urljoin(self.cfg.root_url, tabmeta.path)
         view_meta = self.cfg.viewmeta.get_by_pupatype(pupatype)
         view = view_meta.search.View(url=url)
-        view.inherit_ctx_from(self.cfg)
+        view.inherit_chainmap_from(self.cfg)
         return view
 
     def yield_pupatype_objects(self, pupatype):
@@ -136,5 +134,5 @@ class LegistarScraper(View):
 
         config_obj = config_type()
         scraper = cls(**kwargs)
-        scraper.set_parent_ctx(config_obj.ctx)
+        scraper.set_parent_chainmap(config_obj.chainmap)
         return scraper

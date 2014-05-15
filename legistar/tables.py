@@ -5,7 +5,7 @@ from collections import OrderedDict
 from hercules import CachedAttr
 
 from legistar.base.field import FieldAggregator, FieldAccessor
-from legistar.base.ctx import CtxMixin
+from legistar.base.chainmap import CtxMixin
 
 
 class TableRow(FieldAggregator):
@@ -19,7 +19,7 @@ class TableRow(FieldAggregator):
     def detail_page(self):
         DetailView = self.view.viewmeta.detail.View
         detail_view = DetailView(url=self.get_detail_url())
-        detail_view.inherit_ctx_from(self.view)
+        detail_view.inherit_chainmap_from(self.view)
         return detail_view
 
     def asdict(self):

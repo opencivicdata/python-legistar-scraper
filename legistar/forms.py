@@ -3,7 +3,7 @@ import itertools
 
 import lxml.html
 
-from legistar.base.ctx import CtxMixin
+from legistar.base.chainmap import CtxMixin
 
 
 class Form(CtxMixin):
@@ -12,7 +12,7 @@ class Form(CtxMixin):
     skip_first_submit = False
 
     def __init__(self, view):
-        self.view = self.inherit_ctx_from(view)
+        self.view = self.inherit_chainmap_from(view)
         # We need to seed the client with the ASP viewstate nonsense
         # before trying to post to the form. This does that:
         doc = self.doc

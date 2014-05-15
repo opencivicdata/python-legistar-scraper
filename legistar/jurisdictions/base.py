@@ -7,7 +7,7 @@ import requests
 from hercules import CachedAttr
 
 from legistar.client import Client
-from legistar.base.ctx import CtxMixin
+from legistar.base.chainmap import CtxMixin
 
 
 PUPATYPES = ('events', 'orgs', 'people', 'bills')
@@ -270,49 +270,49 @@ class Config(CtxMixin, metaclass=ConfigMeta):
     PGN_NEXT_PAGE_XPATH = 'string(%s/following-sibling::a[1]/@href)' % PGN_CURRENT_PAGE_XPATH
 
     viewmeta = ViewsMeta()
-    EVENTS_SEARCH_VIEW_CLASS = 'legistar.events.search.view.SearchView'
-    EVENTS_DETAIL_VIEW_CLASS = 'legistar.events.detail.view.DetailView'
-    EVENTS_SEARCH_TABLE_CLASS = 'legistar.events.search.table.Table'
-    EVENTS_SEARCH_TABLEROW_CLASS = 'legistar.events.search.table.TableRow'
-    EVENTS_SEARCH_TABLECELL_CLASS = 'legistar.base.table.TableCell'
-    EVENTS_SEARCH_FORM_CLASS = 'legistar.events.search.form.Form'
-    EVENTS_DETAIL_TABLE_CLASS = 'legistar.events.detail.table.Table'
-    EVENTS_DETAIL_TABLEROW_CLASS = 'legistar.events.detail.table.TableRow'
-    EVENTS_DETAIL_TABLECELL_CLASS = 'legistar.base.table.TableCell'
-    EVENTS_DETAIL_FORM_CLASS = 'legistar.events.detail.form.Form'
+    EVENTS_SEARCH_VIEW_CLASS = 'legistar.events.SearchView'
+    EVENTS_DETAIL_VIEW_CLASS = 'legistar.events.DetailView'
+    EVENTS_SEARCH_TABLE_CLASS = 'legistar.events.SearchTable'
+    EVENTS_SEARCH_TABLEROW_CLASS = 'legistar.events.SearchTableRow'
+    EVENTS_SEARCH_TABLECELL_CLASS = 'legistar.fields.ElementWrapper'
+    EVENTS_SEARCH_FORM_CLASS = 'legistar.events.SearchForm'
+    EVENTS_DETAIL_TABLE_CLASS = 'legistar.events.DetailTable'
+    EVENTS_DETAIL_TABLEROW_CLASS = 'legistar.events.DetailTableRow'
+    EVENTS_DETAIL_TABLECELL_CLASS = 'legistar.fields.ElementWrapper'
+    EVENTS_DETAIL_FORM_CLASS = 'legistar.events.DetailForm'
 
-    ORGS_SEARCH_VIEW_CLASS = 'legistar.orgs.search.view.SearchView'
-    ORGS_DETAIL_VIEW_CLASS = 'legistar.orgs.detail.view.DetailView'
-    ORGS_SEARCH_TABLE_CLASS = 'legistar.orgs.search.table.Table'
-    ORGS_SEARCH_TABLEROW_CLASS = 'legistar.orgs.search.table.TableRow'
-    ORGS_SEARCH_TABLECELL_CLASS = 'legistar.base.table.TableCell'
-    ORGS_SEARCH_FORM_CLASS = 'legistar.orgs.search.form.Form'
-    ORGS_DETAIL_TABLE_CLASS = 'legistar.orgs.detail.table.Table'
-    ORGS_DETAIL_TABLEROW_CLASS = 'legistar.orgs.detail.table.TableRow'
-    ORGS_DETAIL_TABLECELL_CLASS = 'legistar.base.table.TableCell'
-    ORGS_DETAIL_FORM_CLASS = 'legistar.orgs.detail.form.Form'
+    # ORGS_SEARCH_VIEW_CLASS = 'legistar.orgs.SearchView'
+    # ORGS_DETAIL_VIEW_CLASS = 'legistar.orgs.DetailView'
+    # ORGS_SEARCH_TABLE_CLASS = 'legistar.orgs.SearchTable'
+    # ORGS_SEARCH_TABLEROW_CLASS = 'legistar.orgs.search.table.TableRow'
+    # ORGS_SEARCH_TABLECELL_CLASS = 'legistar.fields.ElementWrapper'
+    # ORGS_SEARCH_FORM_CLASS = 'legistar.orgs.search.form.Form'
+    # ORGS_DETAIL_TABLE_CLASS = 'legistar.orgs.detail.table.Table'
+    # ORGS_DETAIL_TABLEROW_CLASS = 'legistar.orgs.detail.table.TableRow'
+    # ORGS_DETAIL_TABLECELL_CLASS = 'legistar.fields.ElementWrapper'
+    # ORGS_DETAIL_FORM_CLASS = 'legistar.orgs.detail.form.Form'
 
-    PEOPLE_SEARCH_VIEW_CLASS = 'legistar.people.search.view.SearchView'
-    PEOPLE_DETAIL_VIEW_CLASS = 'legistar.people.detail.view.DetailView'
-    PEOPLE_SEARCH_TABLE_CLASS = 'legistar.people.search.table.Table'
-    PEOPLE_SEARCH_TABLEROW_CLASS = 'legistar.people.search.table.TableRow'
-    PEOPLE_SEARCH_TABLECELL_CLASS = 'legistar.base.table.TableCell'
-    PEOPLE_SEARCH_FORM_CLASS = 'legistar.people.search.form.Form'
-    PEOPLE_DETAIL_TABLE_CLASS = 'legistar.people.detail.table.Table'
-    PEOPLE_DETAIL_TABLEROW_CLASS = 'legistar.people.detail.table.TableRow'
-    PEOPLE_DETAIL_TABLECELL_CLASS = 'legistar.base.table.TableCell'
-    PEOPLE_DETAIL_FORM_CLASS = 'legistar.people.detail.form.Form'
+    # PEOPLE_SEARCH_VIEW_CLASS = 'legistar.people.SearchView'
+    # PEOPLE_DETAIL_VIEW_CLASS = 'legistar.people.DetailView'
+    # PEOPLE_SEARCH_TABLE_CLASS = 'legistar.people.search.table.Table'
+    # PEOPLE_SEARCH_TABLEROW_CLASS = 'legistar.people.search.table.TableRow'
+    # PEOPLE_SEARCH_TABLECELL_CLASS = 'legistar.fields.ElementWrapper'
+    # PEOPLE_SEARCH_FORM_CLASS = 'legistar.people.search.form.Form'
+    # PEOPLE_DETAIL_TABLE_CLASS = 'legistar.people.detail.table.Table'
+    # PEOPLE_DETAIL_TABLEROW_CLASS = 'legistar.people.detail.table.TableRow'
+    # PEOPLE_DETAIL_TABLECELL_CLASS = 'legistar.fields.ElementWrapper'
+    # PEOPLE_DETAIL_FORM_CLASS = 'legistar.people.detail.form.Form'
 
-    BILLS_SEARCH_VIEW_CLASS = 'legistar.bills.search.view.SearchView'
-    BILLS_DETAIL_VIEW_CLASS = 'legistar.bills.detail.view.DetailView'
-    BILLS_SEARCH_TABLE_CLASS = 'legistar.bills.search.table.Table'
-    BILLS_SEARCH_TABLEROW_CLASS = 'legistar.bills.search.table.TableRow'
-    BILLS_SEARCH_TABLECELL_CLASS = 'legistar.base.table.TableCell'
-    BILLS_SEARCH_FORM_CLASS = 'legistar.bills.search.form.Form'
-    BILLS_DETAIL_TABLE_CLASS = 'legistar.bills.detail.table.Table'
-    BILLS_DETAIL_TABLEROW_CLASS = 'legistar.bills.detail.table.TableRow'
-    BILLS_DETAIL_TABLECELL_CLASS = 'legistar.base.table.TableCell'
-    BILLS_DETAIL_FORM_CLASS = 'legistar.bills.detail.form.Form'
+    # BILLS_SEARCH_VIEW_CLASS = 'legistar.bills.SearchView'
+    # BILLS_DETAIL_VIEW_CLASS = 'legistar.bills.DetailView'
+    # BILLS_SEARCH_TABLE_CLASS = 'legistar.bills.search.table.Table'
+    # BILLS_SEARCH_TABLEROW_CLASS = 'legistar.bills.search.table.TableRow'
+    # BILLS_SEARCH_TABLECELL_CLASS = 'legistar.fields.ElementWrapper'
+    # BILLS_SEARCH_FORM_CLASS = 'legistar.bills.search.form.Form'
+    # BILLS_DETAIL_TABLE_CLASS = 'legistar.bills.detail.table.Table'
+    # BILLS_DETAIL_TABLEROW_CLASS = 'legistar.bills.detail.table.TableRow'
+    # BILLS_DETAIL_TABLECELL_CLASS = 'legistar.fields.ElementWrapper'
+    # BILLS_DETAIL_FORM_CLASS = 'legistar.bills.detail.form.Form'
 
     NO_RECORDS_FOUND_TEXT = ['No records were found', 'No records to display.']
     RESULTS_TABLE_XPATH = '//table[contains(@class, "rgMaster")]'
@@ -434,15 +434,15 @@ class Config(CtxMixin, metaclass=ConfigMeta):
         return logger
 
     @CachedAttr
-    def ctx(self):
+    def chainmap(self):
         '''An inheritable/overridable dict for this config's helper
         views to access. Make it initially point back to this config object.
 
-        Other objects that inherit this ctx can access self.info, etc.
+        Other objects that inherit this chainmap can access self.info, etc.
         '''
         logger = self.get_logger()
-        ctx = ChainMap()
-        ctx.update(
+        chainmap = ChainMap()
+        chainmap.update(
             config=self,
             url=self.root_url,
             client=self.get_client(),
@@ -451,4 +451,4 @@ class Config(CtxMixin, metaclass=ConfigMeta):
             debug=logger.debug,
             warning=logger.warning,
             critical=logger.critical)
-        return ctx
+        return chainmap

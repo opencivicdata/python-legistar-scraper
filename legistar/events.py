@@ -22,6 +22,7 @@ class EventFields(FieldAggregator):
     def gen_documents(self):
         for key in self.get_config_value('PUPA_DOCUMENTS'):
             field = self.field_data.get(key)
+
             # This column isn't present on this legistar instance.
             if field is None:
                 continue
@@ -29,11 +30,6 @@ class EventFields(FieldAggregator):
                 continue
             elif field.get_url() is None:
                 continue
-
-            if field.get_mimetype() is None:
-                print("ASDF")
-                import pdb; pdb.set_trace()
-
             document = dict(
                 name=field.get_text(),
                 url=field.get_url(),
@@ -52,7 +48,7 @@ class EventFields(FieldAggregator):
     @make_item('sources', wrapwith=list)
     def gen_sources(self):
         grouped = collections.defaultdict(set)
-        for note, url in self.ctx['sources'].items():
+        for note, url in self.chainmap['sources'].items():
             grouped[url].add(note)
         for url, notes in grouped.items():
             yield dict(url=url, note=', '.join(notes))
@@ -75,7 +71,7 @@ class SearchTableRow(TableRow, EventFields):
         ical_url = self.get_ical_url()
         self.debug('%r is fetching ical data: %r', self, ical_url)
         resp = self.cfg.client.session.get(ical_url)
-        with DictSetDefault(self.ctx, 'sources', {}) as sources:
+        with DictSetDefault(self.chainmap, 'sources', {}) as sources:
             sources['Event icalendar data (end date)'] = ical_url
         return resp.text
 
@@ -150,6 +146,7 @@ class SearchForm(Form):
 
 class DetailView(DetailView, EventFields):
     PUPATYPE = 'events'
+    KEY_PREFIX = 'EVT_DETAIL'
     sources_note = 'Event detail'
 
     @make_item('agenda', wrapwith=list)
