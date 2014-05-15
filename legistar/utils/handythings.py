@@ -1,3 +1,6 @@
+'''Helpful things, vendorized from https://github.com/twneale/hercules
+'''
+
 
 class DictSetDefault:
     '''Context manager like getattr, but yields a default value,
@@ -65,3 +68,23 @@ class NoClobberDict(dict):
                     msg = "Can't overwrite keys %r in %r"
                     raise KeyClobberError(msg % (dupes, self))
         dict.update(self, otherdict or {}, **kwargs)
+
+
+class CachedClassAttr(object):
+    '''Computes attribute value and caches it in class.
+
+    Example:
+        class MyClass(object):
+            def myMethod(cls):
+                # ...
+            myMethod = CachedClassAttribute(myMethod)
+    Use "del MyClass.myMethod" to clear cache.'''
+
+    def __init__(self, method, name=None):
+        self.method = method
+        self.name = name or method.__name__
+
+    def __get__(self, inst, cls):
+        result = self.method(cls)
+        setattr(cls, self.name, result)
+        return result

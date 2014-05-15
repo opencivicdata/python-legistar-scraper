@@ -1,13 +1,11 @@
 import re
 from collections import defaultdict
 
-import visitors
-
-from legistar.base import Base
+from legistar.base import Base, Visitor
 from legistar.fields import ElementAccessor
 
 
-class Visitor(Base, visitors.Visitor):
+class Visitor(Base, Visitor):
     '''Visits a detail page and collects all the displayed fields into a
     dictionary that maps label text to DOM nodes.
 

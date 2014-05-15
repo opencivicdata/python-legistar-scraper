@@ -77,16 +77,16 @@ class DetailView(View, FieldAggregator):
 class LegistarScraper(View):
 
     def gen_events(self):
-        yield from self.yield_pupatype_objects('events')
+        yield from self.gen_pupatype_objects('events')
 
     def gen_bills(self):
-        yield from self.yield_pupatype_objects('bills')
+        yield from self.gen_pupatype_objects('bills')
 
     def gen_people(self):
-        yield from self.yield_pupatype_objects('people')
+        yield from self.gen_pupatype_objects('people')
 
     def gen_orgs(self):
-        yield from self.yield_pupatype_objects('orgs')
+        yield from self.gen_pupatype_objects('orgs')
 
     events = meetings = get_events = gen_events
     bills = legislation = get_bills = gen_bills
@@ -104,7 +104,7 @@ class LegistarScraper(View):
         view.inherit_chainmap_from(self.cfg)
         return view
 
-    def yield_pupatype_objects(self, pupatype):
+    def gen_pupatype_objects(self, pupatype):
         '''Given a pupa type, page through the search results and
         yield each object.
         '''
