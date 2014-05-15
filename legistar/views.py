@@ -1,16 +1,15 @@
 from urllib.parse import urljoin, urlparse
 
 import lxml.html
-import visitors.ext.etree
-import hercules import DictSetDefault
 
-import legistar
-from legistar.jxn_config import JXN_CONFIGS
-from legistar import Base
+from legistar.base import Base, CachedAttr
 from legistar.fields import FieldAggregator
+from legistar import detailpage
+import legistar.jurisdictions.config
+from legistar.jurisdictions.base import JXN_CONFIGS
 
 
-class View(legistar.Base):
+class View(Base):
     '''Base class for Legistar views. Pass in a config_obj and
     either url or parse lxml.html doc.
 
@@ -43,7 +42,7 @@ class View(legistar.Base):
     def viewmeta(self):
         '''Return the view metadata for this View based on its PUPATYPE.
         '''
-        return self.cfg.viewmeta.get_by_pupatype(self.PUPATYPE)
+        return self.cfg.views.get_by_pupatype(self.PUPATYPE)
 
     @property
     def viewtype_meta(self):
@@ -68,7 +67,8 @@ class DetailView(View, FieldAggregator):
 
     @CachedAttr
     def field_data(self):
-        return DetailVisitor(self.cfg).visit(self.doc)
+        visitor = self.make_child(detailpage.Visitor)
+        return visitor.visit(self.doc)
 
     def asdict(self):
         return dict(self)
@@ -99,7 +99,7 @@ class LegistarScraper(View):
         '''
         tabmeta = self.cfg.tabs.get_by_pupatype(pupatype)
         url = urljoin(self.cfg.root_url, tabmeta.path)
-        view_meta = self.cfg.viewmeta.get_by_pupatype(pupatype)
+        view_meta = self.cfg.views.get_by_pupatype(pupatype)
         view = view_meta.search.View(url=url)
         view.inherit_chainmap_from(self.cfg)
         return view
@@ -136,3 +136,7 @@ class LegistarScraper(View):
         scraper = cls(**kwargs)
         scraper.set_parent_chainmap(config_obj.chainmap)
         return scraper
+
+
+class ScraperNotFound(Exception):
+    pass

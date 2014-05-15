@@ -1,4 +1,4 @@
-from legistar.jxn_config import Config
+from legistar.jurisdictions.base import Config
 
 
 class NYC(Config):

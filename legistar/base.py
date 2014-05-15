@@ -1,6 +1,9 @@
 from collections import ChainMap
+
 import lxml.html
-from hercules import CachedAttr, DictSetDefault
+
+from legistar.utils.handythings import (
+    CachedAttr, DictSetDefault, NoClobberDict)
 
 
 class ChainedLookup:
@@ -90,7 +93,7 @@ class Base:
         if chainmap is not None:
             return chainmap
         else:
-            chainmap = collections.ChainMap()
+            chainmap = ChainMap()
             self._chainmap = chainmap
             return chainmap
 

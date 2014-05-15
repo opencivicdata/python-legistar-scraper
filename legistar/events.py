@@ -3,13 +3,11 @@ import json
 import collections
 from datetime import datetime
 
-from hercules import CachedAttr, DictSetDefault
-
-from legistar.form import Form
-from legistar.table import Table, TableRow
+from legistar.forms import Form
+from legistar.tables import Table, TableRow
+from legistar.views import SearchView, DetailView
 from legistar.fields import FieldAggregator, make_item, gen_items
-from legistar.searchview import SearchView
-from legistar.detailview import DetailView
+from legistar.base import CachedAttr, DictSetDefault, NoClobberDict
 
 
 class EventFields(FieldAggregator):
@@ -104,7 +102,7 @@ class SearchTableRow(TableRow, EventFields):
         '''Combine the detail page data with the table row data.
         '''
         # Get the final data for both.
-        data = dict(gen_items(self))
+        data = NoClobberDict(gen_items(self))
         detail_data = dict(self.detail_page.asdict())
 
         # Add any keys detail has that table row doesn't.
@@ -113,11 +111,12 @@ class SearchTableRow(TableRow, EventFields):
 
         # Add sources and documents.
         listy_fields = ('sources', 'documents', 'participants')
+        data = dict(data)
         for key in listy_fields:
             for obj in detail_data[key]:
                 if obj not in data[key]:
                     data[key].append(obj)
-        return data
+        return dict(data)
 
 
 class SearchTable(Table):

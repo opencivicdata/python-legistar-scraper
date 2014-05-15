@@ -1,18 +1,13 @@
-import io
 import re
-import contextlib
-from urllib.parse import urlparse
 from collections import defaultdict
 
 import visitors
-import visitors.ext.etree
-from hercules import CachedAttr
 
-from legistar.base.view import View
-from legistar.base.field import FieldAggregator, FieldAccessor
+from legistar.base import Base
+from legistar.fields import ElementAccessor
 
 
-class DetailVisitor(visitors.Visitor):
+class Visitor(Base, visitors.Visitor):
     '''Visits a detail page and collects all the displayed fields into a
     dictionary that maps label text to taterized DOM nodes.
 
@@ -23,9 +18,8 @@ class DetailVisitor(visitors.Visitor):
     # ------------------------------------------------------------------------
     # These methods customize the visitor.
     # ------------------------------------------------------------------------
-    def __init__(self, config_obj):
+    def __init__(self):
         self.data = defaultdict(dict)
-        self.config_obj = self.cfg = config_obj
 
     def finalize(self):
         '''Reorganize the data so it's readable labels (viewable on the page)
@@ -35,7 +29,7 @@ class DetailVisitor(visitors.Visitor):
         newdata = {}
         for id_attr, data in tuple(self.data.items()):
             alias = data.get('label', id_attr).strip(':')
-            value = self.cfg.make_child(DetailField, data)
+            value = self.cfg.make_child(ElementAccessor, data['el'])
             newdata[alias] = value
             if alias != id_attr:
                 newdata[id_attr] = value
@@ -110,4 +104,3 @@ class DetailVisitor(visitors.Visitor):
             return
         key = matchobj.group(1)
         self.data[key]['el'] = el
-

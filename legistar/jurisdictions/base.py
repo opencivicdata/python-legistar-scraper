@@ -1,213 +1,13 @@
 import logging
 import logging.config
 from urllib.parse import urlparse
-from collections import namedtuple, ChainMap
+from collections import ChainMap
 
 import requests
-from hercules import CachedAttr
 
 from legistar.client import Client
-from legistar.base.chainmap import CtxMixin
-
-
-PUPATYPES = ('events', 'orgs', 'people', 'bills')
-PUPATYPE_PREFIXES = [s.upper() for s in PUPATYPES]
-
-LOGGING_CONFIG = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'formatters': {
-        'standard': {
-            'format': "%(asctime)s %(levelname)s %(name)s: %(message)s",
-            'datefmt': '%H:%M:%S'
-        }
-    },
-    'handlers': {
-        'default': {'level': 'DEBUG',
-                    'class': 'legistar.utils.ansistrm.ColorizingStreamHandler',
-                    'formatter': 'standard'},
-    },
-    'loggers': {
-        'legistar': {
-            'handlers': ['default'], 'level': 'DEBUG', 'propagate': False
-        },
-        'requests': {
-            'handlers': ['default'], 'level': 'DEBUG', 'propagate': False
-        },
-    },
-}
-logging.config.dictConfig(LOGGING_CONFIG)
-
-
-def resolve_name(name, module_name=None, raise_exc=True):
-    '''Given a name string and module prefix, try to import the name.
-    '''
-    if not isinstance(name, str):
-        return name
-    if module_name is None:
-        module_name, _, name = name.rpartition('.')
-    try:
-        module = __import__(module_name, globals(), locals(), [name], 0)
-    except ImportError:
-        if raise_exc:
-            raise
-    else:
-        return getattr(module, name)
-
-
-class TabMeta:
-    '''Desceriptor to help in aggregating TAB* metadata on jxn config types.
-    '''
-    TabItemMeta = namedtuple('TabMeta', 'path, text, pupatype')
-
-    def __get__(self, inst, type_=None):
-        self.inst = inst
-        return self
-
-    def _gen_tabs(self):
-        for pupatype in PUPATYPE_PREFIXES:
-            data = getattr(self.inst, pupatype + '_TAB_META')
-            yield self.TabItemMeta(*data)
-
-    def get_by_pupatype(self, pupatype):
-        for tab in self._gen_tabs():
-            if pupatype == tab.pupatype:
-                return tab
-
-    def get_by_text(self, tabtext):
-        for tab in self._gen_tabs():
-            if tabtext == tab.text:
-                return tab
-
-
-class MimetypeGifMeta:
-    '''The fact that this class exists just proves that opening up
-    government data is really important. All it does is aggregate the
-    MIMETYPE_GIF_ settings and convert them to a dict that relates
-    gif urls to mimetypes.
-    '''
-    def __get__(self, inst, type_=None):
-        self.inst = inst
-        return dict(self._gen_items(inst))
-
-    def _gen_items(self, inst):
-        prefixes = ('MIMETYPE_GIF_', 'MIMETYPE_EXT_')
-        for name in dir(inst):
-            for prefix in prefixes:
-                if name.startswith(prefix):
-                    yield getattr(inst, name)
-
-
-_viewmeta_fields = (
-    'pupatype',
-    'form', 'table', 'tablerow', 'tablecell', 'view')
-
-ViewMeta = namedtuple('_ViewMetaBase', 'pupatype search detail')
-ViewTypeMeta = namedtuple('_ViewTypeMeta', _viewmeta_fields)
-
-
-class ViewTypeMeta(ViewTypeMeta):
-    '''Holds metadata about a view available on the site.
-    '''
-    def _resolve_qualname(self, qualname):
-        module_name, classname = qualname.rsplit('.', 1)
-        return resolve_name(classname, module_name=module_name)
-
-    @property
-    def Form(self):
-        return self._resolve_qualname(self.form)
-
-    @property
-    def Table(self):
-        return self._resolve_qualname(self.table)
-
-    @property
-    def TableRow(self):
-        return self._resolve_qualname(self.tablerow)
-
-    @property
-    def TableCell(self):
-        return self._resolve_qualname(self.tablecell)
-
-    @property
-    def View(self):
-        return self._resolve_qualname(self.view)
-
-
-class ViewsMeta:
-    '''Holds information about views available on the site;
-    makes the info accessible by pupatype from the jxn's config.
-    '''
-    def __get__(self, inst, type_=None):
-        self.inst = inst
-        return self
-
-    def _gen_types(self, suffix):
-        for pupatype in PUPATYPE_PREFIXES:
-            yield getattr(self.inst, pupatype + suffix)
-
-    def _gen_types_search_Form(self):
-        yield from self._gen_types('_SEARCH_FORM_CLASS')
-
-    def _gen_types_search_Table(self):
-        yield from self._gen_types('_SEARCH_TABLE_CLASS')
-
-    def _gen_types_search_TableRow(self):
-        yield from self._gen_types('_SEARCH_TABLEROW_CLASS')
-
-    def _gen_types_search_TableCell(self):
-        yield from self._gen_types('_SEARCH_TABLECELL_CLASS')
-
-    def _gen_types_search_View(self):
-        yield from self._gen_types('_SEARCH_VIEW_CLASS')
-
-    def _gen_types_detail_Form(self):
-        yield from self._gen_types('_DETAIL_FORM_CLASS')
-
-    def _gen_types_detail_Table(self):
-        yield from self._gen_types('_DETAIL_TABLE_CLASS')
-
-    def _gen_types_detail_TableRow(self):
-        yield from self._gen_types('_DETAIL_TABLEROW_CLASS')
-
-    def _gen_types_detail_TableCell(self):
-        yield from self._gen_types('_DETAIL_TABLECELL_CLASS')
-
-    def _gen_types_detail_View(self):
-        yield from self._gen_types('_DETAIL_VIEW_CLASS')
-
-    def _gen_meta(self):
-        search_meta = zip(
-            PUPATYPES,
-            self._gen_types_search_Form(),
-            self._gen_types_search_Table(),
-            self._gen_types_search_TableRow(),
-            self._gen_types_search_TableCell(),
-            self._gen_types_search_View(),
-            )
-        detail_meta = zip(
-            PUPATYPES,
-            self._gen_types_detail_Form(),
-            self._gen_types_detail_Table(),
-            self._gen_types_detail_TableRow(),
-            self._gen_types_detail_TableCell(),
-            self._gen_types_detail_View(),
-            )
-
-        iterables = PUPATYPES, search_meta, detail_meta
-        for pupatype, searchmeta, detailmeta in zip(*iterables):
-            searchmeta = ViewTypeMeta._make(searchmeta)
-            detailmeta = ViewTypeMeta._make(detailmeta)
-            meta = ViewMeta(
-                pupatype=pupatype,
-                search=searchmeta,
-                detail=detailmeta)
-            yield meta
-
-    def get_by_pupatype(self, pupatype):
-        for meta in self._gen_meta():
-            if pupatype == meta.pupatype:
-                return meta
+from legistar.base import Base, CachedAttr
+from legistar.jurisdictions.utils import Tabs, Mimetypes, Views
 
 
 JXN_CONFIGS = {}
@@ -230,7 +30,7 @@ class ConfigMeta(type):
         return cls
 
 
-class Config(CtxMixin, metaclass=ConfigMeta):
+class Config(Base, metaclass=ConfigMeta):
     '''The base configuration for a Legistar instance. Various parts can be
     overridden.
     '''
@@ -243,8 +43,7 @@ class Config(CtxMixin, metaclass=ConfigMeta):
 
     SESSION_CLASS = requests.Session
 
-    gif_mimetypes = MimetypeGifMeta()
-    # Preceding slashes are necessary
+    mimetypes = Mimetypes()
     MIMETYPE_GIF_PDF = ('/images/pdf.gif', 'application/pdf')
     MIMETYPE_EXT_PDF = ('pdf', 'application/pdf')
     MIMETYPE_GIF_VIDEO = ('/images/video.gif', 'application/x-shockwave-flash')
@@ -256,7 +55,7 @@ class Config(CtxMixin, metaclass=ConfigMeta):
     TAB_TEXT_XPATH = TAB_TEXT_XPATH_TMPL % TAB_TEXT_ID
 
     # These are config options that can be overridden.
-    tabs = TabMeta()
+    tabs = Tabs()
     EVENTS_TAB_META = ('Calendar.aspx', 'Calendar', 'events')
     ORGS_TAB_META = ('Departments.aspx', 'Committees', 'orgs')
     BILLS_TAB_META = ('Legislation.aspx', 'Legislation', 'bills')
@@ -269,49 +68,49 @@ class Config(CtxMixin, metaclass=ConfigMeta):
     PGN_NEXT_PAGE_TMPL = '%s/following-sibling::a[1]'
     PGN_NEXT_PAGE_XPATH = 'string(%s/following-sibling::a[1]/@href)' % PGN_CURRENT_PAGE_XPATH
 
-    viewmeta = ViewsMeta()
+    views = Views()
     EVENTS_SEARCH_VIEW_CLASS = 'legistar.events.SearchView'
     EVENTS_DETAIL_VIEW_CLASS = 'legistar.events.DetailView'
     EVENTS_SEARCH_TABLE_CLASS = 'legistar.events.SearchTable'
     EVENTS_SEARCH_TABLEROW_CLASS = 'legistar.events.SearchTableRow'
-    EVENTS_SEARCH_TABLECELL_CLASS = 'legistar.fields.ElementWrapper'
+    EVENTS_SEARCH_TABLECELL_CLASS = 'legistar.fields.ElementAccessor'
     EVENTS_SEARCH_FORM_CLASS = 'legistar.events.SearchForm'
     EVENTS_DETAIL_TABLE_CLASS = 'legistar.events.DetailTable'
     EVENTS_DETAIL_TABLEROW_CLASS = 'legistar.events.DetailTableRow'
-    EVENTS_DETAIL_TABLECELL_CLASS = 'legistar.fields.ElementWrapper'
+    EVENTS_DETAIL_TABLECELL_CLASS = 'legistar.fields.ElementAccessor'
     EVENTS_DETAIL_FORM_CLASS = 'legistar.events.DetailForm'
 
     # ORGS_SEARCH_VIEW_CLASS = 'legistar.orgs.SearchView'
     # ORGS_DETAIL_VIEW_CLASS = 'legistar.orgs.DetailView'
     # ORGS_SEARCH_TABLE_CLASS = 'legistar.orgs.SearchTable'
     # ORGS_SEARCH_TABLEROW_CLASS = 'legistar.orgs.search.table.TableRow'
-    # ORGS_SEARCH_TABLECELL_CLASS = 'legistar.fields.ElementWrapper'
+    # ORGS_SEARCH_TABLECELL_CLASS = 'legistar.fields.ElementAccessor'
     # ORGS_SEARCH_FORM_CLASS = 'legistar.orgs.search.form.Form'
     # ORGS_DETAIL_TABLE_CLASS = 'legistar.orgs.detail.table.Table'
     # ORGS_DETAIL_TABLEROW_CLASS = 'legistar.orgs.detail.table.TableRow'
-    # ORGS_DETAIL_TABLECELL_CLASS = 'legistar.fields.ElementWrapper'
+    # ORGS_DETAIL_TABLECELL_CLASS = 'legistar.fields.ElementAccessor'
     # ORGS_DETAIL_FORM_CLASS = 'legistar.orgs.detail.form.Form'
 
     # PEOPLE_SEARCH_VIEW_CLASS = 'legistar.people.SearchView'
     # PEOPLE_DETAIL_VIEW_CLASS = 'legistar.people.DetailView'
     # PEOPLE_SEARCH_TABLE_CLASS = 'legistar.people.search.table.Table'
     # PEOPLE_SEARCH_TABLEROW_CLASS = 'legistar.people.search.table.TableRow'
-    # PEOPLE_SEARCH_TABLECELL_CLASS = 'legistar.fields.ElementWrapper'
+    # PEOPLE_SEARCH_TABLECELL_CLASS = 'legistar.fields.ElementAccessor'
     # PEOPLE_SEARCH_FORM_CLASS = 'legistar.people.search.form.Form'
     # PEOPLE_DETAIL_TABLE_CLASS = 'legistar.people.detail.table.Table'
     # PEOPLE_DETAIL_TABLEROW_CLASS = 'legistar.people.detail.table.TableRow'
-    # PEOPLE_DETAIL_TABLECELL_CLASS = 'legistar.fields.ElementWrapper'
+    # PEOPLE_DETAIL_TABLECELL_CLASS = 'legistar.fields.ElementAccessor'
     # PEOPLE_DETAIL_FORM_CLASS = 'legistar.people.detail.form.Form'
 
     # BILLS_SEARCH_VIEW_CLASS = 'legistar.bills.SearchView'
     # BILLS_DETAIL_VIEW_CLASS = 'legistar.bills.DetailView'
     # BILLS_SEARCH_TABLE_CLASS = 'legistar.bills.search.table.Table'
     # BILLS_SEARCH_TABLEROW_CLASS = 'legistar.bills.search.table.TableRow'
-    # BILLS_SEARCH_TABLECELL_CLASS = 'legistar.fields.ElementWrapper'
+    # BILLS_SEARCH_TABLECELL_CLASS = 'legistar.fields.ElementAccessor'
     # BILLS_SEARCH_FORM_CLASS = 'legistar.bills.search.form.Form'
     # BILLS_DETAIL_TABLE_CLASS = 'legistar.bills.detail.table.Table'
     # BILLS_DETAIL_TABLEROW_CLASS = 'legistar.bills.detail.table.TableRow'
-    # BILLS_DETAIL_TABLECELL_CLASS = 'legistar.fields.ElementWrapper'
+    # BILLS_DETAIL_TABLECELL_CLASS = 'legistar.fields.ElementAccessor'
     # BILLS_DETAIL_FORM_CLASS = 'legistar.bills.detail.form.Form'
 
     NO_RECORDS_FOUND_TEXT = ['No records were found', 'No records to display.']
@@ -428,6 +227,7 @@ class Config(CtxMixin, metaclass=ConfigMeta):
     def get_logger(self):
         '''Get a configured logger.
         '''
+        logging.config.dictConfig(self.LOGGING_CONFIG)
         logger = logging.getLogger('legistar')
         if 'loglevel' in self.kwargs:
             logger.setLevel(self.kwargs['loglevel'])
@@ -452,3 +252,27 @@ class Config(CtxMixin, metaclass=ConfigMeta):
             warning=logger.warning,
             critical=logger.critical)
         return chainmap
+
+    LOGGING_CONFIG = {
+        'version': 1,
+        'disable_existing_loggers': False,
+        'formatters': {
+            'standard': {
+                'format': "%(asctime)s %(levelname)s %(name)s: %(message)s",
+                'datefmt': '%H:%M:%S'
+            }
+        },
+        'handlers': {
+            'default': {'level': 'DEBUG',
+                        'class': 'legistar.utils.ansistrm.ColorizingStreamHandler',
+                        'formatter': 'standard'},
+        },
+        'loggers': {
+            'legistar': {
+                'handlers': ['default'], 'level': 'DEBUG', 'propagate': False
+            },
+            'requests': {
+                'handlers': ['default'], 'level': 'DEBUG', 'propagate': False
+            },
+        },
+    }

@@ -1,10 +1,10 @@
 import pytest
 
-from legistar.base.chainmap import CtxMixin
+from legistar.base import Base
 
 
-class A(CtxMixin):
-    pass
+class A(Base):
+    sources_note = 'test source'
 
 
 class TestCtxMixin:
@@ -30,28 +30,6 @@ class TestCtxMixin:
         assert 'a' not in child.chainmap
         parent.provide_chainmap_to(child)
         assert 'a' in child.chainmap
-
-    def test_doc_attr(self):
-        parent = A()
-        child = A()
-
-        # Attr is not set.
-        assert child.doc is None
-        assert parent.doc is None
-        assert 'doc' not in parent.chainmap
-        assert 'doc' not in child.chainmap
-
-        # Set it on the parent.
-        parent.doc = 'somedoc'
-        child.inherit_chainmap_from(parent)
-        assert 'doc' in parent.chainmap
-        assert 'doc' in child.chainmap
-        assert parent.doc is child.doc
-
-        # Set child to something else.
-        child.doc = 'someotherdoc'
-        assert parent.doc is not child.doc
-
 
     def test_url_attr(self):
         parent = A()

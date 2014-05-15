@@ -3,10 +3,10 @@ import itertools
 
 import lxml.html
 
-from legistar.base.chainmap import CtxMixin
+from legistar.base import Base
 
 
-class Form(CtxMixin):
+class Form(Base):
     '''Handles posting data to a form and paging through the results.
     '''
     skip_first_submit = False

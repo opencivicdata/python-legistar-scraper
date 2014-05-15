@@ -1,13 +1,13 @@
+import io
 import re
 from datetime import datetime
+from urllib.parse import urlparse
 
-from hercules import CachedAttr
-
-from legistar.base.chainmap import CtxMixin
-from legistar.utils.itemgenerator import make_item, ItemGenerator
+from legistar.base import Base, CachedAttr
+from legistar.utils.itemgenerator import make_item, gen_items, ItemGenerator
 
 
-class FieldAccessor(CtxMixin):
+class FieldAccessor(Base):
     '''This class defines a minimal interface subclasses will implement.
     '''
     def get_url(self):
@@ -43,7 +43,7 @@ class FieldAccessor(CtxMixin):
         raise NotImplementedError()
 
 
-class FieldAggregator(ItemGenerator, CtxMixin):
+class FieldAggregator(Base, ItemGenerator):
     '''This class provides some plumbing for accessing the appropriate
     config values. It's __iter__ method generates a list of 2-tuples,
     so to convert it to a dict, it's just dict(instance).
@@ -98,9 +98,15 @@ class ElementAccessor(FieldAccessor):
         self.el = el
 
     def get_url(self):
-        return self.el.xpath('string(.//a/@href)')
+        for xpath in ('string(@href)', 'string(.//a/@href)'):
+            url = self.el.xpath(xpath)
+            if url:
+                return url
 
     def get_text(self):
+        '''This is necessary to prevent idiocy of el.text_content()
+        which sometimes doesn't add spaces.
+        '''
         buf = io.StringIO()
         first = True
         for chunk in self.el.itertext():
@@ -125,12 +131,18 @@ class ElementAccessor(FieldAccessor):
         return self._is_blank(self.text)
 
     def get_mimetype(self):
-        gif_url = self.el.xpath('string(.//img/@src)')
-        path = urlparse(gif_url).path
+        gif_url = None
+        for xpath in ('string(.//img/@src)', 'string(..//img/@src)'):
+            gif_url = self.el.xpath(xpath)
+            if gif_url:
+                break
         if gif_url:
+            path = urlparse(gif_url).path
             key = path
         else:
             _, extension = self.get_url().rsplit('.', 1)
             key = extension
-        return self.cfg.gif_mimetypes.get(key.lower())
+        if self.cfg.mimetypes.get(key.lower()) is None:
+            import pdb; pdb.set_trace()
+        return self.cfg.mimetypes.get(key.lower())
 
