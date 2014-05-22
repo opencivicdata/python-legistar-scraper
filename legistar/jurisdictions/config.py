@@ -1,14 +1,41 @@
-from legistar.jurisdictions.base import Config
+import re
+
+from legistar.jurisdictions.base import Config, make_item
 
 
 class NYC(Config):
     nicknames = ['nyc', 'nyc']
     root_url = 'http://legistar.council.nyc.gov/'
 
+    @make_item('person.district')
+    def person_district(self, data):
+        # First try to get it from bio.
+        dist = re.findall(r'District\s+(\d+)', data['notes'])
+        if dist:
+            return dist.pop()
 
-class Chicago(Config):
-    nicknames = ['windy']
-    root_url = 'https://chicago.legistar.com'
+        # Then try website.
+        dist = re.findall(r'/d(\d+)/', data['website'])
+        if dist:
+            return dist.pop()
+
+        # Then email.
+        dist = re.findall(r'd(\d+)', data['email'])
+        if dist:
+            return dist.pop()
+
+    @make_item('person.party')
+    def person_party(self, data):
+        party = re.findall(r'Democrat|Republican', data['notes'], re.I)
+        if party:
+            return party.pop()
+
+    @make_item('person.summary')
+    def person_summary(self, data):
+        '''The NYC person person bui follows the tilde in the
+        district field on their detail pages.
+        '''
+        return data['notes']
 
 
 class SanFrancisco(Config):
