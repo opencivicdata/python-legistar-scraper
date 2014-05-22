@@ -64,14 +64,19 @@ class SearchTableRow(TableRow, EventFields):
     def get_detail_url(self):
         return self.get_field_url('details')
 
-    @CachedAttr
-    def ical_data(self):
+    def get_ical_data(self):
+        if hasattr(self, '_cal_data'):
+            return self._ical_data
+        # Don't fetch the ical data if we're testing.
+        if self.cfg.USING_TEST_CONFIG:
+            raise self.SkipItem()
         ical_url = self.get_ical_url()
         self.debug('%r is fetching ical data: %r', self, ical_url)
         resp = self.cfg.client.session.get(ical_url)
         with DictSetDefault(self.chainmap, 'sources', {}) as sources:
             sources['Event icalendar data (end date)'] = ical_url
-        return resp.text
+        self._ical_data = resp.text
+        return self._ical_data
 
     def get_ical_url(self):
         return self.get_field_url('ical')
