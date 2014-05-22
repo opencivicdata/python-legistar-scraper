@@ -6,11 +6,11 @@ import lxml.html
 
 class Client:
 
-    SLEEP = True
+    SLEEP = False
 
     def __init__(self, config_obj):
         self.cfg = config_obj
-        self.session = self.cfg.SESSION_CLASS()
+        self.session = self.cfg.get_session()
         self.state = dict.fromkeys((
             '__EVENTVALIDATION',
             '__VIEWSTATE',
