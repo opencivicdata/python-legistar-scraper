@@ -110,6 +110,8 @@ class SearchTableRow(TableRow, EventFields):
         data = dict(gen_items(self))
         if not self.cfg.EVT_DETAIL_AVAILABLE:
             return data
+        if self.cfg.USING_TEST_CONFIG:
+            return data
 
         data = NoClobberDict(data)
         detail_data = dict(self.get_detail_page().asdict())

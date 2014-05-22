@@ -234,6 +234,12 @@ class Config(Base, metaclass=ConfigMeta):
     BILLS_SIMPLE_SEARCH_TEXT = '<<< Simple Search'
     BILLS_ADVANCED_SEARCH_TEXT = 'Detailed Search >>>'
 
+    # ------------------------------------------------------------------------
+    # Settings to prevent web requests during testing.
+
+    # Makes the form use the default table data without posting a query.
+    USING_TEST_CONFIG = False
+
     # Requests args.
     proxies = dict.fromkeys(['http', 'https'], 'http://localhost:8080')
     headers = {

@@ -56,9 +56,17 @@ class Form(Base):
 
     def __iter__(self):
         Table = self.view.viewtype_meta.Table
-        if not self.skip_first_submit:
+
+        # Don't submit queries if we're testing.
+        if self.skip_first_submit or self.cfg.USING_TEST_CONFIG:
+            pass
+        else:
             self.submit(self.get_query())
         yield from self.make_child(Table, view=self.view)
+
+        # Don't page through results if we're testing.
+        if self.cfg.USING_TEST_CONFIG:
+            return
 
         while True:
             self.submit_next_page()
