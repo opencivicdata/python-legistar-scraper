@@ -67,8 +67,16 @@ class Solano(Config):
     root_url = 'https://solano.legistar.com'
 
 
+class Chicago(Config):
+    nicknames = ['windy']
+    root_url = 'https://chicago.legistar.com'
+    PPL_MEMB_TABLE_TEXT_ORG = 'Legislative Body'
+    PPL_TABLE_TEXT_WEBSITE =  'Website'
+
 # ----------------
 # Pasted
+
+
 class BoroughofSitka(Config):
     nicknames = ['sitka']
     root_url = 'http://sitka.legistar.com/'
