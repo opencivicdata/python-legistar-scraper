@@ -98,3 +98,11 @@ class Visitor(Base, Visitor):
             return
         key = matchobj.group(1)
         self.data[key]['el'] = el
+
+    def visit_img(self, el):
+        _id = el.attrib.get('id')
+        if _id is None:
+            return
+        if '_img' in _id:
+            _, key = _id.split('_img')
+            self.data[key]['el'] = el

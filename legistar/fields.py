@@ -25,6 +25,11 @@ class FieldAccessor(Base):
         '''
         raise NotImplementedError()
 
+    def get_img_src(self):
+        '''Returns the first string in the field data.
+        '''
+        raise NotImplementedError()
+
     @CachedAttr
     def text(self):
         '''Text can be slightly expensive.
@@ -147,6 +152,11 @@ class ElementAccessor(FieldAccessor):
             _, extension = self.get_url().rsplit('.', 1)
             key = extension
         return self.cfg.mimetypes.get(key.lower())
+
+    def get_img_src(self):
+        '''Returns the first string in the field data.
+        '''
+        return self.el.attrib.get('src')
 
     def get_video_url(self):
         raise NotImplementedError()
