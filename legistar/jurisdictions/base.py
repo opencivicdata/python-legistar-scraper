@@ -1,14 +1,14 @@
 import logging
 import logging.config
 from urllib.parse import urlparse
-from collections import ChainMap
+from collections import ChainMap, defaultdict
 
 import requests
 
 from legistar.client import Client
 from legistar.base import Base, CachedAttr
 from legistar.jurisdictions.utils import Tabs, Mimetypes, Views
-
+from legistar.utils.itemgenerator import make_item
 
 JXN_CONFIGS = {}
 
@@ -35,7 +35,20 @@ class ConfigMeta(type):
         for name in attrs.get('nicknames', []):
             JXN_CONFIGS[name] = cls
 
+        meta.collect_itemfuncs(attrs, cls)
+
         return cls
+
+    @classmethod
+    def collect_itemfuncs(meta, attrs, cls):
+        '''Aggregates special item functions marked on each
+        config subtype.
+        '''
+        registry = defaultdict(list)
+        for name, member in attrs.items():
+            if getattr(member, '_is_aggregator_func', False):
+                registry[member._pupatype].append(member)
+        cls.aggregator_funcs = registry
 
 
 class Config(Base, metaclass=ConfigMeta):

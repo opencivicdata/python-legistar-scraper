@@ -98,6 +98,25 @@ class FieldAggregator(Base, ItemGenerator):
         if field_data is not None:
             return field_data.get_url() or None
 
+    def get_aggregator_func_data(self, data):
+        '''Return a sequence of (key, value) pairs, where key and
+        value are produced by a method on the jurisdiction Config subtype:
+
+        class MyJxn(Config):
+            ...
+            @make_item('person.' + key)
+            def get_person_party(self, data):
+                value = data.get('something')
+                return value
+
+        I conceded that this is badly named.
+        '''
+        config = self.config
+        pupatype = self.PUPATYPE
+        pupatype_aggregator_funcs = config.aggregator_funcs[pupatype]
+        for unbound_method in pupatype_aggregator_funcs:
+            yield unbound_method(config, data)
+
 
 class ElementAccessor(FieldAccessor):
     '''Provides access to text, url, etc., on DOM elements from the
