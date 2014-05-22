@@ -161,7 +161,7 @@ class DetailView(DetailView, EventFields):
 
     @make_item('agenda', wrapwith=list)
     def gen_agenda(self):
-        yield from self.viewtype_meta.Form(self)
+        yield from self.Form(self)
 
 
 class DetailTable(Table):
