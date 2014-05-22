@@ -91,7 +91,7 @@ class SearchTableRow(TableRow, EventFields):
     def get_end(self):
         '''Get the event end date from the ical record.
         '''
-        end_time = re.search(r'DTEND:([\dT]+)', self.ical_data).group(1)
+        end_time = re.search(r'DTEND:([\dT]+)', self.get_ical_data()).group(1)
         dt = datetime.strptime(end_time, r'%Y%m%dT%H%M%S')
         return dt
 
@@ -99,7 +99,7 @@ class SearchTableRow(TableRow, EventFields):
     def get_when(self):
         '''Get the event start date from the ical record.
         '''
-        end_time = re.search(r'DTSTART:([\dT]+)', self.ical_data).group(1)
+        end_time = re.search(r'DTSTART:([\dT]+)', self.get_ical_data()).group(1)
         dt = datetime.strptime(end_time, r'%Y%m%dT%H%M%S')
         return dt
 
