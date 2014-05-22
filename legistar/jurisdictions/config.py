@@ -5,6 +5,7 @@ from legistar.jurisdictions.base import Config, make_item
 
 class NYC(Config):
     nicknames = ['nyc', 'nyc']
+    division_id = 'ocd-division/country:us/state:ny/place:new_york'
     root_url = 'http://legistar.council.nyc.gov/'
 
     @make_item('person.district')
@@ -40,12 +41,13 @@ class NYC(Config):
 
 class SanFrancisco(Config):
     nicknames = ['sf', 'frisco']
+    division_id = 'ocd-division/country:us/state:ca/place:san_francisco'
     root_url = 'https://sfgov.legistar.com'
 
 
 class Philadelphia(Config):
     nicknames = ['philly', 'pa']
-    root_url = 'https://phila.legistar.com/'
+    division_id = 'ocd-division/country:us/state:pa/place:philadelphia'
     EVT_DETAIL_AVAILABLE = False
 
 
