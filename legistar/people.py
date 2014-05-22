@@ -2,6 +2,7 @@ import re
 import json
 import collections
 from datetime import datetime
+from urllib.parse import urlparse, parse_qsl
 
 from legistar.forms import Form
 from legistar.tables import Table, TableRow
@@ -11,6 +12,7 @@ from legistar.base import CachedAttr, DictSetDefault, NoClobberDict
 
 
 class PersonFields(FieldAggregator):
+    PUPATYPE = 'people'
 
     @make_item('fullname')
     def get_fullname(self):
@@ -18,7 +20,7 @@ class PersonFields(FieldAggregator):
 
     @make_item('website')
     def get_website(self):
-        return self.get_field_text('website')
+        return self.get_field_url('website')
 
     @make_item('email')
     def get_email(self):
@@ -67,30 +69,29 @@ class SearchTableRow(TableRow, PersonFields):
 
 
 class SearchTable(Table):
-    sources_note = 'People search table'
+    sources_note = 'people search table'
 
 
 class SearchForm(Form):
     '''Model the legistar people search form.
     '''
-    sources_note = 'People search'
+    sources_note = 'people search'
 
     def get_query(self):
         return dict(self.client.state)
 
 
 class DetailView(DetailView, PersonFields):
-    PUPATYPE = 'people'
     KEY_PREFIX = 'PPL_DETAIL'
     sources_note = 'person detail'
 
-    @make_item('district')
+    @make_item('notes')
     def get_district(self):
-        return self.get_field_text('district')
+        return self.get_field_text('notes')
 
-    @make_item('roles', wrapwith=list)
+    @make_item('memberships', wrapwith=list)
     def gen_roles(self):
-        yield from self.viewtype_meta.Form(self)
+        yield from self.Form(self)
 
     @make_item('firstname')
     def get_firstname(self):
@@ -100,6 +101,21 @@ class DetailView(DetailView, PersonFields):
     def get_lastname(self):
         return self.get_field_text('lastname')
 
+    @make_item('image')
+    def get_photo_url(self):
+        return self.field_data['Photo'].get_img_src()
+
+    @make_item('identifiers', wrapwith=list)
+    def gen_identifiers(self):
+        '''Yield out the internal legistar person id and guid found
+        in the detail page url.
+        '''
+        detail_url = self.chainmap['sources'][self.sources_note]
+        url = urlparse(detail_url)
+        for idtype, ident in parse_qsl(url.query):
+            yield dict(
+                scheme="legistar_" + idtype.lower(),
+                identifier=ident)
 
 
 class DetailTable(Table):

@@ -19,13 +19,13 @@ class View(Base):
     legistar.jxn_config.Config object, or in the default Config object.
     '''
 
-    def __init__(self, url=None, doc=None):
+    def __init__(self, url=None, doc=None, **kwargs):
         # Setting doc to None forces the view to fetch the page.
         self.chainmap['doc'] = doc
-
         # Allow the url to fall back to the parent chainmap url.
         if url is not None:
             self.chainmap['url'] = url
+        self.kwargs = kwargs
 
     # ------------------------------------------------------------------------
     # Managed attributes
@@ -51,6 +51,10 @@ class View(Base):
         '''
         return getattr(self.viewmeta, self.VIEWTYPE)
 
+    @property
+    def Form(self):
+        return self.viewtype_meta.Form
+
 
 class SearchView(View):
 
@@ -71,7 +75,10 @@ class DetailView(View, FieldAggregator):
         return visitor.visit(self.doc)
 
     def asdict(self):
-        return dict(self)
+        data = dict(self)
+        moredata = self.get_aggregator_func_data(data)
+        data.update(dict(moredata))
+        return data
 
 
 class LegistarScraper(View):
@@ -93,22 +100,25 @@ class LegistarScraper(View):
     people = members = get_people = gen_people
     orgs = organizations = committees = get_orgs = gen_orgs
 
-    def get_pupatype_searchview(self, pupatype):
+    def get_pupatype_searchview(self, pupatype, **kwargs):
         '''Where pupa model is one of 'bills', 'orgs', 'events'
         or 'people', return a matching View subclass.
         '''
         tabmeta = self.cfg.tabs.get_by_pupatype(pupatype)
         url = urljoin(self.cfg.root_url, tabmeta.path)
         view_meta = self.cfg.views.get_by_pupatype(pupatype)
-        view = view_meta.search.View(url=url)
+
+        # Ability to pass doc via kwargs is helpful during testing.
+        view = view_meta.search.View(url=url, **kwargs)
         view.inherit_chainmap_from(self.cfg)
         return view
 
-    def gen_pupatype_objects(self, pupatype):
+    def gen_pupatype_data(self, pupatype):
         '''Given a pupa type, page through the search results and
         yield each object.
         '''
         yield from self.get_pupatype_searchview(pupatype)
+
 
     @classmethod
     def get_config(cls, *args, url=None, division_id=None, **kwargs):

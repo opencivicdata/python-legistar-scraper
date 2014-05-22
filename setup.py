@@ -29,7 +29,7 @@ legistar = legistar.cli:run''',
     "url": "http://github.com/sunlightlabs/legistar/",
     "platforms": ['any'],
     "install_requires": [
-        'nmmd',
+        'uni',
     ],
     "classifiers": [
         "Development Status :: 4 - Beta",

@@ -12,7 +12,25 @@ class SkipItem(Exception):
 def make_item(key, wrapwith=None):
     '''Decorator used to mark instance methods as producing a key, value
     item 2-tuple.
+
+    If the key is dot-qualified, the decorator registers the
+    function on the instance's jurisdiction object. The function
+    will get invoked later by the itemgenerator subtype in the
+    approriate context.
     '''
+
+    pupatype = None
+    if '.' in key:
+        corrected_pupatype = dict(
+            person='people',
+            organization='orgs',
+            org='orgs',
+            bill='bills',
+            event='events',
+            vote='votes')
+        pupatype, key = key.split('.')
+        pupatype = corrected_pupatype.get(pupatype, pupatype)
+
     def decorator(f):
         itemdata = dict(key=key, wrapwith=wrapwith)
         f._itemdata = itemdata
@@ -24,6 +42,12 @@ def make_item(key, wrapwith=None):
             if wrapwith is not None:
                 result = wrapwith(result)
             return key, result
+
+        if pupatype:
+            # The jurisdiction metaclass collects these on each instance.
+            wrapped._is_aggregator_func = True
+            wrapped._pupatype = pupatype
+
         return wrapped
     return decorator
 
