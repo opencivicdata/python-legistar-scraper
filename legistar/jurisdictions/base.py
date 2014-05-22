@@ -15,7 +15,7 @@ JXN_CONFIGS = {}
 
 class ConfigMeta(type):
     '''Metaclass that aggregates jurisdiction config types by root_url
-    and ocd_id.
+    and division_id.
     '''
     def __new__(meta, name, bases, attrs):
         cls = type.__new__(meta, name, bases, attrs)
@@ -27,9 +27,9 @@ class ConfigMeta(type):
             JXN_CONFIGS[data.netloc] = cls
 
         # Also OCD id.
-        ocd_id = attrs.get('ocd_id')
-        if ocd_id is not None:
-            JXN_CONFIGS[ocd_id] = cls
+        division_id = attrs.get('division_id')
+        if division_id is not None:
+            JXN_CONFIGS[division_id] = cls
 
         # Also nicknames.
         for name in attrs.get('nicknames', []):

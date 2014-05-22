@@ -111,8 +111,8 @@ class LegistarScraper(View):
         yield from self.get_pupatype_searchview(pupatype)
 
     @classmethod
-    def get_scraper(cls, *args, url=None, ocd_id=None, **kwargs):
-        '''Get the correct scraper by url or ocd_id.
+    def get_config(cls, *args, url=None, division_id=None, **kwargs):
+        '''Get the correct scraper by url or division_id.
         '''
         config_type = None
 
@@ -122,13 +122,13 @@ class LegistarScraper(View):
                 config_type = JXN_CONFIGS[data.netloc]
             except KeyError:
                 pass
-        elif ocd_id is not None:
+        elif division_id is not None:
             try:
-                config_type = JXN_CONFIGS[ocd_id]
+                config_type = JXN_CONFIGS[division_id]
             except KeyError:
                 msg = ("There doesn't appear to be a scraper defined for "
                        "jurisdiction %s yet.")
-                raise ScraperNotFound(msg % ocd_id)
+                raise ScraperNotFound(msg % division_id)
         elif args:
             for key in args:
                 if key in JXN_CONFIGS:
@@ -136,12 +136,14 @@ class LegistarScraper(View):
                     break
 
         if config_type is None:
-            if url is not None:
-                config_type = type('Config', (Config,), dict(root_url=url))
-            else:
-                raise Exception('Please supply the jurisdiction\'s url or ocd_id.')
+            raise Exception('Please supply the jurisdiction\'s url or division_id.')
 
-        config_obj = config_type()
+        config_obj = config_type(**kwargs)
+        return config_obj
+
+    @classmethod
+    def get_scraper(cls, *args, **kwargs):
+        config_obj = cls.get_config(*args, **kwargs)
         scraper = cls(**kwargs)
         scraper.set_parent_chainmap(config_obj.chainmap)
         return scraper

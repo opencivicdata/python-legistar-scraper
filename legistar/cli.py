@@ -12,7 +12,7 @@ def run():
     parser = argparse.ArgumentParser(description='Scrape a Legistar CMS instance.')
     parser.add_argument('pupatype', help="bills, people, events, committees")
     parser.add_argument('jurisdiction', help=(
-        "A jurisdiction's nickname, ocd_id, or url, defined in its config, "
+        "A jurisdiction's nickname, division_id, or url, defined in its config, "
         "found in the module legistar.jurisdictions.config"))
     args = parser.parse_args()
 
