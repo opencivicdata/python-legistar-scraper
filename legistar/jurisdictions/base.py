@@ -23,8 +23,7 @@ class ConfigMeta(type):
         # Track by domain.
         root_url = attrs.get('root_url')
         if root_url is not None:
-            data = urlparse(cls.root_url)
-            JXN_CONFIGS[data.netloc] = cls
+            JXN_CONFIGS[cls.get_host()] = cls
 
         # Also OCD id.
         division_id = attrs.get('division_id')
@@ -264,6 +263,19 @@ class Config(Base, metaclass=ConfigMeta):
         proxies=proxies,
         headers=headers)
     requests_kwargs = {}
+
+    @classmethod
+    def get_host(cls):
+        return urlparse(cls.root_url).netloc
+
+    def get_session(self):
+        '''Return a requests.Session subtype, or something that provides
+        the same interface.
+        '''
+        session = self.kwargs.get('session')
+        if session is None:
+            session = self.SESSION_CLASS()
+        return session
 
     def get_client(self):
         '''The requests.Session-like object used to make web requests;
