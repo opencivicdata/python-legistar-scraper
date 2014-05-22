@@ -228,12 +228,17 @@ class Config(Base, metaclass=ConfigMeta):
     PPL_TABLE_TEXT_FULLNAME = 'Person Name'
     PPL_TABLE_TEXT_WEBSITE =  'Web Site'
     PPL_TABLE_TEXT_EMAIL =  'E-mail'
+    PPL_TABLE_TEXT_DISTRICT_FAX = 'Fax'
+    PPL_TABLE_TEXT_DISTRICT = 'Ward/Office'
+    PPL_TABLE_TEXT_DISTRICT_PHONE = 'Ward Office Phone'
+    PPL_TABLE_TEXT_DISTRICT_ADDRESS = 'Ward Office Address'
+    PPL_TABLE_TEXT_DISTRICT_ADDRESS_CITY = 'Ward Office Address'
 
     PPL_DETAIL_TEXT_FIRSTNAME = 'First name'
     PPL_DETAIL_TEXT_LASTNAME = 'Last name'
     PPL_DETAIL_TEXT_WEBSITE =  'Web site'
     PPL_DETAIL_TEXT_EMAIL =  'E-mail'
-    PPL_DETAIL_TEXT_DISTRICT =  'Notes'
+    PPL_DETAIL_TEXT_NOTES =  'Notes'
 
     PPL_MEMB_TABLE_TEXT_ORG = 'Department Name'
     PPL_MEMB_TABLE_TEXT_ROLE = 'Title'
