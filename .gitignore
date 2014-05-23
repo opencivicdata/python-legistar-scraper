@@ -38,3 +38,4 @@ settings_local.py
 .python_history
 
 stuff/*
+htmlcov/
