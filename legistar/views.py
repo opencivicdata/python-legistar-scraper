@@ -62,8 +62,7 @@ class SearchView(View):
         '''Iterating over a search view generates tables of paginated search
         results.
         '''
-        Form = self.viewtype_meta.Form
-        yield from Form(self)
+        yield from self.Form(self)
 
 
 class DetailView(View, FieldAggregator):
@@ -77,7 +76,7 @@ class DetailView(View, FieldAggregator):
     def asdict(self):
         data = dict(self)
         moredata = self.get_aggregator_func_data(data)
-        data.update(dict(moredata))
+        data.update(moredata)
         return data
 
 
@@ -118,7 +117,6 @@ class LegistarScraper(View):
         yield each object.
         '''
         yield from self.get_pupatype_searchview(pupatype)
-
 
     @classmethod
     def get_config(cls, *args, url=None, division_id=None, **kwargs):
