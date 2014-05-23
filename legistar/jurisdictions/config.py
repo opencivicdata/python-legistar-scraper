@@ -4,9 +4,13 @@ from legistar.jurisdictions.base import Config, make_item
 
 
 class NYC(Config):
+    '''Legistar config for New York City. Note that district, party,
+    and bio are all combined into a `notes` field on legislator detail
+    pages, so the custom functions below are necessary to extract those.
+    '''
     nicknames = ['nyc', 'nyc']
-    division_id = 'ocd-division/country:us/state:ny/place:new_york'
     root_url = 'http://legistar.council.nyc.gov/'
+    division_id = 'ocd-division/country:us/state:ny/place:new_york'
 
     @make_item('person.district')
     def person_district(self, data):
