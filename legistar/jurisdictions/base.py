@@ -237,8 +237,20 @@ class Config(Base, metaclass=ConfigMeta):
     PPL_DETAIL_TEXT_FIRSTNAME = 'First name'
     PPL_DETAIL_TEXT_LASTNAME = 'Last name'
     PPL_DETAIL_TEXT_WEBSITE =  'Web site'
-    PPL_DETAIL_TEXT_EMAIL =  'E-mail'
-    PPL_DETAIL_TEXT_NOTES =  'Notes'
+    PPL_DETAIL_TEXT_EMAIL = 'E-mail'
+    PPL_DETAIL_TEXT_NOTES = 'Notes'
+
+    # This field actually has no label, but this pretends it does,
+    # so as to support the same interface.
+    PPL_DETAIL_TEXT_PHOTO = 'Photo'
+
+    # The string to indicate that person's rep'n is "at-large".
+    DEFAULT_AT_LARGE_STRING = 'At-Large'
+    # The string indicating person's membership in the council, for example.
+    # This is usually the first row in the person detail chamber.
+    # It's the string value of the first PPL_MEMB_TABLE_TEXT_ROLE
+    TOPLEVEL_ORG_MEMBERSHIP_TITLE_TEXT = 'Council Member'
+    TOPLEVEL_ORG_MEMBERSHIP_NAME_TEXT = 'City Council'
 
     PPL_MEMB_TABLE_TEXT_ORG = 'Department Name'
     PPL_MEMB_TABLE_TEXT_ROLE = 'Title'
