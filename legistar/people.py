@@ -103,7 +103,7 @@ class DetailView(DetailView, PersonFields):
 
     @make_item('image')
     def get_photo_url(self):
-        return self.field_data['Photo'].get_img_src()
+        return self.get_field_img_src('Photo')
 
     @make_item('identifiers', wrapwith=list)
     def gen_identifiers(self):
