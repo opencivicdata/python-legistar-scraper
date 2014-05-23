@@ -88,3 +88,25 @@ class CachedClassAttr(object):
         result = self.method(cls)
         setattr(cls, self.name, result)
         return result
+
+
+class SetDefault:
+    '''Context manager like getattr, but yields a default value,
+    and sets on the instance on exit:
+
+    with SetDefault(obj, attrname, []) as attr:
+        attr.append('something')
+    print obj.something
+    '''
+    def __init__(self, obj, attr, default_val):
+        self.obj = obj
+        self.attr = attr
+        self.default_val = default_val
+
+    def __enter__(self):
+        val = getattr(self.obj, self.attr, self.default_val)
+        self.val = val
+        return val
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        setattr(self.obj, self.attr, self.val)
