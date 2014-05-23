@@ -44,9 +44,16 @@ class NYC(Config):
 
 
 class SanFrancisco(Config):
-    nicknames = ['sf', 'frisco']
-    division_id = 'ocd-division/country:us/state:ca/place:san_francisco'
+    nicknames = ['sf', 'frisco', 'strinkytown', 'thoms-home-town-sortof']
     root_url = 'https://sfgov.legistar.com'
+    division_id = 'ocd-division/country:us/state:ca/place:san_francisco'
+
+    TOPLEVEL_ORG_MEMBERSHIP_TITLE_TEXT = 'Supervisor'
+    TOPLEVEL_ORG_MEMBERSHIP_NAME_TEXT = 'Board of Supervisors'
+
+    @make_item('person.district')
+    def get_district(self, data):
+        return self.DEFAULT_AT_LARGE_STRING
 
 
 class Philadelphia(Config):
