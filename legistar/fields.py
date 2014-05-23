@@ -98,6 +98,11 @@ class FieldAggregator(Base, ItemGenerator):
         if field_data is not None:
             return field_data.get_url() or None
 
+    def get_field_img_src(self, label_text):
+        field_data = self.get_field_data(label_text)
+        if field_data is not None:
+            return field_data.get_img_src()
+
     def get_aggregator_func_data(self, data):
         '''Return a sequence of (key, value) pairs, where key and
         value are produced by a method on the jurisdiction Config subtype:
