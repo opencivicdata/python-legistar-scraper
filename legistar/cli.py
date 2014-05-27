@@ -21,6 +21,6 @@ def run():
         scraper = get_scraper(url=key)
     else:
         scraper = get_scraper(key)
-    for data in scraper.gen_pupatype_objects(args.pupatype):
+    for data in scraper.gen_pupatype_data(args.pupatype):
         pprint.pprint(data)
         import pdb; pdb.set_trace()
