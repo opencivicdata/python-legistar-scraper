@@ -69,10 +69,11 @@ class Table(Base):
                 continue
 
             # Complain if no records.
-            if tr.text_content().strip() in self.cfg.NO_RECORDS_FOUND_TEXT:
-                msg = 'No records found in %r. Moving on.'
-                self.debug(msg % self)
-                raise StopIteration()
+            for no_records_text in self.cfg.NO_RECORDS_FOUND_TEXT:
+                if no_records_text in tr.text_content().strip():
+                    msg = 'No records found in %r. Moving on.'
+                    self.debug(msg % self)
+                    raise StopIteration()
 
             # Collect all the cells.
             cells = []
