@@ -103,32 +103,6 @@ class SearchTableRow(TableRow, EventFields):
         dt = datetime.strptime(end_time, r'%Y%m%dT%H%M%S')
         return dt
 
-    def asdict(self):
-        '''Combine the detail page data with the table row data.
-        '''
-        # Get the final data for both.
-        data = dict(gen_items(self))
-        if not self.cfg.EVT_DETAIL_AVAILABLE:
-            return data
-        if self.cfg.USING_TEST_CONFIG:
-            return data
-
-        data = NoClobberDict(data)
-        detail_data = dict(self.get_detail_page().asdict())
-
-        # Add any keys detail has that table row doesn't.
-        for key in detail_data.keys() - data.keys():
-            data[key] = detail_data[key]
-
-        # Add sources and documents.
-        listy_fields = ('sources', 'documents', 'participants')
-        data = dict(data)
-        for key in listy_fields:
-            for obj in detail_data[key]:
-                if obj not in data[key]:
-                    data[key].append(obj)
-        return dict(data)
-
 
 class SearchTable(Table):
     sources_note = 'Events search table'

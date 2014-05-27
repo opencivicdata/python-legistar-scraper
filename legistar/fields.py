@@ -3,7 +3,7 @@ import re
 from datetime import datetime
 from urllib.parse import urlparse
 
-from legistar.base import Base, CachedAttr
+from legistar.base import Base, CachedAttr, NoClobberDict
 from legistar.utils.itemgenerator import make_item, gen_items, ItemGenerator
 
 
@@ -104,10 +104,39 @@ class FieldAggregator(Base, ItemGenerator):
         I conceded that this is badly named.
         '''
         config = self.config
-        pupatype = self.PUPATYPE
+        pupatype = self.get_pupatype()
         pupatype_aggregator_funcs = config.aggregator_funcs[pupatype]
         for unbound_method in pupatype_aggregator_funcs:
             yield unbound_method(config, data)
+
+    def asdict(self):
+        '''Combine the detail page data with the table row data.
+        '''
+        data = dict(gen_items(self))
+        if not self.get_config_value('detail_available'):
+            return data
+
+        data = NoClobberDict(data)
+        detail_data = dict(self.get_detail_page().asdict())
+
+        # Add any keys detail has that table row doesn't.
+        for key in detail_data.keys() - data.keys():
+            data[key] = detail_data[key]
+
+        # Add sources and documents.
+        data = dict(data)
+        for key in listy_fields:
+            for key, value in detail_data.items():
+                if not isinstance(value, (tuple, list)):
+                    continue
+                for obj in value:
+                    if obj not in data[key]:
+                        data[key].append(obj)
+
+        # Run any custom functions defined on the jxn's config.
+        data.update(self.get_aggregator_func_data(data))
+
+        return dict(data)
 
 
 class ElementAccessor(FieldAccessor):
