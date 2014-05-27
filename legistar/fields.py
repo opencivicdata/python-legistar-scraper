@@ -53,19 +53,6 @@ class FieldAggregator(Base, ItemGenerator):
     config values. It's __iter__ method generates a list of 2-tuples,
     so to convert it to a dict, it's just dict(instance).
     '''
-    @property
-    def KEY_PREFIX(self):
-        '''The "EVT_TABLE" part of self.cfg.EVT_TABLE_TEXT_TOPIC.
-        '''
-        msg = 'Field subclasses must define KEY_PREFIX.'
-        raise NotImplementedError(msg)
-
-    def get_config_value(self, key):
-        '''Get a value with the class's key prefix.
-        '''
-        name = '%s_%s' % (self.KEY_PREFIX, key.upper())
-        return getattr(self.cfg, name)
-
     def get_label_text(self, key):
         '''Get field label text using the class's prefix:
 
@@ -73,8 +60,8 @@ class FieldAggregator(Base, ItemGenerator):
         '''
         key = 'TEXT_%s' % key.upper()
         try:
-            return self.get_config_value(key)
-        except:
+            return super().get_config_value(key)
+        except self.ConfigAttributeError:
             self.info('No field %s found on %r. Skipping.', key, self)
             raise self.SkipItem()
 

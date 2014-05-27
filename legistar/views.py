@@ -42,14 +42,14 @@ class View(Base):
     def viewmeta(self):
         '''Return the view metadata for this View based on its PUPATYPE.
         '''
-        return self.cfg.views.get_by_pupatype(self.PUPATYPE)
+        return self.cfg.views.get_by_pupatype(self.get_pupatype())
 
     @property
     def viewtype_meta(self):
         '''Return the viewtype metadata for this View based on its PUPATYPE
         and its VIEWTYPE, which is either 'search' or 'detail'.
         '''
-        return getattr(self.viewmeta, self.VIEWTYPE)
+        return getattr(self.viewmeta, self.get_viewtype())
 
     @property
     def Form(self):
@@ -57,6 +57,7 @@ class View(Base):
 
 
 class SearchView(View):
+    VIEWTYPE = 'search'
 
     def __iter__(self):
         '''Iterating over a search view generates tables of paginated search

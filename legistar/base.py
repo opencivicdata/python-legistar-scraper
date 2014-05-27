@@ -4,6 +4,7 @@ from collections import ChainMap
 
 import lxml.html
 
+from legistar.pupatypes import PupatypeMixin
 from legistar.utils.handythings import (
     CachedAttr, CachedClassAttr, DictSetDefault, NoClobberDict)
 
@@ -65,7 +66,7 @@ class Doc(ChainedLookup):
     on_get = on_set = add_to_sources
 
 
-class Base:
+class Base(PupatypeMixin):
     '''Lookups for these attributes on subtypes will fail over
     to whatever object's ChainMap the object's own ChainMap was derived
     from, and on up the chain, all the way back the jursdiction's config

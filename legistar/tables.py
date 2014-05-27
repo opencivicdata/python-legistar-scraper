@@ -19,9 +19,6 @@ class TableRow(FieldAggregator):
         detail_view.inherit_chainmap_from(self.view)
         return detail_view
 
-    def asdict(self):
-        return dict(self)
-
 
 class Table(Base):
     '''Provides access to row data in tabular search results data.

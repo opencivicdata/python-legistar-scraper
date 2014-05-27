@@ -11,8 +11,7 @@ from legistar.fields import FieldAggregator, make_item, gen_items
 from legistar.base import CachedAttr, DictSetDefault, NoClobberDict
 
 
-class PersonFields(FieldAggregator):
-    PUPATYPE = 'people'
+class PeopleFields(FieldAggregator):
 
     @make_item('fullname')
     def get_fullname(self):
@@ -35,54 +34,28 @@ class PersonFields(FieldAggregator):
             yield dict(url=url, note=', '.join(notes))
 
 
-class SearchView(SearchView):
-    PUPATYPE = 'people'
-    VIEWTYPE = 'search'
+class PeopleSearchView(SearchView):
     sources_note = 'People search'
 
 
-class SearchTableRow(TableRow, PersonFields):
-    KEY_PREFIX = 'PPL_TABLE'
-
+class PeopleSearchTableRow(TableRow, PeopleFields):
     def get_detail_url(self):
         return self.get_field_url('fullname')
 
-    def asdict(self):
-        '''Combine the detail page data with the table row data.
-        '''
-        # Get the final data for both.
-        data = NoClobberDict(gen_items(self))
-        detail_data = dict(self.get_detail_page().asdict())
 
-        # Add any keys detail has that table row doesn't.
-        for key in detail_data.keys() - data.keys():
-            data[key] = detail_data[key]
-
-        # Add sources and documents.
-        listy_fields = ('sources',)
-        data = dict(data)
-        for key in listy_fields:
-            for obj in detail_data[key]:
-                if obj not in data[key]:
-                    data[key].append(obj)
-        return dict(data)
-
-
-class SearchTable(Table):
+class PeopleSearchTable(Table):
     sources_note = 'people search table'
 
 
-class SearchForm(Form):
+class PeopleSearchForm(Form):
     '''Model the legistar people search form.
     '''
     sources_note = 'people search'
-
     def get_query(self):
         return dict(self.client.state)
 
 
-class DetailView(DetailView, PersonFields):
-    KEY_PREFIX = 'PPL_DETAIL'
+class PeopleDetailView(DetailView, PeopleFields):
     sources_note = 'person detail'
 
     @make_item('notes')
@@ -118,12 +91,11 @@ class DetailView(DetailView, PersonFields):
                 identifier=ident)
 
 
-class DetailTable(Table):
+class PeopleDetailTable(Table):
     sources_note = 'person detail table'
 
 
-class DetailTableRow(TableRow):
-    KEY_PREFIX = 'PPL_MEMB_TABLE'
+class PeopleDetailTableRow(TableRow):
 
     @make_item('org')
     def get_org(self):
@@ -136,6 +108,9 @@ class DetailTableRow(TableRow):
     @make_item('start_date')
     def get_start_date(self):
         text = self.get_field_text('start_date')
+        if text is None:
+            return
+        text = text.strip("*")
         try:
             return datetime.strptime(text, '%m/%d/%Y')
         except TypeError:
@@ -144,6 +119,9 @@ class DetailTableRow(TableRow):
     @make_item('end_date')
     def get_end_date(self):
         text = self.get_field_text('end_date')
+        if text is None:
+            return
+        text = text.strip("*")
         try:
             return datetime.strptime(text, '%m/%d/%Y')
         except TypeError:
@@ -154,6 +132,6 @@ class DetailTableRow(TableRow):
         return self.get_field_text('appointed_by')
 
 
-class DetailForm(Form):
+class PeopleDetailForm(Form):
     skip_first_submit = True
     sources_note = 'person detail'
