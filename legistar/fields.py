@@ -67,11 +67,13 @@ class FieldAggregator(Base, ItemGenerator):
 
     def get_field_data(self, label_text):
         key = self.get_label_text(label_text)
-        try:
-            return self.field_data[key]
-        except KeyError:
-            # The data wasn't found, so we skip it.
+        index = 0
+        if isinstance(key, tuple):
+            key, index = key
+        values = self.field_data[key]
+        if not values:
             raise self.SkipItem()
+        return values[index]
 
     def get_field_text(self, label_text):
         field_data = self.get_field_data(label_text)
@@ -125,13 +127,12 @@ class FieldAggregator(Base, ItemGenerator):
 
         # Add sources and documents.
         data = dict(data)
-        for key in listy_fields:
-            for key, value in detail_data.items():
-                if not isinstance(value, (tuple, list)):
-                    continue
-                for obj in value:
-                    if obj not in data[key]:
-                        data[key].append(obj)
+        for key, value in detail_data.items():
+            if not isinstance(value, (tuple, list)):
+                continue
+            for obj in value:
+                if obj not in data[key]:
+                    data[key].append(obj)
 
         # Run any custom functions defined on the jxn's config.
         data.update(self.get_aggregator_func_data(data))

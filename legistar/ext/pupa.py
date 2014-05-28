@@ -1,5 +1,6 @@
 '''
 '''
+import re
 import inspect
 
 from legistar.base import Base, ChainedLookup

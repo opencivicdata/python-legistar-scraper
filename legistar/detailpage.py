@@ -24,13 +24,13 @@ class Visitor(Base, Visitor):
         are the dictionary keys, instead of the sluggy text present in their
         id attributes. Wrap each value in a DetailField.
         '''
-        newdata = {}
+        newdata = defaultdict(list)
         for id_attr, data in tuple(self.data.items()):
             alias = data.get('label', id_attr).strip(':')
             value = self.cfg.make_child(ElementAccessor, data['el'])
-            newdata[alias] = value
+            newdata[alias].append(value)
             if alias != id_attr:
-                newdata[id_attr] = value
+                newdata[id_attr].append(value)
         return newdata
 
     def get_nodekey(self, el):

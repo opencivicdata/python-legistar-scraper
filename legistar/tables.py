@@ -1,6 +1,6 @@
 import io
 from urllib.parse import urlparse
-from collections import OrderedDict
+from collections import defaultdict
 
 from legistar.base import Base
 from legistar.fields import FieldAggregator, FieldAccessor
@@ -9,9 +9,11 @@ from legistar.fields import FieldAggregator, FieldAccessor
 class TableRow(FieldAggregator):
     '''Provides access to table rows.
     '''
-    def __init__(self, *args, view, **kwargs):
+    def __init__(self, data, view, **kwargs):
         self.view = view
-        self.field_data = OrderedDict(*args, **kwargs)
+        self.field_data = defaultdict(list)
+        for key, field in data:
+            self.field_data[key].append(field)
 
     def get_detail_page(self):
         DetailView = self.view.viewmeta.detail.View
