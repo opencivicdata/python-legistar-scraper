@@ -100,17 +100,6 @@ class Config(Base, metaclass=ConfigMeta):
     EVT_DETAIL_TABLECELL_CLASS = 'legistar.fields.ElementAccessor'
     EVT_DETAIL_FORM_CLASS = 'legistar.events.DetailForm'
 
-    ORG_SEARCH_VIEW_CLASS = 'legistar.orgs.OrgsSearchView'
-    ORG_DETAIL_VIEW_CLASS = 'legistar.orgs.OrgsDetailView'
-    ORG_SEARCH_TABLE_CLASS = 'legistar.orgs.OrgsSearchTable'
-    ORG_SEARCH_TABLEROW_CLASS = 'legistar.orgs.OrgsSearchTableRow'
-    ORG_SEARCH_TABLECELL_CLASS = 'legistar.fields.ElementAccessor'
-    ORG_SEARCH_FORM_CLASS = 'legistar.orgs.OrgsSearchForm'
-    ORG_DETAIL_TABLE_CLASS = 'legistar.orgs.OrgsDetailTable'
-    ORG_DETAIL_TABLEROW_CLASS = 'legistar.orgs.OrgsDetailTableRow'
-    ORG_DETAIL_TABLECELL_CLASS = 'legistar.fields.ElementAccessor'
-    ORG_DETAIL_FORM_CLASS = 'legistar.orgs.OrgsDetailForm'
-
     PPL_SEARCH_VIEW_CLASS = 'legistar.people.PeopleSearchView'
     PPL_DETAIL_VIEW_CLASS = 'legistar.people.PeopleDetailView'
     PPL_SEARCH_TABLE_CLASS = 'legistar.people.PeopleSearchTable'
@@ -139,8 +128,20 @@ class Config(Base, metaclass=ConfigMeta):
     # ------------------------------------------------------------------------
     # Orgs general config.
     # ------------------------------------------------------------------------
-    ORG_SEARCH_TABLE_DETAIL_AVAILABLE = True
-    ORG_DETAIL_TABLE_DETAIL_AVAILABLE = True
+    ORG_SEARCH_VIEW_CLASS = 'legistar.orgs.OrgsSearchView'
+    ORG_DETAIL_VIEW_CLASS = 'legistar.orgs.OrgsDetailView'
+    ORG_SEARCH_TABLE_CLASS = 'legistar.orgs.OrgsSearchTable'
+    ORG_SEARCH_TABLEROW_CLASS = 'legistar.orgs.OrgsSearchTableRow'
+    ORG_SEARCH_TABLECELL_CLASS = 'legistar.fields.ElementAccessor'
+    ORG_SEARCH_FORM_CLASS = 'legistar.orgs.OrgsSearchForm'
+    ORG_DETAIL_TABLE_CLASS = 'legistar.orgs.OrgsDetailTable'
+    ORG_DETAIL_TABLEROW_CLASS = 'legistar.orgs.OrgsDetailTableRow'
+    ORG_DETAIL_TABLECELL_CLASS = 'legistar.fields.ElementAccessor'
+    ORG_DETAIL_FORM_CLASS = 'legistar.orgs.OrgsDetailForm'
+
+    # Scrapers will be getting this from people pages.
+    ORG_SEARCH_TABLE_DETAIL_AVAILABLE = False
+    ORG_DETAIL_TABLE_DETAIL_AVAILABLE = False
 
     ORG_SEARCH_TABLE_TEXT_NAME = 'Department Name'
     ORG_SEARCH_TABLE_TEXT_TYPE = 'Type'
