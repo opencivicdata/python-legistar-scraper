@@ -6,7 +6,7 @@ from legistar.utils.handythings import CachedAttr
 PUPATYPES = VALID_PUPATYPES = ('events', 'orgs', 'people', 'bills')
 VALID_VIEWTYPES = ('search', 'detail')
 VALID_COMPONENT_TYPES = ('table',)
-PUPATYPE_PREFIXES = ['EVT', 'ORG', 'PPL', 'BILLS']
+PUPATYPE_PREFIXES = ['EVT', 'ORG', 'PPL', 'BILL']
 
 
 class InvalidPrefixValue(Exception):
@@ -115,7 +115,7 @@ class PupatypeMixin:
         '''
         # Guess pupatype from class name.
         cls_name = self.__class__.__name__
-        for pupatype in ('people', 'event', 'bill', 'org'):
+        for pupatype in VALID_PUPATYPES:
             if pupatype in cls_name.lower():
                 return pupatype
         # Complain.
@@ -128,7 +128,7 @@ class PupatypeMixin:
         '''
         # Guess viewtype from the class name.
         cls_name = self.__class__.__name__
-        for viewtype in ('search', 'detail'):
+        for viewtype in VALID_VIEWTYPES:
             if viewtype in cls_name.lower():
                 return viewtype
         # Ok, complain.

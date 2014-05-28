@@ -100,16 +100,16 @@ class Config(Base, metaclass=ConfigMeta):
     EVT_DETAIL_TABLECELL_CLASS = 'legistar.fields.ElementAccessor'
     EVT_DETAIL_FORM_CLASS = 'legistar.events.DetailForm'
 
-    ORG_SEARCH_VIEW_CLASS = 'legistar.orgs.SearchView'
-    ORG_DETAIL_VIEW_CLASS = 'legistar.orgs.DetailView'
-    ORG_SEARCH_TABLE_CLASS = 'legistar.orgs.SearchTable'
-    ORG_SEARCH_TABLEROW_CLASS = 'legistar.orgs.SearchTableRow'
+    ORG_SEARCH_VIEW_CLASS = 'legistar.orgs.OrgsSearchView'
+    ORG_DETAIL_VIEW_CLASS = 'legistar.orgs.OrgsDetailView'
+    ORG_SEARCH_TABLE_CLASS = 'legistar.orgs.OrgsSearchTable'
+    ORG_SEARCH_TABLEROW_CLASS = 'legistar.orgs.OrgsSearchTableRow'
     ORG_SEARCH_TABLECELL_CLASS = 'legistar.fields.ElementAccessor'
-    ORG_SEARCH_FORM_CLASS = 'legistar.orgs.SearchForm'
-    ORG_DETAIL_TABLE_CLASS = 'legistar.orgs.DetailTable'
-    ORG_DETAIL_TABLEROW_CLASS = 'legistar.orgs.DetailTableRow'
+    ORG_SEARCH_FORM_CLASS = 'legistar.orgs.OrgsSearchForm'
+    ORG_DETAIL_TABLE_CLASS = 'legistar.orgs.OrgsDetailTable'
+    ORG_DETAIL_TABLEROW_CLASS = 'legistar.orgs.OrgsDetailTableRow'
     ORG_DETAIL_TABLECELL_CLASS = 'legistar.fields.ElementAccessor'
-    ORG_DETAIL_FORM_CLASS = 'legistar.orgs.DetailForm'
+    ORG_DETAIL_FORM_CLASS = 'legistar.orgs.OrgsDetailForm'
 
     PPL_SEARCH_VIEW_CLASS = 'legistar.people.PeopleSearchView'
     PPL_DETAIL_VIEW_CLASS = 'legistar.people.PeopleDetailView'
@@ -135,6 +135,18 @@ class Config(Base, metaclass=ConfigMeta):
 
     NO_RECORDS_FOUND_TEXT = ['No records were found', 'No records to display.']
     RESULTS_TABLE_XPATH = '//table[contains(@class, "rgMaster")]'
+
+    # ------------------------------------------------------------------------
+    # Orgs general config.
+    # ------------------------------------------------------------------------
+    ORG_SEARCH_TABLE_DETAIL_AVAILABLE = True
+    ORG_DETAIL_TABLE_DETAIL_AVAILABLE = True
+
+    ORG_SEARCH_TABLE_TEXT_NAME = 'Department Name'
+    ORG_SEARCH_TABLE_TEXT_TYPE = 'Type'
+    ORG_SEARCH_TABLE_TEXT_MEETING_LOCATION = 'Meeting Location'
+    ORG_SEARCH_TABLE_TEXT_NUM_VACANCIES = 'Vacancies'
+    ORG_SEARCH_TABLE_TEXT_NUM_MEMBERS = 'Members'
 
     # ------------------------------------------------------------------------
     # Events general config.

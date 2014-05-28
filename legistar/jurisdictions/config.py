@@ -149,6 +149,7 @@ class Rialto(Config):
     nicknames = ['rialto']
     root_url = 'http://rialto.legistar.com/'
     PPL_SEARCH_TABLE_DETAIL_AVAILABLE = False
+    ORG_SEARCH_TABLE_DETAIL_AVAILABLE = False
 
 
 class Barrie(Config):
