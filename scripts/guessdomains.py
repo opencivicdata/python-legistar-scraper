@@ -87,6 +87,8 @@ class Checker(scrapelib.Scraper):
             return
         if '.' in self.place:
             return
+        if len(self.place) < 2:
+            return
         self.url = 'http://%s.legistar.com' % self.place
         self.logger.debug('Checking %r ...' % self.url)
         resp = self.get(self.url)
