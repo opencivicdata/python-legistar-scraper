@@ -125,6 +125,32 @@ class PupaAdapter(PupaExtBase, ItemGenerator):
         return instance
 
 
+class PupaConverter(PupaExtBase):
+    '''Base class responsible for adding relations onto
+    converted pupa instances using raw data obtained from
+    a PupaAdapter instance. I fully realize/appreciate that
+    all these classes are badly named.
+    '''
+    def __init__(self, legistar_data):
+        self.data = legistar_data
+
+    def __iter__(self):
+        '''Creates the pupa Legislator instance, adds its memberships,
+        and returns it.
+        '''
+        # Get the Person.
+        yield self.get_adapter().get_instance()
+
+    def get_adapter(self, data=None):
+        return self.make_child(self.adapter, data or self.data)
+
+    def get_instance(self, data=None):
+        return self.get_adapter(data).get_instance()
+
+
+# ------------------------------------------------------------------------
+# Memberships.
+# ------------------------------------------------------------------------
 class MembershipAdapter(PupaAdapter):
     '''Convert a legistar scraper's membership into a pupa-compliant
     membership.
@@ -162,76 +188,6 @@ class MembershipAdapter(PupaAdapter):
             self.warning(msg, self.person.name, self.top_level_org.name)
             return make_psuedo_id(classification="legislature")
         return self.data['organization_id']
-
-
-class PersonAdapter(PupaAdapter):
-    '''Converts legistar data into a pupa.scrape.Person instance.
-    Note the make_item methods are popping values out the dict,
-    because the associated keys aren't valid pupa.scrape.Person fields.
-    '''
-    pupa_model = pupa.scrape.Person
-    aliases = [('fullname', 'name'),]
-    extras_keys = ['firstname', 'lastname', 'notes']
-
-    @make_item('links', wrapwith=list)
-    def get_links(self):
-        '''Move the website link into the pupa links attr,
-        '''
-        website_url = self.data.pop('website', None)
-        if website_url is not None:
-            yield dict(note='website', url=website_url)
-
-    @make_item('contact_details', wrapwith=list)
-    def gen_contacts(self):
-        '''Move legistar's top-level email into contacts dict.
-        '''
-        for key in 'email', 'fax':
-            email = self.data.pop(key, None)
-            if email is not None:
-                yield dict(type=key, value=email, note='')
-
-        rename_keys = dict(phone='voice')
-
-        # Addresses are a pain. This hacky garbage converts flat
-        # address keys into a list of address objects.
-        contact_keys = '''
-            phone address address_city address_state address_zip
-            '''.split()
-
-        for officetype in ('district', 'city hall'):
-            address = []
-            office_key = officetype.replace(' ', '')
-            note = officetype
-            for contact_key in contact_keys:
-                key = '%s_%s' % (office_key, contact_key)
-                value = self.data.pop(key, None)
-                if value is None:
-                    continue
-                if 'address' in contact_key:
-                    address.append(value)
-                else:
-                    type_ = rename_keys.get(contact_key, contact_key)
-                    yield dict(type=type_, value=value, note=officetype)
-            address = '\n'.join([address[0], ' '.join(address[1:])])
-            replace_func = lambda m: '%s,' % m.group(1)
-            address = re.sub(r'([A-Z]{2})', replace_func, address)
-            yield dict(type='address', value=address, note=officetype)
-
-
-class PupaConverter(PupaExtBase):
-    '''Base class responsible for adding relations onto
-    converted pupa instances using raw data obtained from
-    a PupaAdapter instance. I fully realize/appreciate that
-    all these classes are badly named.
-    '''
-    def __init__(self, legistar_data):
-        self.data = legistar_data
-
-    def get_adapter(self, data=None):
-        return self.make_child(self.adapter, data or self.data)
-
-    def get_instance(self, data=None):
-        return self.get_adapter(data).get_instance()
 
 
 class MembershipConverter(PupaConverter):
@@ -304,11 +260,73 @@ class MembershipConverter(PupaConverter):
             role='member')
 
 
-class PersonConverter(PupaConverter):
+# ------------------------------------------------------------------------
+# People
+# ------------------------------------------------------------------------
+class PeopleAdapter(PupaAdapter):
+    '''Converts legistar data into a pupa.scrape.Person instance.
+    Note the make_item methods are popping values out the dict,
+    because the associated keys aren't valid pupa.scrape.Person fields.
+    '''
+    pupa_model = pupa.scrape.Person
+    aliases = [('fullname', 'name'),]
+    extras_keys = ['firstname', 'lastname', 'notes']
+
+    @make_item('links', wrapwith=list)
+    def get_links(self):
+        '''Move the website link into the pupa links attr,
+        '''
+        website_url = self.data.pop('website', None)
+        if website_url is not None:
+            yield dict(note='website', url=website_url)
+
+    @make_item('contact_details', wrapwith=list)
+    def gen_contacts(self):
+        '''Move legistar's top-level email into contacts dict.
+        '''
+        for key in 'email', 'fax':
+            email = self.data.pop(key, None)
+            if email is not None:
+                yield dict(type=key, value=email, note='')
+
+        rename_keys = dict(phone='voice')
+
+        # Addresses are a pain. This hacky garbage converts flat
+        # address keys into a list of address objects.
+        contact_keys = '''
+            phone address address_city address_state address_zip
+            '''.split()
+
+        for officetype in ('district', 'city hall'):
+            address = []
+            office_key = officetype.replace(' ', '')
+            note = officetype
+            for contact_key in contact_keys:
+                key = '%s_%s' % (office_key, contact_key)
+                value = self.data.pop(key, None)
+                if value is None:
+                    continue
+                if 'address' in contact_key:
+                    address.append(value)
+                else:
+                    type_ = rename_keys.get(contact_key, contact_key)
+                    yield dict(type=type_, value=value, note=officetype)
+
+            if not address:
+                continue
+
+            # Yay! We got an address.
+            address = '\n'.join([address[0], ' '.join(address[1:])])
+            replace_func = lambda m: '%s,' % m.group(1)
+            address = re.sub(r'([A-Z]{2})', replace_func, address)
+            yield dict(type='address', value=address, note=officetype)
+
+
+class PeopleConverter(PupaConverter):
     '''Invokes the person and membership adapters to output pupa Person
     objects.
     '''
-    adapter = PersonAdapter
+    adapter = PeopleAdapter
 
     def gen_memberships(self):
         yield from self.make_child(MembershipConverter, self.memberships)
@@ -329,7 +347,34 @@ class PersonConverter(PupaConverter):
         # Create memberships.
         yield from self.gen_memberships()
 
+# ------------------------------------------------------------------------
+# Orgs
+# ------------------------------------------------------------------------
+class OrgsAdapter(PupaAdapter):
+    '''Converts legistar data into a pupa.scrape.Person instance.
+    Note the make_item methods are popping values out the dict,
+    because the associated keys aren't valid pupa.scrape.Person fields.
+    '''
+    pupa_model = pupa.scrape.Organization
+    aliases = []
+    extras_keys = ['meeting_location', 'num_members', 'num_vacancies']
 
+    @make_item('classification')
+    def get_classn(self):
+        legistar_type = self.data.pop('type')
+        return self.config.get_org_classification(legistar_type)
+
+
+class OrgsConverter(PupaConverter):
+    '''Invokes the person and membership adapters to output pupa Person
+    objects.
+    '''
+    adapter = OrgsAdapter
+
+
+# ------------------------------------------------------------------------
+# Helper class that glues things together.
+# ------------------------------------------------------------------------
 class PupaGenerator(PupaExtBase):
     '''Instantiate this object with a list of pupatypes, then
     iterate over it to generate pupa objects. It invokes the
@@ -338,7 +383,8 @@ class PupaGenerator(PupaExtBase):
     links. etc.
     '''
     converter_types = dict(
-        people=PersonConverter)
+        people=PeopleConverter,
+        orgs=OrgsConverter)
 
     def __init__(self, *pupatypes):
         self.pupatypes = pupatypes
@@ -392,9 +438,15 @@ class PupaGenerator(PupaExtBase):
         '''
         self.top_level_org = org
 
+
 # ----------------------------------------------------------------------------
 # Importables
 # ----------------------------------------------------------------------------
 class LegistarPeopleScraper(pupa.scrape.Scraper):
     # This also scrapes orgs.
     scrape = PupaGenerator('people')
+
+
+class LegistarOrgsScraper(pupa.scrape.Scraper):
+    # This also scrapes orgs.
+    scrape = PupaGenerator('orgs')
