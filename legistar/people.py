@@ -33,6 +33,52 @@ class PeopleFields(FieldAggregator):
         for url, notes in grouped.items():
             yield dict(url=url, note=', '.join(notes))
 
+    @make_item('fax')
+    def get_fax(self):
+        self.warning('Fax is not supported in current pupa spec; skipped it.')
+        raise self.SkipItem()
+        return self.get_field_text('fax')
+
+    @make_item('district_phone')
+    def get_district_phone(self):
+        return self.get_field_text('district_phone')
+
+    @make_item('district_address')
+    def get_district_address(self):
+        return self.get_field_text('district_address')
+
+    @make_item('district_address_state')
+    def get_state(self):
+        return self.get_field_text('district_address_state')
+
+    @make_item('district_address_city')
+    def get_district_address_city(self):
+        return self.get_field_text('district_address_city')
+
+    @make_item('district_address_zip')
+    def get_district_address_zip(self):
+        return self.get_field_text('district_address_zip')
+
+    @make_item('cityhall_address_state')
+    def get_cityhall_state(self):
+        return self.get_field_text('cityhall_address_state')
+
+    @make_item('cityhall_phone')
+    def get_cityhall_phone(self):
+        return self.get_field_text('cityhall_phone')
+
+    @make_item('cityhall_address')
+    def get_cityhall_address(self):
+        return self.get_field_text('cityhall_address')
+
+    @make_item('cityhall_address_city')
+    def get_cityhall_address_city(self):
+        return self.get_field_text('cityhall_address_city')
+
+    @make_item('cityhall_address_zip')
+    def get_cityhall_address_zip(self):
+        return self.get_field_text('cityhall_address_zip')
+
 
 class PeopleSearchView(SearchView):
     sources_note = 'People search'

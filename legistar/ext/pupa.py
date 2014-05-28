@@ -185,9 +185,37 @@ class PersonAdapter(PupaAdapter):
     def gen_contacts(self):
         '''Move legistar's top-level email into contacts dict.
         '''
-        email = self.data.pop('email', None)
-        if email is not None:
-            yield dict(type='email', value=email, note='')
+        for key in 'email', 'fax':
+            email = self.data.pop(key, None)
+            if email is not None:
+                yield dict(type=key, value=email, note='')
+
+        rename_keys = dict(phone='voice')
+
+        # Addresses are a pain. This hacky garbage converts flat
+        # address keys into a list of address objects.
+        contact_keys = '''
+            phone address address_city address_state address_zip
+            '''.split()
+
+        for officetype in ('district', 'city hall'):
+            address = []
+            office_key = officetype.replace(' ', '')
+            note = officetype
+            for contact_key in contact_keys:
+                key = '%s_%s' % (office_key, contact_key)
+                value = self.data.pop(key, None)
+                if value is None:
+                    continue
+                if 'address' in contact_key:
+                    address.append(value)
+                else:
+                    type_ = rename_keys.get(contact_key, contact_key)
+                    yield dict(type=type_, value=value, note=officetype)
+            address = '\n'.join([address[0], ' '.join(address[1:])])
+            replace_func = lambda m: '%s,' % m.group(1)
+            address = re.sub(r'([A-Z]{2})', replace_func, address)
+            yield dict(type='address', value=address, note=officetype)
 
 
 class PupaConverter(PupaExtBase):
