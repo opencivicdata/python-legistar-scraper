@@ -14,12 +14,24 @@ from legistar.base import CachedAttr, DictSetDefault, NoClobberDict
 class OrgsFields(FieldAggregator):
 
     @make_item('name')
-    def get_fullname(self):
+    def get_name(self):
         return self.get_field_text('name')
 
     @make_item('type')
-    def get_fullname(self):
+    def get_type(self):
         return self.get_field_text('type')
+
+    @make_item('meeting_location')
+    def get_meeting_location(self):
+        return self.get_field_text('meeting_location')
+
+    @make_item('num_vacancies')
+    def get_num_vacancies(self):
+        return self.get_field_text('num_vacancies')
+
+    @make_item('num_members')
+    def get_num_members(self):
+        return self.get_field_text('num_members')
 
     @make_item('sources', wrapwith=list)
     def gen_sources(self):
@@ -35,8 +47,7 @@ class OrgsSearchView(SearchView):
 
 
 class OrgsSearchTableRow(TableRow, OrgsFields):
-    def get_detail_url(self):
-        return self.get_field_url('fullname')
+    pass
 
 
 class OrgsSearchTable(Table):
@@ -46,7 +57,9 @@ class OrgsSearchTable(Table):
 class OrgsSearchForm(Form):
     '''Model the legistar orgs search form.
     '''
+    skip_first_submit = True
     sources_note = 'organizations search'
+
     def get_query(self):
         return dict(self.client.state)
 
@@ -79,6 +92,7 @@ class OrgsDetailTableRow(TableRow):
 
     @make_item('org')
     def get_org(self):
+        import pdb; pdb.set_trace()
         return self.get_field_text('org')
 
 

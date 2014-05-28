@@ -148,14 +148,18 @@ class Mesa(Config):
 class Rialto(Config):
     nicknames = ['rialto']
     root_url = 'http://rialto.legistar.com/'
+    division_id = 'ocd-jurisdiction/country:us/state:az/place:rialto'
     PPL_SEARCH_TABLE_DETAIL_AVAILABLE = False
-    ORG_SEARCH_TABLE_DETAIL_AVAILABLE = False
 
 
 class Barrie(Config):
     nicknames = ['barrie']
     root_url = 'http://barrie.legistar.com/'
+    division_id = 'ocd-division/country:ca/csd:3510045/place:barrie'
     PPL_SEARCH_TABLE_DETAIL_AVAILABLE = False
+    ORG_CLASSIFICATIONS = {
+        'Circulation List': 'committee',
+        }
 
 
 class LassenCounty(Config):
@@ -171,26 +175,35 @@ class LongBeach(Config):
 
 
 class MontereyCounty(Config):
+    verbose_name = "County of Monterey"
     nicknames = ['monterey']
-    division_id = 'ocd-division/country:us/state:ca/place:monterey'
+    division_id = 'ocd-division/country:us/state:ca/county:monterey'
     root_url = 'http://monterey.legistar.com/'
     PPL_SEARCH_TABLE_DETAIL_AVAILABLE = False
 
+
 class Oakland(Config):
+    '''Has two org classifications that I can't figure out how
+    to map to pupa org classifications: "Special Meeting" and "Requestor"
+    '''
     nicknames = ['oakland']
     root_url = 'http://oakland.legistar.com/'
+    division_id = 'ocd-division/country:us/state:ca/place:oakland'
     PPL_SEARCH_TABLE_DETAIL_AVAILABLE = False
 
 
 class SanLeandro(Config):
+    verbose_name = 'City of San Leoandro'
     nicknames = ['sl']
     root_url = 'http://sanleandro.legistar.com/'
+    division_id = 'ocd-division/country:us/state:ca/place:san_leandro'
     PPL_SEARCH_TABLE_DETAIL_AVAILABLE = False
 
 
 class SantaBarbaraCounty(Config):
     nicknames = ['sb']
     root_url = 'http://santabarbara.legistar.com/'
+    division_id = 'ocd-division/country:us/state:ca/county:santa_barbara'
 
 
 class CommerceCity(Config):
@@ -201,58 +214,68 @@ class CommerceCity(Config):
 class CoralGables(Config):
     nicknames = []
     root_url = 'http://coralgables.legistar.com/'
+    division_id = 'ocd-division/country:us/state:fl/place:coral_gables'
 
 
-class Eusticus(Config):
-    nicknames = ['eusticus']
+class Eustis(Config):
+    nicknames = ['eustis']
     root_url = 'http://eustis.legistar.com/'
 
 
 class FortLauderdale(Config):
     nicknames = ['fortl']
     root_url = 'http://fortlauderdale.legistar.com/'
+    division_id = "ocd-division/country:us/state:fl/place:fort_lauderdale"
 
 
 class KeyWest(Config):
     nicknames = ['keywest']
     root_url = 'http://keywest.legistar.com/'
+    division_id = 'ocd-division/country:us/state:fl/place:key_west'
 
 
 class SeminoleCounty(Config):
     nicknames = ['seminole']
     root_url = 'http://seminolecounty.legistar.com/'
+    division_id = 'ocd-division/country:us/state:fl/county:seminole'
 
 
 class PembrokePines(Config):
     nicknames = ['pp']
     root_url = 'http://ppines.legistar.com/'
+    division_id = 'ocd-division/country:us/state:fl/place:pembroke_pines'
     PPL_SEARCH_TABLE_DETAIL_AVAILABLE = False
 
 
 class Gainesville(Config):
     nicknames = ['gainesville']
     root_url = 'http://gainesville.legistar.com/'
+    division_id = 'ocd-division/country:us/state:fl/place:gainesville'
 
 
 class Canton(Config):
     nicknames = ['canton']
     root_url = 'http://canton.legistar.com/'
+    division_id = 'ocd-division/country:us/state:ga/place:canton'
 
 
 class Carrollton(Config):
     nicknames = ['carrolton']
     root_url = 'http://carrolltontx.legistar.com/'
+    division_id = 'ocd-division/country:us/state:tx/place:carrollton'
     PPL_SEARCH_TABLE_DETAIL_AVAILABLE = False
 
 
 class PowderSprings(Config):
     nicknames = ['powpow']
     root_url = 'http://powd.legistar.com/'
+    division_id = 'ocd-division/country:us/state:ga/place:powder_springs'
 
 
 class Lombard(Config):
     nicknames = ['lombard']
     root_url = 'http://lombard.legistar.com/'
+    division_id = 'ocd-division/country:us/state:il/place:lombard'
 
 
 class SedgwickCounty(Config):
