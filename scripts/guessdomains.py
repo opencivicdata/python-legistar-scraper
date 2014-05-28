@@ -76,6 +76,7 @@ class Checker(scrapelib.Scraper):
             if ':' not in piece:
                 continue
             _, place = piece.split(':')
+            place = re.sub('[a-z]+[\d\-]+', '', place)
             place = re.sub('[\d\-]+', '', place)
             self.place = self.sluggify(place)
             self.check_place()
