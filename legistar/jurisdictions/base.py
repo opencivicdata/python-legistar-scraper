@@ -149,6 +149,52 @@ class Config(Base, metaclass=ConfigMeta):
     ORG_SEARCH_TABLE_TEXT_NUM_VACANCIES = 'Vacancies'
     ORG_SEARCH_TABLE_TEXT_NUM_MEMBERS = 'Members'
 
+    ORG_DEFAULT_CLASSIFICATIONS = ChainMap({
+        'Department': 'commission',
+        'Clerk': 'commission',
+        'Executive Office': 'commission',
+        'Primary Legislative Body': 'legislature',
+        'Secondary Legislative Body': 'legislature',
+        'City Council': 'legislature',
+        'Board of Supervisors': 'legislature',
+        'Agency': 'commission',
+        })
+
+    @property
+    def _ORG_CLASSIFICATIONS(self):
+        '''Make the Config's clasifications inherit from this default set.
+        '''
+        classn = getattr(self, 'ORG_CLASSIFICATIONS', {})
+        return self.ORG_DEFAULT_CLASSIFICATIONS.new_child(classn)
+
+    def get_org_classification(self, orgtype):
+        '''Convert the legistar org table `type` column into
+        a pupa classification.
+        '''
+        # Try to get the classn from the subtype.
+        classn = self._ORG_CLASSIFICATIONS.get(orgtype)
+        if classn is not None:
+            return classn
+
+        # Bah, no matches--try to guess it.
+        type_lower = orgtype.lower()
+        for classn in ('legislature', 'party', 'committee', 'commission'):
+            if classn in type_lower:
+                return classn
+
+        other = [('board', 'commission')]
+        for word, classn in other:
+            if work in type_lower:
+                return classn
+
+        # Not found--complain.
+        msg = '''
+            Couldn't convert organization `type` value %r to a pupa
+            organization classification (see http://opencivicdata.readthedocs.org/en/latest/data/organization.html#basics).
+            Please edit %r by adding a top-level ORG_CLASSIFICATIONS
+            dictionary that maps %r value to a pupa classification.'''
+        raise ValueError(msg % (orgtype, self.config, orgtype))
+
     # ------------------------------------------------------------------------
     # Events general config.
     # ------------------------------------------------------------------------
