@@ -1,2 +1,2 @@
 [run]
-omit = tests/*
+omit = tests/*, legistar/utils/ansistrm.py, legistar/cli.py
