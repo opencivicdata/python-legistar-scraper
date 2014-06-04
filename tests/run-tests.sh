@@ -1,1 +1,1 @@
-export PYTHONPATH=.; py.test -v --cov uni --cov-report html --cov-config=.coveragerc
+export PYTHONPATH=.; py.test -v --cov legistar --cov-report html --cov-config=.coveragerc

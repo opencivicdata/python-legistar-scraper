@@ -3,19 +3,15 @@ from legistar.pupatypes import PupatypeMixin
 from legistar.jurisdictions.config import NYC
 
 
-class PeoplePupatype(Base, PupatypeMixin):
-
-    PUPATYPE = 'people'
-    VIEWTYPE = 'search'
-    COMPONENT_TYPE = 'table'
-
+class PeopleSearchTable(Base, PupatypeMixin):
+    pass
 
 config = NYC()
 
 
 class TestPupatypePeople:
 
-    obj = config.make_child(PeoplePupatype)
+    obj = config.make_child(PeopleSearchTable)
 
     def test_get_label_text(self):
         text = self.obj.get_label_text('website')
@@ -34,16 +30,13 @@ class TestPupatypePeople:
         assert text == self.obj.config.PPL_SEARCH_TABLE_TEXT_DISTRICT_ADDRESS
 
 
-class EventsPupatype(Base, PupatypeMixin):
-
-    PUPATYPE = 'events'
-    VIEWTYPE = 'detail'
-    COMPONENT_TYPE = 'table'
+class EventsDetailTable(Base, PupatypeMixin):
+    pass
 
 
 class TestPupatypeEvents:
 
-    obj = config.make_child(EventsPupatype)
+    obj = config.make_child(EventsDetailTable)
 
     def test_get_label_text(self):
         text = self.obj.get_label_text('action')
