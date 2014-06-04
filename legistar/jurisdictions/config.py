@@ -116,6 +116,8 @@ class Chicago(Config):
     PPL_DETAIL_TABLE_TEXT_ORG = 'Legislative Body'
     PPL_SEARCH_TABLE_TEXT_FULLNAME = 'Person Name'
     PPL_SEARCH_TABLE_TEXT_WEBSITE =  'Website'
+    ORG_SEARCH_TABLE_TEXT_NAME = 'Legislative Body'
+
 
 
 class BoroughofSitka(Config):

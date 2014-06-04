@@ -39,11 +39,11 @@ class OrgsFields(FieldAggregator):
         for note, url in self.chainmap['sources'].items():
             grouped[url].add(note)
         for url, notes in grouped.items():
-            yield dict(url=url, note=', '.join(notes))
+            yield dict(url=url, note=', '.join(sorted(notes)))
 
 
 class OrgsSearchView(SearchView):
-    sources_note = 'Organiations search'
+    sources_note = 'Organizations search table'
 
 
 class OrgsSearchTableRow(TableRow, OrgsFields):
@@ -58,7 +58,7 @@ class OrgsSearchForm(Form):
     '''Model the legistar orgs search form.
     '''
     skip_first_submit = True
-    sources_note = 'organizations search'
+    sources_note = 'organizations search table'
 
     def get_query(self):
         return dict(self.client.state)

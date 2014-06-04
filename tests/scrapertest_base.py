@@ -1,21 +1,27 @@
-import os
-from os.path import abspath, dirname, join
-import json
-import datetime
-
-import lxml.html
+from abc import abstractproperty
 
 from uni import MatchSet
 from legistar import get_scraper
 from tests.utils import get_fixture, gen_assertions
 
 
+class ScrapertestBase:
 
-class TestNewYorkPeople2014:
-    DIVISION_ID = 'ocd-division/country:us/state:ny/place:new_york'
-    PUPATYPE = 'people'
-    YEAR = 2014
-    MAX_RECORDS = 10
+    @abstractproperty
+    def DIVISION_ID(self):
+        pass
+
+    @abstractproperty
+    def PUPATYPE(self):
+        pass
+
+    @abstractproperty
+    def YEAR(self):
+        pass
+
+    @abstractproperty
+    def MAX_RECORDS(self):
+        pass
 
     def setup(self):
         self.count = 0
