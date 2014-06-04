@@ -14,9 +14,9 @@ path = '/home/thom/sunlight/python-opencivicdata/opencivicdata/division-ids/iden
 class Checker(scrapelib.Scraper):
 
     OUTFILE = 'domains.csv'
-    SCRAPELIB_RPM = 20
+    SCRAPELIB_RPM = 10
     SCRAPELIB_TIMEOUT = 60
-    SCRAPELIB_RETRY_ATTEMPTS = 3
+    SCRAPELIB_RETRY_ATTEMPTS = 0
     SCRAPELIB_RETRY_WAIT_SECONDS = 20
     FASTMODE = True
     # PROXIES = dict(http="http://localhost", https='https://localhost')
@@ -39,7 +39,6 @@ class Checker(scrapelib.Scraper):
         #     self.proxies = self.PROXIES
 
         if self.FASTMODE:
-            self.requests_per_minute = 50
             self.cache_write_only = False
 
         cache_dir = '_cache'
