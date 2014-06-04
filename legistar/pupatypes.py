@@ -170,7 +170,7 @@ class PupatypeMixin:
         try:
             return getattr(self.cfg, name)
         except AttributeError as exc:
-            raise ConfigAttributeError() from exc
+            raise ConfigAttributeError(name) from exc
 
     def get_label_text(self, key):
         '''Get field label text using the class's prefix:
@@ -179,16 +179,3 @@ class PupatypeMixin:
         '''
         key = 'TEXT_%s' % key.upper()
         return self.get_config_value(key)
-
-
-if __name__ == '__main__':
-    class Cow(HasPupatype):
-        PUPATYPE = 'people'
-        VIEWTYPE = 'search'
-        COMPONENT_TYPE = 'table'
-
-    x = Cow()
-    print(x.pupatype_prefix)
-    print(x.view_prefix)
-    print(x.component_prefix)
-    import pdb; pdb.set_trace()

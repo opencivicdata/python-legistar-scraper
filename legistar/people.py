@@ -31,7 +31,7 @@ class PeopleFields(FieldAggregator):
         for note, url in self.chainmap['sources'].items():
             grouped[url].add(note)
         for url, notes in grouped.items():
-            yield dict(url=url, note=', '.join(notes))
+            yield dict(url=url, note=', '.join(sorted(notes)))
 
     @make_item('fax')
     def get_fax(self):

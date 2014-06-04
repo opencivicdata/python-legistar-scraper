@@ -10,7 +10,7 @@ from legistar.fields import FieldAggregator, make_item, gen_items
 from legistar.base import DictSetDefault, NoClobberDict
 
 
-class EventFields(FieldAggregator):
+class EventsFields(FieldAggregator):
 
     @make_item('location')
     def get_location(self):
@@ -19,7 +19,7 @@ class EventFields(FieldAggregator):
     @make_item('documents', wrapwith=list)
     def gen_documents(self):
         for key in self.get_config_value('PUPA_DOCUMENTS'):
-            field = self.field_data.get(key)
+            field = self.get_field_data(key)
 
             # This column isn't present on this legistar instance.
             if field is None:
@@ -39,7 +39,7 @@ class EventFields(FieldAggregator):
         participant_fields = self.get_config_value('PUPA_PARTICIPANTS')
         for entity_type, keys in participant_fields.items():
             for key in keys:
-                cell = self.field_data[key]
+                cell = self.get_field_data(key)
                 participant = dict(name=cell.text, type=entity_type)
                 yield participant
 
@@ -52,14 +52,11 @@ class EventFields(FieldAggregator):
             yield dict(url=url, note=', '.join(notes))
 
 
-class SearchView(SearchView):
-    PUPATYPE = 'events'
-    VIEWTYPE = 'search'
+class EventsSearchView(SearchView):
     sources_note = 'Events search'
 
 
-class SearchTableRow(TableRow, EventFields):
-    KEY_PREFIX = 'EVT_TABLE'
+class EventsSearchTableRow(TableRow, EventsFields):
 
     def get_detail_url(self):
         return self.get_field_url('details')
@@ -104,11 +101,11 @@ class SearchTableRow(TableRow, EventFields):
         return dt
 
 
-class SearchTable(Table):
+class EventsSearchTable(Table):
     sources_note = 'Events search table'
 
 
-class SearchForm(Form):
+class EventsSearchForm(Form):
     '''Model the legistar "Calendar" search form.
     '''
     sources_note = 'Events search'
@@ -128,9 +125,7 @@ class SearchForm(Form):
         return query
 
 
-class DetailView(DetailView, EventFields):
-    PUPATYPE = 'events'
-    KEY_PREFIX = 'EVT_DETAIL'
+class EventsDetailView(DetailView, EventsFields):
     sources_note = 'Event detail'
 
     @make_item('agenda', wrapwith=list)
@@ -138,12 +133,11 @@ class DetailView(DetailView, EventFields):
         yield from self.Form(self)
 
 
-class DetailTable(Table):
+class EventsDetailTable(Table):
     sources_note = 'Event detail table'
 
 
-class DetailTableRow(TableRow):
-    KEY_PREFIX = 'EVT_AGENDA_TABLE'
+class EventsDetailTableRow(TableRow):
 
     # Maps the 'type' field in event detail tables to pupa type.
     typetext_map = {
@@ -209,6 +203,6 @@ class DetailTableRow(TableRow):
         return self.get_field_text('file_number')
 
 
-class DetailForm(Form):
+class EventsDetailForm(Form):
     skip_first_submit = True
     sources_note = 'Event detail'

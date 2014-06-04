@@ -1,10 +1,15 @@
+import os
+import json
 import logging
 import logging.config
+import importlib.machinery
 from urllib.parse import urlparse
 from collections import ChainMap, defaultdict
+from os.path import dirname, abspath, join
 
 import requests
 
+import legistar
 from legistar.client import Client
 from legistar.base import Base, CachedAttr
 from legistar.jurisdictions.utils import Tabs, Mimetypes, Views
@@ -89,17 +94,6 @@ class Config(Base, metaclass=ConfigMeta):
     PGN_NEXT_PAGE_XPATH = 'string(%s/following-sibling::a[1]/@href)' % PGN_CURRENT_PAGE_XPATH
 
     views = Views()
-    EVT_SEARCH_VIEW_CLASS = 'legistar.events.SearchView'
-    EVT_DETAIL_VIEW_CLASS = 'legistar.events.DetailView'
-    EVT_SEARCH_TABLE_CLASS = 'legistar.events.SearchTable'
-    EVT_SEARCH_TABLEROW_CLASS = 'legistar.events.SearchTableRow'
-    EVT_SEARCH_TABLECELL_CLASS = 'legistar.fields.ElementAccessor'
-    EVT_SEARCH_FORM_CLASS = 'legistar.events.SearchForm'
-    EVT_DETAIL_TABLE_CLASS = 'legistar.events.DetailTable'
-    EVT_DETAIL_TABLEROW_CLASS = 'legistar.events.DetailTableRow'
-    EVT_DETAIL_TABLECELL_CLASS = 'legistar.fields.ElementAccessor'
-    EVT_DETAIL_FORM_CLASS = 'legistar.events.DetailForm'
-
     PPL_SEARCH_VIEW_CLASS = 'legistar.people.PeopleSearchView'
     PPL_DETAIL_VIEW_CLASS = 'legistar.people.PeopleDetailView'
     PPL_SEARCH_TABLE_CLASS = 'legistar.people.PeopleSearchTable'
@@ -198,50 +192,64 @@ class Config(Base, metaclass=ConfigMeta):
     # ------------------------------------------------------------------------
     # Events general config.
     # ------------------------------------------------------------------------
+    EVT_SEARCH_VIEW_CLASS = 'legistar.events.EventsSearchView'
+    EVT_DETAIL_VIEW_CLASS = 'legistar.events.EventsDetailView'
+    EVT_SEARCH_TABLE_CLASS = 'legistar.events.EventsSearchTable'
+    EVT_SEARCH_TABLEROW_CLASS = 'legistar.events.EventsSearchTableRow'
+    EVT_SEARCH_TABLECELL_CLASS = 'legistar.fields.ElementAccessor'
+    EVT_SEARCH_FORM_CLASS = 'legistar.events.EventsSearchForm'
+    EVT_DETAIL_TABLE_CLASS = 'legistar.events.EventsDetailTable'
+    EVT_DETAIL_TABLEROW_CLASS = 'legistar.events.EventsDetailTableRow'
+    EVT_DETAIL_TABLECELL_CLASS = 'legistar.fields.ElementAccessor'
+    EVT_DETAIL_FORM_CLASS = 'legistar.events.EventsDetailForm'
+
+    # ------------------------------------------------------------------------
+    # Events search table config.
+
+    # Search params.
     EVT_SEARCH_TIME_PERIOD = 'This Year'
     EVT_SEARCH_BODIES = 'All Committees'
     EVT_SEARCH_BODIES_EL_NAME = 'ctl00$ContentPlaceHolder1$lstBodies'
     EVT_SEARCH_TIME_PERIOD_EL_NAME = 'ctl00$ContentPlaceHolder1$lstYears'
     EVT_SEARCH_CLIENTSTATE_EL_NAME = 'ctl00_ContentPlaceHolder1_lstYears_ClientState'
 
-    # ------------------------------------------------------------------------
-    # Events table config.
-    EVT_DETAIL_TABLE_TEXT_NAME = 'Name'
-    EVT_DETAIL_TABLE_TEXT_DATE =  'Meeting Date'
-    EVT_DETAIL_TABLE_TEXT_ICAL =  ''
-    EVT_DETAIL_TABLE_TEXT_TIME = 'Meeting Time'
-    EVT_DETAIL_TABLE_TEXT_LOCATION = 'Meeting Location'
-    EVT_DETAIL_TABLE_TEXT_TOPIC = 'Meeting Topic'
-    EVT_DETAIL_TABLE_TEXT_DETAILS = 'Meeting Details'
-    EVT_DETAIL_TABLE_TEXT_AGENDA = 'Agenda'
-    EVT_DETAIL_TABLE_TEXT_MINUTES = 'Minutes'
-    EVT_DETAIL_TABLE_TEXT_MEDIA = 'Multimedia'
-    EVT_DETAIL_TABLE_TEXT_NOTICE = 'Notice'
+    # Table
+    EVT_SEARCH_TABLE_TEXT_NAME = 'Name'
+    EVT_SEARCH_TABLE_TEXT_DATE =  'Meeting Date'
+    EVT_SEARCH_TABLE_TEXT_ICAL =  ''
+    EVT_SEARCH_TABLE_TEXT_TIME = 'Meeting Time'
+    EVT_SEARCH_TABLE_TEXT_LOCATION = 'Meeting Location'
+    EVT_SEARCH_TABLE_TEXT_TOPIC = 'Meeting Topic'
+    EVT_SEARCH_TABLE_TEXT_DETAILS = 'Meeting Details'
+    EVT_SEARCH_TABLE_TEXT_AGENDA = 'Agenda'
+    EVT_SEARCH_TABLE_TEXT_MINUTES = 'Minutes'
+    EVT_SEARCH_TABLE_TEXT_MEDIA = 'Multimedia'
+    EVT_SEARCH_TABLE_TEXT_NOTICE = 'Notice'
 
-    EVT_DETAIL_TABLE_DATETIME_FORMAT = '%m/%d/%Y %I:%M %p'
+    EVT_SEARCH_TABLE_DATETIME_FORMAT = '%m/%d/%Y %I:%M %p'
 
-    EVT_DETAIL_TABLE_PUPA_KEY_NAME = EVT_DETAIL_TABLE_TEXT_TOPIC
-    EVT_DETAIL_TABLE_PUPA_KEY_LOCATION = EVT_DETAIL_TABLE_TEXT_LOCATION
+    EVT_SEARCH_TABLE_PUPA_KEY_NAME = EVT_SEARCH_TABLE_TEXT_TOPIC
+    EVT_SEARCH_TABLE_PUPA_KEY_LOCATION = EVT_SEARCH_TABLE_TEXT_LOCATION
 
-    EVT_DETAIL_TABLE_PUPA_PARTICIPANTS = {
-        'organization': [EVT_DETAIL_TABLE_TEXT_NAME]
+    EVT_SEARCH_TABLE_PUPA_PARTICIPANTS = {
+        'organization': [EVT_SEARCH_TABLE_TEXT_NAME]
         }
 
-    EVT_DETAIL_TABLE_PUPA_DOCUMENTS = [
-        EVT_DETAIL_TABLE_TEXT_AGENDA,
-        EVT_DETAIL_TABLE_TEXT_MINUTES,
-        EVT_DETAIL_TABLE_TEXT_NOTICE,
+    EVT_SEARCH_TABLE_PUPA_DOCUMENTS = [
+        EVT_SEARCH_TABLE_TEXT_AGENDA,
+        EVT_SEARCH_TABLE_TEXT_MINUTES,
+        EVT_SEARCH_TABLE_TEXT_NOTICE,
         ]
 
     # ------------------------------------------------------------------------
     # Events detail config.
     EVT_SEARCH_TABLE_DETAIL_AVAILABLE = True
 
-    EVT_DETAIL_TEXT_NAME = EVT_DETAIL_TABLE_TEXT_NAME
-    EVT_DETAIL_TEXT_TOPIC = EVT_DETAIL_TABLE_TEXT_TOPIC
-    EVT_DETAIL_TEXT_DETAILS = EVT_DETAIL_TABLE_TEXT_DETAILS
-    EVT_DETAIL_TEXT_MEDIA = EVT_DETAIL_TABLE_TEXT_MEDIA
-    EVT_DETAIL_TEXT_NOTICE = EVT_DETAIL_TABLE_TEXT_NOTICE
+    EVT_DETAIL_TEXT_NAME = EVT_SEARCH_TABLE_TEXT_NAME
+    EVT_DETAIL_TEXT_TOPIC = EVT_SEARCH_TABLE_TEXT_TOPIC
+    EVT_DETAIL_TEXT_DETAILS = EVT_SEARCH_TABLE_TEXT_DETAILS
+    EVT_DETAIL_TEXT_MEDIA = EVT_SEARCH_TABLE_TEXT_MEDIA
+    EVT_DETAIL_TEXT_NOTICE = EVT_SEARCH_TABLE_TEXT_NOTICE
     EVT_DETAIL_TEXT_LOCATION = 'Meeting location'
     EVT_DETAIL_TEXT_DATE = 'Date'
     EVT_DETAIL_TEXT_TIME = 'Time'
@@ -252,7 +260,7 @@ class Config(Base, metaclass=ConfigMeta):
     EVT_DETAIL_TEXT_MINUTES_STATUS = 'Minutes status'
     EVT_DETAIL_TEXT_SUMMARY = 'Published summary'
 
-    EVT_DETAIL_DATETIME_FORMAT = EVT_DETAIL_TABLE_DATETIME_FORMAT
+    EVT_DETAIL_DATETIME_FORMAT = EVT_SEARCH_TABLE_DATETIME_FORMAT
     EVT_DETAIL_PUPA_KEY_NAME = EVT_DETAIL_TEXT_TOPIC
     EVT_DETAIL_PUPA_KEY_LOCATION = EVT_DETAIL_TEXT_LOCATION
 
@@ -267,7 +275,7 @@ class Config(Base, metaclass=ConfigMeta):
         EVT_DETAIL_TEXT_VIDEO,
         ]
 
-    # REadable text for the agenda table of related bills.
+    # Readable text for the agenda table of related bills.
     EVT_DETAIL_TABLE_TEXT_FILE_NUMBER = 'File #'
     EVT_DETAIL_TABLE_TEXT_VERSION = 'Ver.'
     EVT_DETAIL_TABLE_TEXT_NAME = 'Name'
@@ -423,3 +431,30 @@ class Config(Base, metaclass=ConfigMeta):
             # },
         },
     }
+
+    # -----------------------------------------------------------------------
+    # Stuff related to testing.
+    # -----------------------------------------------------------------------
+    def get_assertions_dir(self, year):
+        legistar_root = abspath(join(dirname(legistar.__file__), '..'))
+        assertions = join(legistar_root, 'assertions')
+        _, relpath = self.division_id.split('/', 1)
+        fullpath = join(assertions, relpath, year)
+        return fullpath
+
+    def ensure_assertions_dir(self, year):
+        assertions_dir = self.get_assertions_dir(year)
+        if not os.path.isdir(assertions_dir):
+            os.makedirs(assertions_dir)
+        return assertions_dir
+
+    def gen_assertions(self, year, pupatype):
+        assertions_dir = self.ensure_assertions_dir(year)
+        filename = join(assertions_dir, '%s.py' % pupatype)
+        loader = importlib.machinery.SourceFileLoader(pupatype, filename)
+        mod = loader.load_module()
+        if not hasattr(mod, 'assertions'):
+            msg = ('The file %r must define a module-level sequence '
+                   '`assertions` containing the assertion data.')
+            raise Exception(msg % filename)
+        yield from iter(mod.assertions)
