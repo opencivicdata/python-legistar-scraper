@@ -23,6 +23,10 @@ class ScrapertestBase:
     def MAX_RECORDS(self):
         pass
 
+    @property
+    def CHECKER(self):
+        return MatchSet
+
     def setup(self):
         self.count = 0
         self.scraper = get_scraper(self.DIVISION_ID)
@@ -31,7 +35,7 @@ class ScrapertestBase:
     def test_output(self):
         view = self.scraper.get_pupatype_searchview(self.PUPATYPE)
         assertions = self.config.gen_assertions(str(self.YEAR), self.PUPATYPE)
-        with MatchSet(assertions) as checker:
+        with self.CHECKER(assertions) as checker:
             for data in view:
                 checker.check(data)
                 self.count += 1
