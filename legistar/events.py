@@ -49,11 +49,11 @@ class EventsFields(FieldAggregator):
         for note, url in self.chainmap['sources'].items():
             grouped[url].add(note)
         for url, notes in grouped.items():
-            yield dict(url=url, note=', '.join(notes))
+            yield dict(url=url, note=', '.join(sorted(notes)))
 
 
 class EventsSearchView(SearchView):
-    sources_note = 'Events search'
+    sources_note = 'events search'
 
 
 class EventsSearchTableRow(TableRow, EventsFields):
@@ -102,23 +102,24 @@ class EventsSearchTableRow(TableRow, EventsFields):
 
 
 class EventsSearchTable(Table):
-    sources_note = 'Events search table'
+    sources_note = 'events search table'
 
 
 class EventsSearchForm(Form):
     '''Model the legistar "Calendar" search form.
     '''
-    sources_note = 'Events search'
+    sources_note = 'events search table'
 
     def get_query(self, time_period=None, bodies=None):
-        time_period = time_period or self.cfg.EVENTS_SEARCH_TIME_PERIOD
-        bodies = bodies or self.cfg.EVENTS_SEARCH_BODIES
+        configval = self.get_config_value
+        time_period = time_period or configval('time_period')
+        bodies = bodies or configval('bodies')
         clientstate = json.dumps({'value': time_period})
 
         query = {
-            self.cfg.EVENTS_SEARCH_BODIES_EL_NAME: bodies,
-            self.cfg.EVENTS_SEARCH_TIME_PERIOD_EL_NAME: time_period,
-            self.cfg.EVENTS_SEARCH_CLIENTSTATE_EL_NAME: clientstate,
+            configval('bodies_el_name'): bodies,
+            configval('time_period_el_name'): time_period,
+            configval('clientstate_el_name'): clientstate,
             }
         self.debug('Query is %r' % query)
         query = dict(self.client.state, **query)
@@ -126,7 +127,7 @@ class EventsSearchForm(Form):
 
 
 class EventsDetailView(DetailView, EventsFields):
-    sources_note = 'Event detail'
+    sources_note = 'event detail'
 
     @make_item('agenda', wrapwith=list)
     def gen_agenda(self):
@@ -134,7 +135,7 @@ class EventsDetailView(DetailView, EventsFields):
 
 
 class EventsDetailTable(Table):
-    sources_note = 'Event detail table'
+    sources_note = 'event detail table'
 
 
 class EventsDetailTableRow(TableRow):
@@ -205,4 +206,4 @@ class EventsDetailTableRow(TableRow):
 
 class EventsDetailForm(Form):
     skip_first_submit = True
-    sources_note = 'Event detail'
+    sources_note = 'event detail'

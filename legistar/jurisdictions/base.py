@@ -244,6 +244,7 @@ class Config(Base, metaclass=ConfigMeta):
     # ------------------------------------------------------------------------
     # Events detail config.
     EVT_SEARCH_TABLE_DETAIL_AVAILABLE = True
+    EVT_DETAIL_TABLE_DETAIL_AVAILABLE = False
 
     EVT_DETAIL_TEXT_NAME = EVT_SEARCH_TABLE_TEXT_NAME
     EVT_DETAIL_TEXT_TOPIC = EVT_SEARCH_TABLE_TEXT_TOPIC

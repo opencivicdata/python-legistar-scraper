@@ -119,7 +119,6 @@ class Chicago(Config):
     ORG_SEARCH_TABLE_TEXT_NAME = 'Legislative Body'
 
 
-
 class BoroughofSitka(Config):
     '''Works with the defaults!
     '''
