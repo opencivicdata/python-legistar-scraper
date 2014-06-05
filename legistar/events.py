@@ -65,8 +65,6 @@ class EventsSearchTableRow(TableRow, EventsFields):
         if hasattr(self, '_cal_data'):
             return self._ical_data
         # Don't fetch the ical data if we're testing.
-        if self.cfg.USING_TEST_CONFIG:
-            raise self.SkipItem()
         ical_url = self.get_ical_url()
         self.debug('%r is fetching ical data: %r', self, ical_url)
         resp = self.cfg.client.session.get(ical_url)

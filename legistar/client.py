@@ -3,27 +3,33 @@ import time
 import random
 import lxml.html
 
+from legistar.base import Base
 
-class Client:
 
-    SLEEP = False
-
-    def __init__(self, config_obj):
-        self.cfg = config_obj
-        self.session = self.cfg.get_session()
+class Client(Base):
+    '''This object handles sending GET and POST requests and maintains
+    the weird ASPX client state nonsense.
+    '''
+    def __init__(self):
         self.state = dict.fromkeys((
             '__EVENTVALIDATION',
             '__VIEWSTATE',
             '__EVENTTARGET',
             '__EVENTARGUMENT',
             ))
-        self.logger = logging.getLogger('legistar')
 
     def sleep(self):
-        if self.SLEEP:
-            time.sleep(random.randint(50, 200) / 100.0)
+        '''Disabled by default, because the main use of this scraper
+        is with pupa, which defines it's own session object that transparently
+        handles throttling, retires, etc.
+        '''
+        if self.cfg.DO_CLIENT_SLEEP:
+            sleeptime = random.randint(*self.cfg.SLEEP_RANGE) / 100.0
+            time.sleep(sleeptime)
 
     def check_resp(self, resp):
+        '''Complain/log if response is anything other than OK.
+        '''
         if resp.status_code != 200:
             msg = 'Error fetching page [%d]: %s'
             args = (resp.status_code, resp.text)
@@ -31,12 +37,17 @@ class Client:
             raise Exception(msg % args)
 
     def update_state(self, resp):
+        '''Get the weird ASPX client state nonsense from the response
+        and update the Client's state so it can be sent with future requests.
+        '''
         doc = lxml.html.fromstring(resp.text)
         form = dict(doc.forms[0].fields)
         for key in self.state.keys() & form.keys():
             self.state[key] = form.get(key)
 
     def get(self, url, **kwargs):
+        '''Send a POST request, check it, update state, and sleep.
+        '''
         _kwargs = dict(self.cfg.requests_kwargs)
         _kwargs.update(kwargs)
         resp = self.session.get(url, **_kwargs)
@@ -46,6 +57,8 @@ class Client:
         return resp
 
     def post(self, url, data=None, **kwargs):
+        '''Send a POST request, check it, update state, and sleep.
+        '''
         _kwargs = dict(self.cfg.requests_kwargs)
         _kwargs.update(kwargs)
         _data = dict(self.state)
