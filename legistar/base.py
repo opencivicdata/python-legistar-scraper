@@ -104,6 +104,7 @@ class Base(PupatypeMixin):
     warn = warning = ChainedLookup('warning')
     critical = ChainedLookup('critical')
     error = ChainedLookup('error')
+    exception = ChainedLookup('exception')
 
     @property
     def chainmap(self):
