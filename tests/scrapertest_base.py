@@ -2,11 +2,12 @@ from abc import abstractproperty
 
 from uni import MatchSet
 from legistar import get_scraper
-from tests.utils import get_fixture, gen_assertions
 
 
 class ScrapertestBase:
-
+    '''This base class knows how to retrieve assertions data for
+    the given DIVISION_ID, PUPATYPE and YEAR.
+    '''
     @abstractproperty
     def DIVISION_ID(self):
         pass
@@ -21,6 +22,8 @@ class ScrapertestBase:
 
     @abstractproperty
     def MAX_RECORDS(self):
+        '''The max number of records to return before stopping.
+        '''
         pass
 
     @property

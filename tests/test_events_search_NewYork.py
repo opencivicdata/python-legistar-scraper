@@ -22,7 +22,6 @@
 #     def setup(self):
 #         self.scraper = get_scraper(self.OCD_ID)
 #         self.config = self.scraper.config
-#         self.config.USING_TEST_CONFIG = True
 #         self.host = self.config.get_host()
 #         self.doc = get_fixture(self.host, self.FILENAME)
 

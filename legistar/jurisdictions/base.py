@@ -105,17 +105,6 @@ class Config(Base, metaclass=ConfigMeta):
     PPL_DETAIL_TABLECELL_CLASS = 'legistar.fields.ElementAccessor'
     PPL_DETAIL_FORM_CLASS = 'legistar.people.PeopleDetailForm'
 
-    BILL_SEARCH_VIEW_CLASS = 'legistar.bills.SearchView'
-    BILL_DETAIL_VIEW_CLASS = 'legistar.bills.DetailView'
-    BILL_SEARCH_TABLE_CLASS = 'legistar.bills.SearchTable'
-    BILL_SEARCH_TABLEROW_CLASS = 'legistar.bills.SearchTableRow'
-    BILL_SEARCH_TABLECELL_CLASS = 'legistar.fields.ElementAccessor'
-    BILL_SEARCH_FORM_CLASS = 'legistar.bills.SearchForm'
-    BILL_DETAIL_TABLE_CLASS = 'legistar.bills.DetailTable'
-    BILL_DETAIL_TABLEROW_CLASS = 'legistar.bills.DetailTableRow'
-    BILL_DETAIL_TABLECELL_CLASS = 'legistar.fields.ElementAccessor'
-    BILL_DETAIL_FORM_CLASS = 'legistar.bills.DetailForm'
-
     NO_RECORDS_FOUND_TEXT = ['No records were found', 'No records to display.']
     RESULTS_TABLE_XPATH = '//table[contains(@class, "rgMaster")]'
 
@@ -340,29 +329,56 @@ class Config(Base, metaclass=ConfigMeta):
 
     # ------------------------------------------------------------------------
     # Bill search config.
-    BILL_SIMPLE_SEARCH_TEXT = '<<< Simple Search'
-    BILL_ADVANCED_SEARCH_TEXT = 'Detailed Search >>>'
+    # ------------------------------------------------------------------------
+
+    # Search params.
+    BILL_SEARCH_TIME_PERIOD = 'This Year'
+    BILL_SEARCH_TYPES = 'All Types'
+    BILL_SEARCH_TYPES_EL_NAME = 'ctl00$ContentPlaceHolder1$lstTypeBasic'
+    BILL_SEARCH_TIME_PERIOD_EL_NAME = 'ctl00$ContentPlaceHolder1$lstYears'
+    BILL_SEARCH_CLIENTSTATE_EL_NAME = 'ctl00_ContentPlaceHolder1_lstYears_ClientState'
+
+    BILL_SEARCH_VIEW_CLASS = 'legistar.bills.BillsSearchView'
+    BILL_DETAIL_VIEW_CLASS = 'legistar.bills.BillsDetailView'
+    BILL_SEARCH_TABLE_CLASS = 'legistar.bills.BillsSearchTable'
+    BILL_SEARCH_TABLEROW_CLASS = 'legistar.bills.BillsSearchTableRow'
+    BILL_SEARCH_TABLECELL_CLASS = 'legistar.fields.ElementAccessor'
+    BILL_SEARCH_FORM_CLASS = 'legistar.bills.BillsSearchForm'
+    BILL_DETAIL_TABLE_CLASS = 'legistar.bills.BillsDetailTable'
+    BILL_DETAIL_TABLEROW_CLASS = 'legistar.bills.BillsDetailTableRow'
+    BILL_DETAIL_TABLECELL_CLASS = 'legistar.fields.ElementAccessor'
+    BILL_DETAIL_FORM_CLASS = 'legistar.bills.BillsDetailForm'
 
     # ------------------------------------------------------------------------
-    # Settings to prevent web requests during testing.
+    # Requests client config.
+    # ------------------------------------------------------------------------
+    ENABLE_PROXIES = False
 
-    # Makes the form use the default table data without posting a query.
-    USING_TEST_CONFIG = False
+    # Client sleeping is disabled by default, because the main use of this
+    # library is with http://github.com/opencivicdata/pupa, which delegates
+    # requests-per-minute, retries, and backoffs with
+    # http://github.com/sunlightlabs/scrapelib
+    DO_CLIENT_SLEEP = False
+    SLEEP_RANGE = (5, 20)
 
-    # Requests args.
-    proxies = dict.fromkeys(['http', 'https'], 'http://localhost:8080')
-    headers = {
+    REQUEST_HEADERS = {
         'User-Agent': (
             'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-GB; rv:1.8.1.6) '
             'Gecko/20070725 Firefox/2.0.0.6')
         }
+
+    # Route the requests through mitmproxy. http://mitmproxy.org/
+    proxies = dict.fromkeys(['http', 'https'], 'http://localhost:8080')
     requests_kwargs = dict(
-        proxies=proxies,
-        headers=headers)
-    requests_kwargs = {}
+        headers=REQUEST_HEADERS)
+
+    if ENABLE_PROXIES:
+        requests_kwargs['proxies'] = proxies
 
     @classmethod
     def get_host(cls):
+        '''Returns just the host from the url.
+        '''
         return urlparse(cls.root_url).netloc
 
     def get_session(self):
@@ -378,7 +394,8 @@ class Config(Base, metaclass=ConfigMeta):
         '''The requests.Session-like object used to make web requests;
         usually a scrapelib.Scraper.
         '''
-        return Client(self)
+        client = self.chainmap['client'] = self.make_child(Client)
+        return client
 
     def get_logger(self):
         '''Get a configured logger.
@@ -401,7 +418,6 @@ class Config(Base, metaclass=ConfigMeta):
         chainmap.update(
             config=self,
             url=self.root_url,
-            client=self.get_client(),
             info=logger.info,
             error=logger.error,
             debug=logger.debug,
@@ -437,6 +453,9 @@ class Config(Base, metaclass=ConfigMeta):
     # Stuff related to testing.
     # -----------------------------------------------------------------------
     def get_assertions_dir(self, year):
+        '''Return the fully qualified path to this jxn's folder
+        containing output uni assertions (see http://github.com/twneale/uni).
+        '''
         legistar_root = abspath(join(dirname(legistar.__file__), '..'))
         assertions = join(legistar_root, 'assertions')
         _, relpath = self.division_id.split('/', 1)
@@ -444,12 +463,17 @@ class Config(Base, metaclass=ConfigMeta):
         return fullpath
 
     def ensure_assertions_dir(self, year):
+        '''Verify the asserts dir exists, otherwise create and return it.
+        '''
         assertions_dir = self.get_assertions_dir(year)
         if not os.path.isdir(assertions_dir):
             os.makedirs(assertions_dir)
         return assertions_dir
 
     def gen_assertions(self, year, pupatype):
+        '''Yield each assertions contained in the asserts module for
+        `year` and `pupatype`.
+        '''
         assertions_dir = self.ensure_assertions_dir(year)
         filename = join(assertions_dir, '%s.py' % pupatype)
         loader = importlib.machinery.SourceFileLoader(pupatype, filename)

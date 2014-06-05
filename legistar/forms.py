@@ -58,15 +58,11 @@ class Form(Base):
         Table = self.view.viewtype_meta.Table
 
         # Don't submit queries if we're testing.
-        if self.skip_first_submit or self.cfg.USING_TEST_CONFIG:
+        if self.skip_first_submit:
             pass
         else:
             self.submit(self.get_query())
         yield from self.make_child(Table, view=self.view)
-
-        # Don't page through results if we're testing.
-        if self.cfg.USING_TEST_CONFIG:
-            return
 
         while True:
             self.submit_next_page()

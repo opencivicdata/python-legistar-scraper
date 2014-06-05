@@ -120,7 +120,7 @@ class PupatypeMixin:
                 return pupatype
         # Complain.
         msg = '%s subtypes must include a pupatype, like People in the class name.'
-        raise NotImplemented(msg % self.__class__.__qualname__)
+        raise NotImplementedError(msg % self.__class__.__qualname__)
 
     def get_viewtype(self):
         '''Guess from the class name whether this is a search or detail
@@ -133,7 +133,7 @@ class PupatypeMixin:
                 return viewtype
         # Ok, complain.
         msg = '%s subtypes must include Search or Detail in the class name.'
-        raise NotImplemented(msg % self.__class__.__qualname__)
+        raise NotImplementedError(msg % self.__class__.__qualname__)
 
     def get_component_type(self):
         '''Guess from the class name whether this is a table component.

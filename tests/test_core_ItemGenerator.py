@@ -31,3 +31,16 @@ class TestItemGenerator:
             'moos': ('moo', 'moo0', 'mooooo'),
             }
         assert dict(CowItems()) == expected
+
+
+class HasCustomInvokeMethod(ItemGenerator):
+
+    def ivoke_methid(self, *args, **kwargs):
+        pass
+
+
+class TestCustomInvokeMethod:
+
+    def test_output(self):
+        expected = {}
+        assert dict(HasCustomInvokeMethod()) == expected
