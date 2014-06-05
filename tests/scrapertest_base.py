@@ -34,6 +34,8 @@ class ScrapertestBase:
         self.count = 0
         self.scraper = get_scraper(self.DIVISION_ID)
         self.config = self.scraper.config
+        # Don't crash legistar while running test scrapes.
+        self.config.DO_CLIENT_SLEEP = True
 
     def test_output(self):
         view = self.scraper.get_pupatype_searchview(self.PUPATYPE)
