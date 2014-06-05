@@ -50,11 +50,15 @@ class Client(Base):
 
     @contextlib.contextmanager
     def retry(self, method, *args, **kwargs):
+        '''Sometimes Legistar will S the bed and drop the connection.
+        That's probably because the crawl rate is too high. Sleeps for 2
+        seconds then tries again.
+        '''
         try:
             yield method(*args, **kwargs)
         except ConnectionError:
             self.exception()
-            self.warning('Got connection error. Sleeping 2 seconds.')
+            self.warning('Client got connection error. Sleeping 2 seconds.')
             time.sleep(2)
             yield method(*args, **kwargs)
 
