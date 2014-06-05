@@ -40,7 +40,7 @@ class ChainedLookup:
         pass
 
 
-class Doc(ChainedLookup):
+class DocLookup(ChainedLookup):
     '''This one's expensive, so fetch it lazily and cache it.
     '''
     def get_value(self, inst, owner):
@@ -67,6 +67,22 @@ class Doc(ChainedLookup):
     on_get = on_set = add_to_sources
 
 
+class ClientLookup(ChainedLookup):
+    '''Getter for the client object. Doesn't create the client
+    until it's accessed.
+    '''
+    def get_value(self, inst, owner):
+        return inst.cfg.get_client()
+
+
+class SessionLookup(ChainedLookup):
+    '''Getter for the client object. Doesn't create the client
+    until it's accessed.
+    '''
+    def get_value(self, inst, owner):
+        return inst.cfg.get_session()
+
+
 class Base(PupatypeMixin):
     '''Lookups for these attributes on subtypes will fail over
     to whatever object's ChainMap the object's own ChainMap was derived
@@ -77,9 +93,10 @@ class Base(PupatypeMixin):
     config = config_obj = cfg = ChainedLookup('config')
     url = ChainedLookup('url')
     # The lxml.htm doc.
-    doc = Doc('doc')
-    # The config's requests.Session or Scraper object.
-    client = ChainedLookup('client')
+    doc = DocLookup('doc')
+    # The config's requests.Session and Scraper object.
+    client = ClientLookup('client')
+    session = SessionLookup('session')
 
     # Logging methods.
     info = ChainedLookup('info')
