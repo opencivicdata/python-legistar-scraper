@@ -422,7 +422,8 @@ class Config(Base, metaclass=ConfigMeta):
             error=logger.error,
             debug=logger.debug,
             warning=logger.warning,
-            critical=logger.critical)
+            critical=logger.critical,
+            exception=logger.exception)
         return chainmap
 
     LOGGING_CONFIG = {
