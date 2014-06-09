@@ -12,6 +12,10 @@ class NYC(Config):
     root_url = 'http://legistar.council.nyc.gov/'
     division_id = 'ocd-division/country:us/state:ny/place:new_york'
 
+    EVT_SEARCH_TABLE_TEXT_VIDEO = 'Multimedia'
+    EVT_DETAIL_TEXT_VIDEO = 'Multimedia'
+    EVT_DETAIL_TABLE_TEXT_VIDEO = 'Multimedia'
+
     @make_item('person.district')
     def person_district(self, data):
         # First try to get it from bio.
@@ -50,6 +54,7 @@ class SanFrancisco(Config):
 
     TOPLEVEL_ORG_MEMBERSHIP_TITLE_TEXT = 'Supervisor'
     TOPLEVEL_ORG_MEMBERSHIP_NAME_TEXT = 'Board of Supervisors'
+    EVT_SEARCH_TABLE_TEXT_AUDIO = 'Audio'  # sfgov has this
 
     @make_item('person.district')
     def get_district(self, data):

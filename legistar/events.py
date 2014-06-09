@@ -16,10 +16,46 @@ class EventsFields(FieldAggregator):
     def get_location(self):
         return self.get_field_text('location')
 
+    @make_item('name')
+    def get_name(self):
+        return self.get_field_text('name') or 'Meeting'
+
+    @make_item('description')
+    def get_description(self):
+        return self.get_field_text('description')
+
+    @make_item('media', wrapwith=list)
+    def gen_media(self):
+        for key in self.get_config_value('PUPA_MEDIA'):
+            try:
+                field = self.get_field_data(key)
+            except self.SkipItem:
+                continue
+
+            # This column isn't present on this legistar instance.
+            if field is None:
+                continue
+            elif field.is_blank():
+                continue
+            elif field.get_media_url() is None:
+                continue
+
+            media = dict(
+                name=field.get_text(),
+                links=[
+                    dict(
+                        url=field.get_media_url(),
+                        mimetype=field.get_mimetype())
+                ])
+            yield media
+
     @make_item('documents', wrapwith=list)
     def gen_documents(self):
         for key in self.get_config_value('PUPA_DOCUMENTS'):
-            field = self.get_field_data(key)
+            try:
+                field = self.get_field_data(key)
+            except self.SkipItem:
+                continue
 
             # This column isn't present on this legistar instance.
             if field is None:
@@ -39,7 +75,13 @@ class EventsFields(FieldAggregator):
         participant_fields = self.get_config_value('PUPA_PARTICIPANTS')
         for entity_type, keys in participant_fields.items():
             for key in keys:
-                cell = self.get_field_data(key)
+                try:
+                    cell = self.get_field_data(key)
+                except self.SkipItem:
+                    continue
+
+                # But it's often the name of a committee we can add as a
+                # participant.
                 participant = dict(name=cell.text, type=entity_type)
                 yield participant
 
@@ -80,9 +122,12 @@ class EventsSearchTableRow(TableRow, EventsFields):
     def get_name(self):
         '''The pupa name, or Legistar "topic" of the meeting.
         '''
-        return self.get_field_text('topic')
+        name = self.get_field_text('topic')
+        if name is None:
+            name = self.get_field_text('name')
+        return name
 
-    @make_item('end')
+    @make_item('end_time')
     def get_end(self):
         '''Get the event end date from the ical record.
         '''
@@ -90,7 +135,7 @@ class EventsSearchTableRow(TableRow, EventsFields):
         dt = datetime.strptime(end_time, r'%Y%m%dT%H%M%S')
         return dt
 
-    @make_item('when')
+    @make_item('start_time')
     def get_when(self):
         '''Get the event start date from the ical record.
         '''
@@ -148,19 +193,25 @@ class EventsDetailTableRow(TableRow):
         typetext = self.get_field_text('type')
         if typetext is not None:
             typetext = typetext.lower()
-        return self.typetext_map.get(typetext, 'document')
+        return self.typetext_map.get(typetext, 'note')
 
     @make_item('version')
     def get_version(self):
         return self.get_field_text('version')
 
+    @make_item('description')
+    def get_description(self):
+        return self.get_field_text('title')
+
     @make_item('agenda_num')
     def get_agenda_num(self):
         return self.get_field_text('agenda_number')
 
-    @make_item('subject')
-    def get_subject(self):
-        return self.get_field_text('name')
+    @make_item('subjects', wrapwith=list)
+    def get_subjects(self):
+        subject = self.get_field_text('name')
+        if subject is not None:
+            yield subject
 
     @make_item('type')
     def get_type(self):
@@ -168,7 +219,7 @@ class EventsDetailTableRow(TableRow):
 
     @make_item('name')
     def get_name(self):
-        return self.get_field_text('title')
+        return self.get_field_text('name')
 
     @make_item('action')
     def get_action(self):
@@ -182,14 +233,6 @@ class EventsDetailTableRow(TableRow):
     def get_details(self):
         return self.get_field_text('action_details')
 
-    @make_item('video_url')
-    def get_video_url(self):
-        return self.get_field_url('video')
-
-    @make_item('audio_url')
-    def get_audio_url(self):
-        return self.get_field_url('audio')
-
     @make_item('transcript_url')
     def get_transcript_url(self):
         return self.get_field_url('transcript')
@@ -200,6 +243,37 @@ class EventsDetailTableRow(TableRow):
         detail page.
         '''
         return self.get_field_text('file_number')
+
+    @make_item('url')
+    def get_detail_url(self):
+        '''Get detail url of an agenda item.
+        '''
+        return self.get_field_url('file_number')
+
+    @make_item('media', wrapwith=list)
+    def gen_media(self):
+        for key in self.get_config_value('PUPA_MEDIA'):
+            try:
+                field = self.get_field_data(key)
+            except self.SkipItem:
+                continue
+
+            # This column isn't present on this legistar instance.
+            if field is None:
+                continue
+            elif field.is_blank():
+                continue
+            elif field.get_media_url() is None:
+                continue
+
+            media = dict(
+                name=field.get_text(),
+                links=[
+                    dict(
+                        url=field.get_media_url(),
+                        mimetype=field.get_mimetype())
+                ])
+            yield media
 
 
 class EventsDetailForm(Form):

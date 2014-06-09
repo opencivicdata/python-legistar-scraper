@@ -3,7 +3,7 @@ from urllib.parse import urlparse
 from collections import defaultdict
 
 from legistar.base import Base
-from legistar.fields import FieldAggregator, FieldAccessor
+from legistar.fields import FieldAggregator
 
 
 class TableRow(FieldAggregator):

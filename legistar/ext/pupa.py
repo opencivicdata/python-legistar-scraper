@@ -2,6 +2,7 @@
 '''
 import re
 import inspect
+import datetime
 
 from legistar.base import Base, ChainedLookup
 from legistar.views import LegistarScraper
@@ -347,6 +348,7 @@ class PeopleConverter(PupaConverter):
         # Create memberships.
         yield from self.gen_memberships()
 
+
 # ------------------------------------------------------------------------
 # Orgs
 # ------------------------------------------------------------------------
@@ -371,6 +373,61 @@ class OrgsConverter(PupaConverter):
     '''
     adapter = OrgsAdapter
 
+    def gen_agenda_items(self):
+        yield from self.make_child(AgendaItemConverter, self.agenda)
+
+    def __iter__(self):
+        self.agenda = self.data.pop('agenda', [])
+        yield self.get_adapter().get_instance()
+        yield from self.gen_agenda_items()
+
+
+# ------------------------------------------------------------------------
+# Events
+# ------------------------------------------------------------------------
+class AgendaItemAdapter(PupaAdapter):
+    aliases = []
+    extras_keys = [
+        'action', 'action_details', 'file_number',
+        'version', 'type', 'result']
+
+    @make_item('related_entities', wrapwith=list)
+    def gen_related_entities(self):
+        url = self.data.get('url')
+        if url is None:
+            return
+        if 'LegislationDetail' in url:
+            data = {
+                'type': 'bill',
+                'id': self.data['file_number'],
+                'name': self.data['name'],
+                'note': self.data['description'],
+                }
+            yield data
+
+
+class EventsAdapter(PupaAdapter):
+    pupa_model = pupa.scrape.Event
+    aliases = []
+    extras_keys = []
+
+    @make_item('agenda', wrapwith=list)
+    def gen_agenda(self):
+        for data in self.data.get('agenda'):
+            yield AgendaItemAdapter(data).get_instance_data()
+
+    @make_item('all_day')
+    def get_all_day(self):
+        length = self.data['end_time'] - self.data['start_time']
+        if datetime.timedelta(hours=6) - length:
+            return True
+        else:
+            return False
+
+
+class EventsConverter(PupaConverter):
+    adapter = EventsAdapter
+
 
 # ------------------------------------------------------------------------
 # Helper class that glues things together.
@@ -384,7 +441,8 @@ class PupaGenerator(PupaExtBase):
     '''
     converter_types = dict(
         people=PeopleConverter,
-        orgs=OrgsConverter)
+        orgs=OrgsConverter,
+        events=EventsConverter,)
 
     def __init__(self, *pupatypes):
         self.pupatypes = pupatypes
@@ -448,5 +506,8 @@ class LegistarPeopleScraper(pupa.scrape.Scraper):
 
 
 class LegistarOrgsScraper(pupa.scrape.Scraper):
-    # This also scrapes orgs.
     scrape = PupaGenerator('orgs')
+
+
+class LegistarEventsScraper(pupa.scrape.Scraper):
+    scrape = PupaGenerator('events')

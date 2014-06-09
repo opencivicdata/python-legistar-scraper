@@ -1,7 +1,7 @@
 import io
 import re
 from datetime import datetime
-from urllib.parse import urlparse
+from urllib.parse import urlparse, urljoin
 
 from legistar.base import Base, CachedAttr, NoClobberDict
 from legistar.utils.itemgenerator import make_item, gen_items, ItemGenerator
@@ -45,6 +45,9 @@ class FieldAccessor(Base):
         raise NotImplementedError()
 
     def get_mimetype(self):
+        raise NotImplementedError()
+
+    def get_media_url(self):
         raise NotImplementedError()
 
 
@@ -199,5 +202,13 @@ class ElementAccessor(FieldAccessor):
         '''
         return self.el.attrib.get('src')
 
-    def get_video_url(self):
-        raise NotImplementedError()
+    def get_media_url(self):
+        '''Parse the url out of the onclick attr and make it
+        absolute.
+        '''
+        onclick = self.el.xpath('string(.//a/@onclick)')
+        if not onclick:
+            return
+        rel_url = re.findall(r"\('(.+?)'\,", onclick)
+        url = urljoin(self.cfg.root_url, rel_url.pop())
+        return url

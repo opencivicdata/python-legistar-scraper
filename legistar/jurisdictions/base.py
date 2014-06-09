@@ -196,7 +196,7 @@ class Config(Base, metaclass=ConfigMeta):
     # Events search table config.
 
     # Search params.
-    EVT_SEARCH_TIME_PERIOD = 'This Year'
+    EVT_SEARCH_TIME_PERIOD = 'This Month'
     EVT_SEARCH_BODIES = 'All Committees'
     EVT_SEARCH_BODIES_EL_NAME = 'ctl00$ContentPlaceHolder1$lstBodies'
     EVT_SEARCH_TIME_PERIOD_EL_NAME = 'ctl00$ContentPlaceHolder1$lstYears'
@@ -212,8 +212,10 @@ class Config(Base, metaclass=ConfigMeta):
     EVT_SEARCH_TABLE_TEXT_DETAILS = 'Meeting Details'
     EVT_SEARCH_TABLE_TEXT_AGENDA = 'Agenda'
     EVT_SEARCH_TABLE_TEXT_MINUTES = 'Minutes'
-    EVT_SEARCH_TABLE_TEXT_MEDIA = 'Multimedia'
+    EVT_SEARCH_TABLE_TEXT_VIDEO = 'Video'
+    EVT_SEARCH_TABLE_TEXT_AUDIO = 'Audio'  # sfgov has this
     EVT_SEARCH_TABLE_TEXT_NOTICE = 'Notice'
+    EVT_SEARCH_TABLE_TEXT_TRANSCRIPT = 'Transcript'
 
     EVT_SEARCH_TABLE_DATETIME_FORMAT = '%m/%d/%Y %I:%M %p'
 
@@ -230,6 +232,11 @@ class Config(Base, metaclass=ConfigMeta):
         EVT_SEARCH_TABLE_TEXT_NOTICE,
         ]
 
+    EVT_SEARCH_TABLE_PUPA_MEDIA = [
+        EVT_SEARCH_TABLE_TEXT_VIDEO,
+        EVT_SEARCH_TABLE_TEXT_AUDIO,
+        ]
+
     # ------------------------------------------------------------------------
     # Events detail config.
     EVT_SEARCH_TABLE_DETAIL_AVAILABLE = True
@@ -238,12 +245,12 @@ class Config(Base, metaclass=ConfigMeta):
     EVT_DETAIL_TEXT_NAME = EVT_SEARCH_TABLE_TEXT_NAME
     EVT_DETAIL_TEXT_TOPIC = EVT_SEARCH_TABLE_TEXT_TOPIC
     EVT_DETAIL_TEXT_DETAILS = EVT_SEARCH_TABLE_TEXT_DETAILS
-    EVT_DETAIL_TEXT_MEDIA = EVT_SEARCH_TABLE_TEXT_MEDIA
+    EVT_DETAIL_TEXT_VIDEO = EVT_SEARCH_TABLE_TEXT_VIDEO
+    EVT_DETAIL_TEXT_AUDIO = EVT_SEARCH_TABLE_TEXT_AUDIO
     EVT_DETAIL_TEXT_NOTICE = EVT_SEARCH_TABLE_TEXT_NOTICE
     EVT_DETAIL_TEXT_LOCATION = 'Meeting location'
     EVT_DETAIL_TEXT_DATE = 'Date'
     EVT_DETAIL_TEXT_TIME = 'Time'
-    EVT_DETAIL_TEXT_VIDEO = 'Meeting video'
     EVT_DETAIL_TEXT_AGENDA = 'Published agenda'
     EVT_DETAIL_TEXT_AGENDA_STATUS = 'Agenda status'
     EVT_DETAIL_TEXT_MINUTES = 'Published minutes'
@@ -265,6 +272,11 @@ class Config(Base, metaclass=ConfigMeta):
         EVT_DETAIL_TEXT_VIDEO,
         ]
 
+    EVT_DETAIL_PUPA_MEDIA = [
+        EVT_DETAIL_TEXT_VIDEO,
+        EVT_DETAIL_TEXT_AUDIO,
+        ]
+
     # Readable text for the agenda table of related bills.
     EVT_DETAIL_TABLE_TEXT_FILE_NUMBER = 'File #'
     EVT_DETAIL_TABLE_TEXT_VERSION = 'Ver.'
@@ -279,6 +291,11 @@ class Config(Base, metaclass=ConfigMeta):
     EVT_DETAIL_TABLE_TEXT_VIDEO = 'Video'
     EVT_DETAIL_TABLE_TEXT_AUDIO = 'Audio'
     EVT_DETAIL_TABLE_TEXT_TRANSCRIPT = 'Transcript'
+
+    EVT_DETAIL_TABLE_PUPA_MEDIA = [
+        EVT_DETAIL_TABLE_TEXT_VIDEO,
+        EVT_DETAIL_TABLE_TEXT_AUDIO,
+        ]
 
     # ------------------------------------------------------------------------
     # People search config.
