@@ -7,16 +7,16 @@ from legistar.forms import Form
 from legistar.tables import Table, TableRow
 from legistar.views import SearchView, DetailView
 from legistar.fields import FieldAggregator, make_item, gen_items
+from legistar.fields import ElementAccessor
 from legistar.base import DictSetDefault, NoClobberDict
 
 # https://github.com/guelo/legistar-scrape/compare/fgregg:master...master
 
 class BillsFields(FieldAggregator):
 
-    @make_item('location')
-    def get_location(self):
-        import pdb; pdb.set_trace()
-        return self.get_field_text('location')
+    text_fields = (
+        'file_number', 'law_number', 'type', 'status',
+        'final_action', 'title', 'name', 'version')
 
     @make_item('sources', wrapwith=list)
     def gen_sources(self):
