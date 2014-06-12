@@ -41,7 +41,7 @@ class BillsSearchTable(Table):
 
 
 class BillsSearchForm(Form):
-    '''Model the legistar "Calendar" search form.
+    '''Model the legistar "Legislation" search form.
     '''
     sources_note = 'bills search table'
 
@@ -55,6 +55,8 @@ class BillsSearchForm(Form):
             configval('types_el_name'): bodies,
             configval('time_period_el_name'): time_period,
             configval('clientstate_el_name'): clientstate,
+            configval('id_el_name'): configval('id'),
+            configval('text_el_name'): configval('text'),
             }
         self.debug('Query is %r' % query)
         query = dict(self.client.state, **query)
