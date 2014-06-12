@@ -66,9 +66,45 @@ class BillsSearchForm(Form):
 class BillsDetailView(DetailView, BillsFields):
     sources_note = 'bill detail'
 
+    text_fields = ('version', 'name')
+
+    def _get_date(self, label_text):
+        fmt = self.get_config_value('datetime_format')
+        text = self.get_field_text(label_text)
+        if text is not None:
+            return datetime.strptime(text, fmt)
+
     @make_item('agenda', wrapwith=list)
-    def gen_agenda(self):
-        yield from self.Form(self)
+    def get_agenda_date(self):
+        return self._get_date('agenda')
+
+    @make_item('enactment_date', wrapwith=list)
+    def get_enactment_date(self):
+        return self._get_date('enactment_date')
+
+    @make_item('final_action', wrapwith=list)
+    def get_enactment_date(self):
+        return self._get_date('final_action')
+
+    @make_item('sponsors', wrapwith=list)
+    def gen_sponsors(self):
+        for name in self.xpath('sponsors', './/a/text()'):
+            name = name.strip()
+            if name:
+                yield dict(name=name)
+
+    @make_item('documents', wrapwith=list)
+    def gen_documents(self):
+        for el in self.xpath('attachments', './/a'):
+            data = ElementAccessor(el)
+            url = data.get_url()
+            resp = self.client.head(url=url)
+            mimetype = resp.headers['content-type']
+            yield dict(
+                name=data.get_text(),
+                links=[dict(
+                    url=data.get_url(),
+                    mimetype=mimetype)])
 
 
 class BillsDetailTable(Table):
