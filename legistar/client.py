@@ -56,8 +56,8 @@ class Client(Base):
         '''
         try:
             yield method(*args, **kwargs)
-        except ConnectionError:
-            self.exception()
+        except ConnectionError as exc:
+            self.exception(exc)
             self.warning('Client got connection error. Sleeping 2 seconds.')
             time.sleep(2)
             yield method(*args, **kwargs)
