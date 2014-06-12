@@ -32,14 +32,8 @@ class BillsSearchView(SearchView):
 
 
 class BillsSearchTableRow(TableRow, BillsFields):
-
     def get_detail_url(self):
-        return self.get_field_url('details')
-    @make_item('location')
-
-    def get_location(self):
-        import pdb; pdb.set_trace()
-        return self.get_field_text('location')
+        return self.get_field_url('file_number')
 
 
 class BillsSearchTable(Table):
