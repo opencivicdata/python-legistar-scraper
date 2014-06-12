@@ -345,16 +345,8 @@ class Config(Base, metaclass=ConfigMeta):
     PPL_DETAIL_TABLE_TEXT_APPOINTED_BY = 'Appointed By'
 
     # ------------------------------------------------------------------------
-    # Bill search config.
+    # Bill search classes.
     # ------------------------------------------------------------------------
-
-    # Search params.
-    BILL_SEARCH_TIME_PERIOD = 'This Year'
-    BILL_SEARCH_TYPES = 'All Types'
-    BILL_SEARCH_TYPES_EL_NAME = 'ctl00$ContentPlaceHolder1$lstTypeBasic'
-    BILL_SEARCH_TIME_PERIOD_EL_NAME = 'ctl00$ContentPlaceHolder1$lstYears'
-    BILL_SEARCH_CLIENTSTATE_EL_NAME = 'ctl00_ContentPlaceHolder1_lstYears_ClientState'
-
     BILL_SEARCH_VIEW_CLASS = 'legistar.bills.BillsSearchView'
     BILL_DETAIL_VIEW_CLASS = 'legistar.bills.BillsDetailView'
     BILL_SEARCH_TABLE_CLASS = 'legistar.bills.BillsSearchTable'
@@ -365,6 +357,66 @@ class Config(Base, metaclass=ConfigMeta):
     BILL_DETAIL_TABLEROW_CLASS = 'legistar.bills.BillsDetailTableRow'
     BILL_DETAIL_TABLECELL_CLASS = 'legistar.fields.ElementAccessor'
     BILL_DETAIL_FORM_CLASS = 'legistar.bills.BillsDetailForm'
+
+    # ------------------------------------------------------------------------
+    # Bill search config.
+    # ------------------------------------------------------------------------
+    BILL_SEARCH_TIME_PERIOD = 'This Month'
+    BILL_SEARCH_TYPES = 'All Types'
+    BILL_SEARCH_TYPES_EL_NAME = 'ctl00$ContentPlaceHolder1$lstTypeBasic'
+    BILL_SEARCH_TIME_PERIOD_EL_NAME = 'ctl00$ContentPlaceHolder1$lstYears'
+    BILL_SEARCH_CLIENTSTATE_EL_NAME = 'ctl00_ContentPlaceHolder1_lstYears_ClientState'
+    BILL_SEARCH_ID = BILL_SEARCH_TEXT = 'on'
+    BILL_SEARCH_ID_EL_NAME = 'ctl00$ContentPlaceHolder1$chkID'
+    BILL_SEARCH_TEXT_EL_NAME = 'ctl00$ContentPlaceHolder1$chkText'
+
+    # Search table.
+    BILL_SEARCH_TABLE_TEXT_FILE_NUMBER = 'File #'
+    BILL_SEARCH_TABLE_TEXT_LAW_NUMBER = 'Law Number'
+    BILL_SEARCH_TABLE_TEXT_TYPE = 'Type'
+    BILL_SEARCH_TABLE_TEXT_STATUS = 'Status'
+    BILL_SEARCH_TABLE_TEXT_FINAL_ACTION = 'Final Action'
+    BILL_SEARCH_TABLE_TEXT_TITLE = 'Title'
+
+    # BILL_SEARCH_TABLE_PUPA_KEY_NAME = BILL_SEARCH_TABLE_TEXT_TOPIC
+    # BILL_SEARCH_TABLE_PUPA_KEY_LOCATION = BILL_SEARCH_TABLE_TEXT_LOCATION
+
+    # ------------------------------------------------------------------------
+    # Bill detail config.
+    BILL_SEARCH_TABLE_DETAIL_AVAILABLE = True
+    BILL_DETAIL_TABLE_DETAIL_AVAILABLE = False
+
+    BILL_DETAIL_TEXT_FILE_NUMBER = BILL_SEARCH_TABLE_TEXT_FILE_NUMBER
+    BILL_DETAIL_TEXT_VERSION = 'Version'
+    BILL_DETAIL_TEXT_TYPE = BILL_SEARCH_TABLE_TEXT_TYPE
+    BILL_DETAIL_TEXT_LAW_NUMBER = BILL_SEARCH_TABLE_TEXT_LAW_NUMBER
+    BILL_DETAIL_TEXT_FINAL_ACTION = 'Final action'
+    BILL_DETAIL_TEXT_NAME = 'Name'
+    BILL_DETAIL_TEXT_STATUS = BILL_SEARCH_TABLE_TEXT_STATUS
+    BILL_DETAIL_TEXT_AGENDA = 'Agenda'
+    BILL_DETAIL_TEXT_ENACTMENT_DATE = 'Enactment date'
+    BILL_DETAIL_TEXT_TITLE = BILL_SEARCH_TABLE_TEXT_TITLE
+    BILL_DETAIL_TEXT_SPONSORS = 'Sponsors2'
+    BILL_DETAIL_TEXT_ATTACHMENTS = 'Attachments2'
+
+    BILL_DETAIL_DATETIME_FORMAT = '%m/%d/%Y'
+    # BILL_DETAIL_PUPA_KEY_NAME = BILL_DETAIL_TEXT_TOPIC
+    # BILL_DETAIL_PUPA_KEY_LOCATION = BILL_DETAIL_TEXT_LOCATION
+
+    # Bill detail table rows.
+    BILL_DETAIL_TABLE_TEXT_FILE_NUMBER = 'File #'
+    BILL_DETAIL_TABLE_TEXT_VERSION = 'Ver.'
+    BILL_DETAIL_TABLE_TEXT_NAME = 'Name'
+    BILL_DETAIL_TABLE_TEXT_AGENDA_NOTE = 'Agenda Note'
+    BILL_DETAIL_TABLE_TEXT_AGENDA_NUMBER = 'Agenda #'
+    BILL_DETAIL_TABLE_TEXT_TYPE = 'Type'
+    BILL_DETAIL_TABLE_TEXT_TITLE = 'Title'
+    BILL_DETAIL_TABLE_TEXT_ACTION = 'Action'
+    BILL_DETAIL_TABLE_TEXT_RESULT = 'Result'
+    BILL_DETAIL_TABLE_TEXT_ACTION_DETAILS = 'Action Details'
+    BILL_DETAIL_TABLE_TEXT_VIDEO = 'Video'
+    BILL_DETAIL_TABLE_TEXT_AUDIO = 'Audio'
+    BILL_DETAIL_TABLE_TEXT_TRANSCRIPT = 'Transcript'
 
     # ------------------------------------------------------------------------
     # Requests client config.
