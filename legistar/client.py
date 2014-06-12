@@ -74,6 +74,17 @@ class Client(Base):
             self.sleep()
             return resp
 
+    def head(self, url, **kwargs):
+        '''Send a HEAD request. For getting mimetypes of documents.
+        '''
+        _kwargs = dict(self.cfg.requests_kwargs)
+        _kwargs.update(kwargs)
+        with self.retry(self.session.get, url, **_kwargs) as resp:
+            resp = self.session.head(url, **_kwargs)
+            self.check_resp(resp)
+            self.sleep()
+            return resp
+
     def post(self, url, data=None, **kwargs):
         '''Send a POST request, check it, update state, and sleep.
         '''
