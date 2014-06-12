@@ -132,6 +132,8 @@ class FieldAggregator(Base, ItemGenerator):
         '''Combine the detail page data with the table row data.
         '''
         data = dict(gen_items(self))
+        data.update(self._get_text_fields())
+
         if not self.get_config_value('detail_available'):
             return data
 
