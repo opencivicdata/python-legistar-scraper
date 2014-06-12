@@ -158,6 +158,12 @@ class FieldAggregator(Base, ItemGenerator):
 
         return dict(data)
 
+    def xpath(self, label_text, xpath):
+        '''Run the xpath expression at the element at label_text's field.
+        '''
+        el = self.get_field_data(label_text).el
+        return el.xpath(xpath)
+
 
 class ElementAccessor(FieldAccessor):
     '''Provides access to text, url, etc., on DOM elements from the
