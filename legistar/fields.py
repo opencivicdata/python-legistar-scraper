@@ -114,6 +114,20 @@ class FieldAggregator(Base, ItemGenerator):
         for unbound_method in pupatype_aggregator_funcs:
             yield unbound_method(config, data)
 
+    def _get_text_fields(self):
+        '''Convert the self.include_keys list to dict items.
+        '''
+        for token in getattr(self, 'text_fields', []):
+            if isinstance(token, str):
+                key = alias = token
+            elif isinstance(token, (list, tuple)):
+                key, alias = token
+            try:
+                value = self.get_field_text(key)
+            except self.SkipItem:
+                continue
+            yield alias, value
+
     def asdict(self):
         '''Combine the detail page data with the table row data.
         '''
