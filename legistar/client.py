@@ -48,42 +48,42 @@ class Client(Base):
         for key in self.state.keys() & form.keys():
             self.state[key] = form.get(key)
 
-    @contextlib.contextmanager
     def retry(self, method, *args, **kwargs):
         '''Sometimes Legistar will S the bed and drop the connection.
         That's probably because the crawl rate is too high. Sleeps for 2
         seconds then tries again.
         '''
-        try:
-            yield method(*args, **kwargs)
-        except ConnectionError as exc:
-            self.exception(exc)
-            self.warning('Client got connection error. Sleeping 2 seconds.')
-            time.sleep(2)
-            yield method(*args, **kwargs)
+        NUM_RETRIES = 1
+        for _ in range(NUM_RETRIES):
+            try:
+                return method(*args, **kwargs)
+            except ConnectionError as exc:
+                self.exc = exc
+                self.exception(exc)
+                self.warning('Client got connection error. Sleeping 2 seconds.')
+                time.sleep(2)
+        raise self.exc
 
     def get(self, url, **kwargs):
         '''Send a POST request, check it, update state, and sleep.
         '''
         _kwargs = dict(self.cfg.requests_kwargs)
         _kwargs.update(kwargs)
-        with self.retry(self.session.get, url, **_kwargs) as resp:
-            resp = self.session.get(url, **_kwargs)
-            self.check_resp(resp)
-            self.update_state(resp)
-            self.sleep()
-            return resp
+        resp = self.retry(self.session.get, url, **_kwargs)
+        self.check_resp(resp)
+        self.update_state(resp)
+        self.sleep()
+        return resp
 
     def head(self, url, **kwargs):
         '''Send a HEAD request. For getting mimetypes of documents.
         '''
         _kwargs = dict(self.cfg.requests_kwargs)
         _kwargs.update(kwargs)
-        with self.retry(self.session.get, url, **_kwargs) as resp:
-            resp = self.session.head(url, **_kwargs)
-            self.check_resp(resp)
-            self.sleep()
-            return resp
+        resp = self.retry(self.session.head, url, **_kwargs)
+        self.check_resp(resp)
+        self.sleep()
+        return resp
 
     def post(self, url, data=None, **kwargs):
         '''Send a POST request, check it, update state, and sleep.
@@ -97,8 +97,8 @@ class Client(Base):
         if data is not None:
             _data.update(data or {})
 
-        with self.retry(self.session.post, url, _data, **_kwargs) as resp:
-            self.check_resp(resp)
-            self.update_state(resp)
-            self.sleep()
-            return resp
+        resp = self.retry(self.session.post, url, _data, **_kwargs)
+        self.check_resp(resp)
+        self.update_state(resp)
+        self.sleep()
+        return resp
