@@ -80,7 +80,7 @@ class DetailView(View, FieldAggregator):
 
     def asdict(self):
         data = dict(self)
-        moredata = self.get_aggregator_func_data(data)
+        moredata = self._get_aggregator_func_data(data)
         data.update(moredata)
         return data
 
