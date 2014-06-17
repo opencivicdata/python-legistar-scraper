@@ -142,6 +142,11 @@ class PeopleDetailTable(Table):
     sources_note = 'person detail table'
 
 
+class PeopleDetailForm(Form):
+    skip_first_submit = True
+    sources_note = 'person detail'
+
+
 class PeopleDetailTableRow(TableRow):
 
     @make_item('org')
@@ -177,8 +182,3 @@ class PeopleDetailTableRow(TableRow):
     @make_item('appointed_by')
     def get_appointed_by(self):
         return self.get_field_text('appointed_by')
-
-
-class PeopleDetailForm(Form):
-    skip_first_submit = True
-    sources_note = 'person detail'
