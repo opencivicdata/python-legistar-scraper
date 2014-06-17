@@ -1,5 +1,6 @@
 import re
 import json
+import time
 import collections
 from datetime import datetime
 
@@ -98,6 +99,9 @@ class BillsDetailView(DetailView, BillsFields):
         for el in self.xpath('attachments', './/a'):
             data = ElementAccessor(el)
             url = data.get_url()
+
+            self.debug('Sleeping in between head requests.')
+            time.sleep(1)
             resp = self.client.head(url=url)
             mimetype = resp.headers['content-type']
             yield dict(
