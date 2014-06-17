@@ -53,6 +53,12 @@ class View(Base):
 
     @property
     def Form(self):
+        '''Return this view's form type. Note that it still needs to
+        be invoked, and needs a reference back to its parent view so
+        downstream code can access view-related meta data. There's a
+        better way to do this, possibly with the same chained lookup
+        code that other attrs use.
+        '''
         return self.viewtype_meta.Form
 
 
