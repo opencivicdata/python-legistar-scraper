@@ -63,7 +63,6 @@ class View(Base):
 
 
 class SearchView(View):
-    VIEWTYPE = 'search'
 
     def __iter__(self):
         '''Iterating over a search view generates tables of paginated search
@@ -73,7 +72,6 @@ class SearchView(View):
 
 
 class DetailView(View, FieldAggregator):
-    VIEWTYPE = 'detail'
 
     @CachedAttr
     def field_data(self):
