@@ -13,6 +13,17 @@ from legistar.base import DictSetDefault, NoClobberDict
 from legistar.jurisdictions.utils import resolve_name
 # https://github.com/guelo/legistar-scrape/compare/fgregg:master...master
 
+class DateGetter:
+    '''Parse a date using the datetime format string defined in
+    the current jxn's config.
+    '''
+    def _get_date(self, label_text):
+        fmt = self.get_config_value('datetime_format')
+        text = self.get_field_text(label_text)
+        if text is not None:
+            return datetime.strptime(text, fmt)
+
+
 class BillsFields(FieldAggregator):
 
     text_fields = (
@@ -64,16 +75,10 @@ class BillsSearchForm(Form):
         return query
 
 
-class BillsDetailView(DetailView, BillsFields):
+class BillsDetailView(DetailView, BillsFields, DateGetter):
     sources_note = 'bill detail'
 
     text_fields = ('version', 'name')
-
-    def _get_date(self, label_text):
-        fmt = self.get_config_value('datetime_format')
-        text = self.get_field_text(label_text)
-        if text is not None:
-            return datetime.strptime(text, fmt)
 
     @make_item('agenda', wrapwith=list)
     def get_agenda_date(self):
