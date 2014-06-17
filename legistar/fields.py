@@ -100,7 +100,7 @@ class FieldAggregator(Base, ItemGenerator):
         if field_data is not None:
             return field_data.get_img_src()
 
-    def get_aggregator_func_data(self, data):
+    def _get_aggregator_func_data(self, data):
         '''Return a sequence of (key, value) pairs, where key and
         value are produced by a method on the jurisdiction Config subtype:
 
@@ -159,7 +159,7 @@ class FieldAggregator(Base, ItemGenerator):
                     data[key].append(obj)
 
         # Run any custom functions defined on the jxn's config.
-        data.update(self.get_aggregator_func_data(data))
+        data.update(self._get_aggregator_func_data(data))
 
         return dict(data)
 
