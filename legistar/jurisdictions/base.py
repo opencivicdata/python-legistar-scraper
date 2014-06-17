@@ -94,16 +94,6 @@ class Config(Base, metaclass=ConfigMeta):
     PGN_NEXT_PAGE_XPATH = 'string(%s/following-sibling::a[1]/@href)' % PGN_CURRENT_PAGE_XPATH
 
     views = Views()
-    PPL_SEARCH_VIEW_CLASS = 'legistar.people.PeopleSearchView'
-    PPL_DETAIL_VIEW_CLASS = 'legistar.people.PeopleDetailView'
-    PPL_SEARCH_TABLE_CLASS = 'legistar.people.PeopleSearchTable'
-    PPL_SEARCH_TABLEROW_CLASS = 'legistar.people.PeopleSearchTableRow'
-    PPL_SEARCH_TABLECELL_CLASS = 'legistar.fields.ElementAccessor'
-    PPL_SEARCH_FORM_CLASS = 'legistar.people.PeopleSearchForm'
-    PPL_DETAIL_TABLE_CLASS = 'legistar.people.PeopleDetailTable'
-    PPL_DETAIL_TABLEROW_CLASS = 'legistar.people.PeopleDetailTableRow'
-    PPL_DETAIL_TABLECELL_CLASS = 'legistar.fields.ElementAccessor'
-    PPL_DETAIL_FORM_CLASS = 'legistar.people.PeopleDetailForm'
 
     NO_RECORDS_FOUND_TEXT = ['No records were found', 'No records to display.']
     RESULTS_TABLE_XPATH = '//table[contains(@class, "rgMaster")]'
@@ -298,6 +288,21 @@ class Config(Base, metaclass=ConfigMeta):
         ]
 
     # ------------------------------------------------------------------------
+    # People
+    # ------------------------------------------------------------------------
+
+    # View class config.
+    PPL_SEARCH_VIEW_CLASS = 'legistar.people.PeopleSearchView'
+    PPL_DETAIL_VIEW_CLASS = 'legistar.people.PeopleDetailView'
+    PPL_SEARCH_TABLE_CLASS = 'legistar.people.PeopleSearchTable'
+    PPL_SEARCH_TABLEROW_CLASS = 'legistar.people.PeopleSearchTableRow'
+    PPL_SEARCH_TABLECELL_CLASS = 'legistar.fields.ElementAccessor'
+    PPL_SEARCH_FORM_CLASS = 'legistar.people.PeopleSearchForm'
+    PPL_DETAIL_TABLE_CLASS = 'legistar.people.PeopleDetailTable'
+    PPL_DETAIL_TABLEROW_CLASS = 'legistar.people.PeopleDetailTableRow'
+    PPL_DETAIL_TABLECELL_CLASS = 'legistar.fields.ElementAccessor'
+    PPL_DETAIL_FORM_CLASS = 'legistar.people.PeopleDetailForm'
+
     # People search config.
     PPL_SEARCH_TABLE_TEXT_FULLNAME = 'Person Name'
     PPL_SEARCH_TABLE_TEXT_WEBSITE =  'Web Site'
