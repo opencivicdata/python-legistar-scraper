@@ -362,6 +362,10 @@ class Config(Base, metaclass=ConfigMeta):
     BILL_DETAIL_TABLEROW_CLASS = 'legistar.bills.BillsDetailTableRow'
     BILL_DETAIL_TABLECELL_CLASS = 'legistar.fields.ElementAccessor'
     BILL_DETAIL_FORM_CLASS = 'legistar.bills.BillsDetailForm'
+    BILL_ACTION_VIEW_CLASS = 'legistar.bills.BillsDetailAction'
+    BILL_ACTION_TABLE_CLASS = 'legistar.bills.BillsDetailActionTable'
+    BILL_ACTION_TABLEROW_CLASS = 'legistar.bills.BillsDetailActionTableRow'
+    BILL_ACTION_TABLECELL_CLASS = 'legistar.fields.ElementAccessor'
 
     # ------------------------------------------------------------------------
     # Bill search config.
@@ -389,7 +393,8 @@ class Config(Base, metaclass=ConfigMeta):
     # ------------------------------------------------------------------------
     # Bill detail config.
     BILL_SEARCH_TABLE_DETAIL_AVAILABLE = True
-    BILL_DETAIL_TABLE_DETAIL_AVAILABLE = False
+    BILL_DETAIL_TABLE_DETAIL_AVAILABLE = True
+    BILL_ACTION_DETAIL_AVAILABLE = False
 
     BILL_DETAIL_TEXT_FILE_NUMBER = BILL_SEARCH_TABLE_TEXT_FILE_NUMBER
     BILL_DETAIL_TEXT_VERSION = 'Version'
@@ -409,19 +414,30 @@ class Config(Base, metaclass=ConfigMeta):
     # BILL_DETAIL_PUPA_KEY_LOCATION = BILL_DETAIL_TEXT_LOCATION
 
     # Bill detail table rows.
-    BILL_DETAIL_TABLE_TEXT_FILE_NUMBER = 'File #'
+    BILL_DETAIL_TABLE_TEXT_DATE = 'Date'
     BILL_DETAIL_TABLE_TEXT_VERSION = 'Ver.'
-    BILL_DETAIL_TABLE_TEXT_NAME = 'Name'
-    BILL_DETAIL_TABLE_TEXT_AGENDA_NOTE = 'Agenda Note'
-    BILL_DETAIL_TABLE_TEXT_AGENDA_NUMBER = 'Agenda #'
-    BILL_DETAIL_TABLE_TEXT_TYPE = 'Type'
-    BILL_DETAIL_TABLE_TEXT_TITLE = 'Title'
+    BILL_DETAIL_TABLE_TEXT_ACTION_BY = 'Action By'
     BILL_DETAIL_TABLE_TEXT_ACTION = 'Action'
     BILL_DETAIL_TABLE_TEXT_RESULT = 'Result'
     BILL_DETAIL_TABLE_TEXT_ACTION_DETAILS = 'Action Details'
-    BILL_DETAIL_TABLE_TEXT_VIDEO = 'Video'
-    BILL_DETAIL_TABLE_TEXT_AUDIO = 'Audio'
-    BILL_DETAIL_TABLE_TEXT_TRANSCRIPT = 'Transcript'
+    BILL_DETAIL_TABLE_TEXT_MEETING_DETAILS = 'Meeting Details'
+    BILL_DETAIL_TABLE_TEXT_MUTLIMEDIA = 'Multimedia'
+
+    BILL_DETAIL_TABLE_DATETIME_FORMAT = BILL_DETAIL_DATETIME_FORMAT
+
+    BILL_ACTION_TEXT_FILE_NUMBER = 'File #'
+    BILL_ACTION_TEXT_TYPE = 'Type'
+    BILL_ACTION_TEXT_VERSION = 'Version'
+    BILL_ACTION_TEXT_TITLE = 'Title'
+    BILL_ACTION_TEXT_MOVER = 'Mover'
+    BILL_ACTION_TEXT_SECONDER = 'Seconder'
+    BILL_ACTION_TEXT_RESULT = 'Result'
+    BILL_ACTION_TEXT_AGENDA_NOTE = 'Agenda note'
+    BILL_ACTION_TEXT_MINUTES_NOTE = 'Minutes note'
+    BILL_ACTION_TEXT_ACTION = 'Action'
+    BILL_ACTION_TEXT_ACTION_TEXT = 'Action text'
+    BILL_ACTION_TEXT_PERSON = 'Person Name'
+    BILL_ACTION_TEXT_VOTE = 'Vote'
 
     # ------------------------------------------------------------------------
     # Requests client config.
