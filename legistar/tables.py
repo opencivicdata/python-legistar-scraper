@@ -48,11 +48,17 @@ class Table(Base):
     def get_header_text(self):
         return tuple(self._gen_header_text())
 
+    def get_table_cell_type(self):
+        return self.view.viewtype_meta.TableCell
+
+    def get_table_row_type(self):
+        return self.view.viewtype_meta.TableRow
+
     def gen_rows(self):
         '''Yield table row objects.
         '''
-        TableCell = self.view.viewtype_meta.TableCell
-        TableRow = self.view.viewtype_meta.TableRow
+        TableCell = self.get_table_cell_type()
+        TableRow = self.get_table_row_type()
         header_text = self.get_header_text()
 
         for tr in self.table_element.xpath('.//tr')[1:]:
