@@ -15,8 +15,11 @@ class TableRow(FieldAggregator):
         for key, field in data:
             self.field_data[key].append(field)
 
+    def get_detail_viewtype(self):
+        return self.view.viewmeta.detail.View
+
     def get_detail_page(self):
-        DetailView = self.view.viewmeta.detail.View
+        DetailView = self.get_detail_viewtype()
         detail_view = DetailView(url=self.get_detail_url())
         detail_view.inherit_chainmap_from(self.view)
         return detail_view
