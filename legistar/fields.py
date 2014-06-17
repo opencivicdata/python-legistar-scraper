@@ -90,6 +90,11 @@ class FieldAggregator(Base, ItemGenerator):
         if field_data is not None:
             return field_data.get_url() or None
 
+    def get_media_url(self, label_text):
+        field_data = self.get_field_data(label_text)
+        if field_data is not None:
+            return field_data.get_media_url() or None
+
     def get_field_img_src(self, label_text):
         field_data = self.get_field_data(label_text)
         if field_data is not None:
