@@ -40,6 +40,7 @@ class ConfigMeta(type):
             JXN_CONFIGS[name] = cls
 
         meta.collect_itemfuncs(attrs, cls)
+        meta.collect_overrides(attrs, cls)
 
         return cls
 
@@ -52,7 +53,20 @@ class ConfigMeta(type):
         for name, member in attrs.items():
             if getattr(member, '_is_aggregator_func', False):
                 registry[member._pupatype].append(member)
-        cls.aggregator_funcs = registry
+        cls.aggregator_funcs = dict(registry)
+
+    @classmethod
+    def collect_overrides(meta, attrs, cls):
+        '''Aggregates overrides for later reference by the
+        try_jxn_delegation decorator.
+        '''
+        registry = defaultdict(NoClobberDict)
+        for name, member in attrs.items():
+            if getattr(member, '_is_override', False):
+                clsname = member._override_clsname
+                membname = member._override_membername
+                registry[clsname][membname] = member
+        cls.override_funcs = dict(registry)
 
 
 class Config(Base, metaclass=ConfigMeta):

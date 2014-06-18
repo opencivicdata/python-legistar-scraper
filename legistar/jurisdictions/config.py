@@ -1,6 +1,7 @@
 import re
+import json
 
-from legistar.jurisdictions.base import Config, make_item
+from legistar.jurisdictions.base import Config, make_item, overrides
 
 
 class NYC(Config):

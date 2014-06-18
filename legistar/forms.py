@@ -17,12 +17,26 @@ class Form(Base):
         # before trying to post to the form. This does that:
         doc = self.doc
         self.count = itertools.count(2)
+        self._submitted_first = False
 
     @property
     def formdata(self):
         return dict(self.doc.forms[0].fields)
 
+    @try_jxn_delegation
+    def before_first_submit(self):
+        '''This function runs before the first submit.
+        '''
+        pass
+
+    @try_jxn_delegation
     def submit(self, formdata=None):
+        # Call the pre-submit hook.
+        if not self._submitted_first:
+            self.before_first_submit()
+            self._submitted_first = True
+
+        # Then submit the form.
         self.debug('%r is fetching %s', self, self.url)
         resp = self.cfg.client.post(self.url, formdata)
         doc = lxml.html.fromstring(resp.text)
@@ -35,6 +49,7 @@ class Form(Base):
         '''
         raise NotImplementedError()
 
+    @try_jxn_delegation
     def submit_next_page(self):
         '''Submits the next page in the search results.
         '''
@@ -54,6 +69,7 @@ class Form(Base):
         self.info(msg, self, next(self.count), formdata)
         self.submit(formdata)
 
+    @try_jxn_delegation
     def __iter__(self):
         Table = self.view.viewtype_meta.Table
 
