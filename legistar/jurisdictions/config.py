@@ -49,6 +49,7 @@ class SanFrancisco(Config):
     TOPLEVEL_ORG_MEMBERSHIP_TITLE_TEXT = 'Supervisor'
     TOPLEVEL_ORG_MEMBERSHIP_NAME_TEXT = 'Board of Supervisors'
     EVT_SEARCH_TABLE_TEXT_AUDIO = 'Audio'  # sfgov has this
+    BILL_SEARCH_TABLE_TEXT_INTRO_DATE = 'Introduced'
 
     @make_item('person.district')
     def get_district(self, data):
@@ -68,6 +69,7 @@ class Philadelphia(Config):
     # C'mon Philly, what's up with that.
     EVT_SEARCH_TABLE_DETAIL_AVAILABLE = False
     PPL_SEARCH_TABLE_DETAIL_AVAILABLE = False
+    BILL_DETAIL_TEXT_COMMITTEE = 'In control'
 
     @make_item('person.district')
     def get_district(self, data):
