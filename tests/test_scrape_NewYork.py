@@ -23,3 +23,11 @@ class TestNewYorkEvents2014(ScrapertestBase):
     YEAR = 2014
     MAX_RECORDS = 10
     CHECKER = AssertionSet
+
+
+class TestNewYorkBills2014(ScrapertestBase):
+    DIVISION_ID = 'ocd-division/country:us/state:ny/place:new_york'
+    PUPATYPE = 'bills'
+    YEAR = 2014
+    MAX_RECORDS = 3
+    CHECKER = AssertionSet
