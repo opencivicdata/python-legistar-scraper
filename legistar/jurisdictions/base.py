@@ -384,6 +384,12 @@ class Config(Base, metaclass=ConfigMeta):
     # ------------------------------------------------------------------------
     # Bill search config.
     # ------------------------------------------------------------------------
+    # The element name of the link to switch btw simple, advanced search.
+    BILL_SEARCH_SWITCH_EL_NAME = 'ctl00_ContentPlaceHolder1_btnSwitch'
+    # The button text to switch to simple search, normalized to lower case.
+    BILL_SEARCH_SWITCH_SIMPLE = 'simple search'
+
+    # Simple search form.
     BILL_SEARCH_TIME_PERIOD = 'This Month'
     BILL_SEARCH_TYPES = 'All Types'
     BILL_SEARCH_TYPES_EL_NAME = 'ctl00$ContentPlaceHolder1$lstTypeBasic'
@@ -393,14 +399,25 @@ class Config(Base, metaclass=ConfigMeta):
     BILL_SEARCH_ID_EL_NAME = 'ctl00$ContentPlaceHolder1$chkID'
     BILL_SEARCH_TEXT_EL_NAME = 'ctl00$ContentPlaceHolder1$chkText'
 
+    # Variants for the advanced search form.
+    BILL_SEARCH_ADVANCED_TYPES_EL_NAME = 'ctl00$ContentPlaceHolder1$lstType'
+    BILL_SEARCH_ADVANCED_TIME_PERIOD_EL_NAME = 'ctl00$ContentPlaceHolder1$lstYearsAdvanced'
+    BILL_SEARCH_ADVANCED_BUTTON_EL_NAME = 'ctl00$ContentPlaceHolder1$btnSearch2'
+    BILL_SEARCH_ADVANCED_BUTTON = 'Search Legislation'
+
     # Search table.
     BILL_SEARCH_TABLE_TEXT_FILE_NUMBER = 'File #'
     BILL_SEARCH_TABLE_TEXT_LAW_NUMBER = 'Law Number'
     BILL_SEARCH_TABLE_TEXT_TYPE = 'Type'
     BILL_SEARCH_TABLE_TEXT_STATUS = 'Status'
+    BILL_SEARCH_TABLE_TEXT_INTRO_DATE = 'Intro Date'
     BILL_SEARCH_TABLE_TEXT_FINAL_ACTION = 'Final Action'
     BILL_SEARCH_TABLE_TEXT_TITLE = 'Title'
 
+    # Weird/random ones.
+    BILL_SEARCH_TABLE_TEXT_SPONSOR_OFFICE = "Main Sponsor's Ward/Office"
+
+    BILL_SEARCH_TABLE_DATETIME_FORMAT = '%m/%d/%Y'
     # BILL_SEARCH_TABLE_PUPA_KEY_NAME = BILL_SEARCH_TABLE_TEXT_TOPIC
     # BILL_SEARCH_TABLE_PUPA_KEY_LOCATION = BILL_SEARCH_TABLE_TEXT_LOCATION
 
@@ -422,8 +439,9 @@ class Config(Base, metaclass=ConfigMeta):
     BILL_DETAIL_TEXT_TITLE = BILL_SEARCH_TABLE_TEXT_TITLE
     BILL_DETAIL_TEXT_SPONSORS = 'Sponsors2'
     BILL_DETAIL_TEXT_ATTACHMENTS = 'Attachments2'
+    BILL_DETAIL_TEXT_COMMITTEE = 'Committee'
 
-    BILL_DETAIL_DATETIME_FORMAT = '%m/%d/%Y'
+    BILL_DETAIL_DATETIME_FORMAT = BILL_SEARCH_TABLE_DATETIME_FORMAT
     # BILL_DETAIL_PUPA_KEY_NAME = BILL_DETAIL_TEXT_TOPIC
     # BILL_DETAIL_PUPA_KEY_LOCATION = BILL_DETAIL_TEXT_LOCATION
 
@@ -434,10 +452,23 @@ class Config(Base, metaclass=ConfigMeta):
     BILL_DETAIL_TABLE_TEXT_ACTION = 'Action'
     BILL_DETAIL_TABLE_TEXT_RESULT = 'Result'
     BILL_DETAIL_TABLE_TEXT_ACTION_DETAILS = 'Action Details'
+    BILL_DETAIL_TEXT_FINAL_ACTION = 'Final action'
     BILL_DETAIL_TABLE_TEXT_MEETING_DETAILS = 'Meeting Details'
     BILL_DETAIL_TABLE_TEXT_MUTLIMEDIA = 'Multimedia'
+    BILL_DETAIL_TABLE_TEXT_TRANSCRIPT = 'Transcript'
+    BILL_DETAIL_TABLE_TEXT_AUDIO = 'Audio'
+    BILL_DETAIL_TABLE_TEXT_VIDEO = 'Video'
+
+    # Weird ones--Chicago.
+    BILL_DETAIL_TABLE_TEXT_JOURNAL_PAGE = 'Journal Page Number'
 
     BILL_DETAIL_TABLE_DATETIME_FORMAT = BILL_DETAIL_DATETIME_FORMAT
+    BILL_DETAIL_TABLE_PUPA_MEDIA = [
+        BILL_DETAIL_TABLE_TEXT_MUTLIMEDIA,
+        BILL_DETAIL_TABLE_TEXT_TRANSCRIPT,
+        BILL_DETAIL_TABLE_TEXT_AUDIO,
+        BILL_DETAIL_TABLE_TEXT_VIDEO,
+        ]
 
     BILL_ACTION_TEXT_FILE_NUMBER = 'File #'
     BILL_ACTION_TEXT_TYPE = 'Type'

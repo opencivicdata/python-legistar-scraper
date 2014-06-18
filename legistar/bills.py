@@ -62,12 +62,14 @@ class BillsSearchForm(Form):
     '''
     sources_note = 'bills search table'
 
-    def get_query(self, time_period=None, bodies=None):
+    @try_jxn_delegation
+    def get_query_simple(self, time_period=None, bodies=None):
+        '''Get the query for the simple search page.
+        '''
         configval = self.get_config_value
         time_period = time_period or configval('time_period')
         bodies = bodies or configval('types')
         clientstate = json.dumps({'value': time_period})
-
         query = {
             configval('types_el_name'): bodies,
             configval('time_period_el_name'): time_period,

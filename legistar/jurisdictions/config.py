@@ -117,12 +117,16 @@ class SolanoCounty(Config):
 
 class Chicago(Config):
     division_id = 'ocd-jurisdiction/country:us/state:il/place:chicago'
-    nicknames = ['windy']
+    nicknames = ['chicago', 'windy']
     root_url = 'https://chicago.legistar.com'
     PPL_DETAIL_TABLE_TEXT_ORG = 'Legislative Body'
     PPL_SEARCH_TABLE_TEXT_FULLNAME = 'Person Name'
     PPL_SEARCH_TABLE_TEXT_WEBSITE =  'Website'
     ORG_SEARCH_TABLE_TEXT_NAME = 'Legislative Body'
+
+    BILL_SEARCH_TABLE_TEXT_FILE_NUMBER = 'Record #'
+    BILL_DETAIL_TEXT_COMMITTEE = 'Current Controlling Legislative Body'
+
 
 
 class BoroughofSitka(Config):
