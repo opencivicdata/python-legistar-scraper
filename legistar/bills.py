@@ -25,11 +25,15 @@ class DateGetter:
             return datetime.strptime(text, fmt)
 
 
-class BillsFields(FieldAggregator):
+class BillsFields(FieldAggregator, DateGetter):
 
     text_fields = (
         'file_number', 'law_number', 'type', 'status',
-        'final_action', 'title', 'name', 'version')
+        'title', 'name', 'version', 'sponsor_office')
+
+    @make_item('intro_date')
+    def get_intro_data(self):
+        return self._get_date('intro_date')
 
     @make_item('sources', wrapwith=list)
     def gen_sources(self):
@@ -75,22 +79,60 @@ class BillsSearchForm(Form):
         query = dict(self.client.state, **query)
         return query
 
+    @try_jxn_delegation
+    def get_query_advanced(self, time_period=None, bodies=None):
+        '''Get the basic query for the advanced search page.
+        '''
+        configval = self.get_config_value
+        time_period = time_period or configval('time_period')
+        bodies = bodies or configval('types')
+        query = {
+            configval('advanced_button_el_name'): configval('advanced_button'),
+            configval('advanced_types_el_name'): bodies,
+            configval('advanced_time_period_el_name'): time_period,
+            }
+        self.debug('Query is %r' % query)
+        query = dict(self.client.state, **query)
+        return query
 
-class BillsDetailView(DetailView, BillsFields, DateGetter):
+    def get_query(self):
+        if self.default_search_is_simple():
+            self.debug('Using simple query.')
+            return self.get_query_simple()
+        else:
+            self.debug('Using advanced query.')
+            return self.get_query_advanced()
+
+    def default_search_is_simple(self):
+        '''Is the default page the simple search interface? Or advanced?
+        As of now, seems only Chicago defaults to the advanced search page.
+        This guesses by looking for a known advanced search param name.
+        '''
+        advanced_id = self.get_config_value('advanced_time_period_el_name')
+        advanced = bool(self.doc.xpath('//*[@name="%s"]' % advanced_id))
+        if advanced:
+            self.debug('Found advanced search interface at %r' % self.url)
+            return False
+        else:
+            self.debug('Found simple search interface at %r' % self.url)
+            return True
+
+
+class BillsDetailView(DetailView, BillsFields):
     sources_note = 'bill detail'
 
     text_fields = ('version', 'name')
 
-    @make_item('agenda', wrapwith=list)
+    @make_item('agenda')
     def get_agenda_date(self):
         return self._get_date('agenda')
 
-    @make_item('enactment_date', wrapwith=list)
+    @make_item('enactment_date')
     def get_enactment_date(self):
         return self._get_date('enactment_date')
 
-    @make_item('final_action', wrapwith=list)
-    def get_enactment_date(self):
+    @make_item('final_action')
+    def get_final_action(self):
         return self._get_date('final_action')
 
     @make_item('sponsors', wrapwith=list)
@@ -137,6 +179,8 @@ class BillsDetailTableRow(TableRow, FieldAggregator, DateGetter):
         ('action_by', 'organization'),
         ('action', 'text'),
         'version',
+        'result',
+        'journal_page',
         )
 
     def get_detail_viewtype(self):
@@ -148,6 +192,32 @@ class BillsDetailTableRow(TableRow, FieldAggregator, DateGetter):
     @make_item('date')
     def get_date(self):
         return self._get_date('date')
+
+    def _get_media(self, label):
+        '''Given a field label, get it's url (if any) and send a head
+        request to determine the content_type. Return a dict.
+        '''
+        data = self.get_field_data(label)
+        url = data.get_url()
+        if url is None:
+            raise self.SkipItem()
+        self.debug('Sleeping in between head requests.')
+        time.sleep(1)
+        resp = self.client.head(url=url)
+        mimetype = resp.headers['content-type']
+        return dict(
+            name=data.get_text(),
+            links=[dict(
+                url=data.get_url(),
+                mimetype=mimetype)])
+
+    @make_item('media', wrapwith=list)
+    def gen_media(self):
+        for label in self.get_config_value('pupa_media'):
+            try:
+                yield self._get_media(label)
+            except self.SkipItem:
+                continue
 
 
 class ActionBase(FieldAggregator):
