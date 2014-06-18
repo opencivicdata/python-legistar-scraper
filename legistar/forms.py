@@ -4,6 +4,7 @@ import itertools
 import lxml.html
 
 from legistar.base import Base
+from legistar.jurisdictions.utils import try_jxn_delegation
 
 
 class Form(Base):
