@@ -35,6 +35,10 @@ class BillsFields(FieldAggregator, DateGetter):
     def get_intro_data(self):
         return self._get_date('intro_date')
 
+    @make_item('file_created')
+    def get_file_created(self):
+        return self._get_date('file_created')
+
     @make_item('sources', wrapwith=list)
     def gen_sources(self):
         grouped = collections.defaultdict(set)
