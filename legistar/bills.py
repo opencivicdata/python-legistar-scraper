@@ -144,7 +144,8 @@ class BillsDetailView(DetailView, BillsFields):
 
     @make_item('sponsors', wrapwith=list)
     def gen_sponsors(self):
-        for name in self.xpath('sponsors', './/a/text()'):
+        sponsors = self.get_field_text('sponsors')
+        for name in re.split(r',\s+', sponsors):
             name = name.strip()
             if name:
                 yield dict(name=name)
