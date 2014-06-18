@@ -40,13 +40,6 @@ class NYC(Config):
         if party:
             return party.pop()
 
-    # @make_item('person.summary')
-    # def person_summary(self, data):
-    #     '''The NYC person person bui follows the tilde in the
-    #     district field on their detail pages.
-    #     '''
-    #     return data['notes']
-
 
 class SanFrancisco(Config):
     nicknames = ['sf', 'frisco', 'strinkytown', 'thoms-home-town-sortof']
