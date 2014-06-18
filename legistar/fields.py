@@ -115,8 +115,8 @@ class FieldAggregator(Base, ItemGenerator):
         '''
         config = self.config
         pupatype = self.get_pupatype()
-        pupatype_aggregator_funcs = config.aggregator_funcs[pupatype]
-        for unbound_method in pupatype_aggregator_funcs:
+        pupatype_aggregator_funcs = config.aggregator_funcs.get(pupatype)
+        for unbound_method in pupatype_aggregator_funcs or []:
             yield unbound_method(config, data)
 
     def _get_text_fields(self):
