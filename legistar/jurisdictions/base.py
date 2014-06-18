@@ -495,7 +495,7 @@ class Config(Base, metaclass=ConfigMeta):
     # library is with http://github.com/opencivicdata/pupa, which delegates
     # requests-per-minute, retries, and backoffs with
     # http://github.com/sunlightlabs/scrapelib
-    DO_CLIENT_SLEEP = False
+    DO_CLIENT_SLEEP = True
     SLEEP_RANGE = (5, 20)
 
     REQUEST_HEADERS = {
