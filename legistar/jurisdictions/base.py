@@ -412,6 +412,7 @@ class Config(Base, metaclass=ConfigMeta):
     BILL_SEARCH_TABLE_TEXT_TYPE = 'Type'
     BILL_SEARCH_TABLE_TEXT_STATUS = 'Status'
     BILL_SEARCH_TABLE_TEXT_INTRO_DATE = 'Intro Date'
+    BILL_SEARCH_TABLE_TEXT_FILE_CREATED = 'File Created'
     BILL_SEARCH_TABLE_TEXT_FINAL_ACTION = 'Final Action'
     BILL_SEARCH_TABLE_TEXT_TITLE = 'Title'
 
