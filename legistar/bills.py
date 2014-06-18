@@ -101,6 +101,7 @@ class BillsSearchForm(Form):
         query = dict(self.client.state, **query)
         return query
 
+    @try_jxn_delegation
     def get_query(self):
         if self.default_search_is_simple():
             self.debug('Using simple query.')
