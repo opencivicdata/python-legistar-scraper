@@ -1,4 +1,11 @@
+import pupa
+
+from legistar.views import LegistarScraper
 from legistar.ext.pupa.base import PupaExtBase
+from legistar.ext.pupa.bills import BillsConverter
+from legistar.ext.pupa.people import PeopleConverter
+from legistar.ext.pupa.events import EventsConverter
+from legistar.ext.pupa.orgs import OrgsConverter
 
 
 class PupaGenerator(PupaExtBase):
@@ -11,7 +18,8 @@ class PupaGenerator(PupaExtBase):
     converter_types = dict(
         people=PeopleConverter,
         orgs=OrgsConverter,
-        events=EventsConverter,)
+        events=EventsConverter,
+        bills=BillsConverter)
 
     def __init__(self, *pupatypes):
         self.pupatypes = pupatypes
@@ -74,3 +82,20 @@ class LegistarOrgsScraper(pupa.scrape.Scraper):
 
 class LegistarEventsScraper(pupa.scrape.Scraper):
     scrape = PupaGenerator('events')
+
+
+class LegistarBillsScraper(pupa.scrape.Scraper):
+    scrape = PupaGenerator('bills')
+
+
+if __name__ == '__main__':
+    import sys
+    import pprint
+    class Dummy:
+        division_id = 'nyc'
+    class Scraper(LegistarBillsScraper):
+        pass
+
+    for token in Scraper(Dummy(), '.cache').scrape():
+        pprint.pprint(token)
+        import pdb; pdb.set_trace()
