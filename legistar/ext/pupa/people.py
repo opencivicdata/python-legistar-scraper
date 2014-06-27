@@ -100,8 +100,8 @@ class MembershipConverter(Converter):
         if not self.party:
             return
         yield self.adapter.pupa_model(
-            self.person._id,
-            make_psuedo_id(classification="party", name=self.party),
+            person_id=self.person._id,
+            organization_id=make_psuedo_id(classification="party", name=self.party),
             role='member')
 
 
