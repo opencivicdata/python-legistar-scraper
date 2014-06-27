@@ -81,7 +81,7 @@ class Adapter(PupaExtBase, ItemGenerator):
         all required ars are getting passed.
         '''
         for cls in reversed(self.pupa_model.__mro__):
-            yield inspect.getargspec(self.pupa_model)
+            yield inspect.getfullargspec(self.pupa_model)
 
     def get_instance(self):
         '''We can't pass compliant dicty objects into the pupa pupa_model
@@ -95,7 +95,7 @@ class Adapter(PupaExtBase, ItemGenerator):
         # Aggregate all the positional args this pupa_model requires.
         args = {}
         for argspec in self._gen_argspecs():
-            for argname in argspec.args:
+            for argname in argspec.args + argspec.kwonlyargs:
                 if argname == 'self':
                     continue
                 if argname in args:
