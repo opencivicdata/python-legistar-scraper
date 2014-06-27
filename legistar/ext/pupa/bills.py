@@ -1,47 +1,34 @@
 import pupa.scrape
 
+from legistar.utils.itemgenerator import make_item
 from legistar.ext.pupa.base import Adapter, Converter
 
 
-class AgendaItemAdapter(Adapter):
-    aliases = []
-    extras_keys = [
-        'action', 'action_details', 'file_number',
-        'version', 'type', 'result']
+class ActionAdapter(Adapter):
+    aliases = [
+        ('text', 'description'),
+        ]
+    extras_keys = ['version', 'media']
 
-    @make_item('related_entities', wrapwith=list)
-    def gen_related_entities(self):
-        url = self.data.get('url')
-        if url is None:
-            return
-        if 'LegislationDetail' in url:
-            data = {
-                'type': 'bill',
-                'id': self.data['file_number'],
-                'name': self.data['name'],
-                'note': self.data['description'],
-                }
-            yield data
+    @make_item('type')
+    def get_type(self):
+        return []
 
 
-class EventsAdapter(Adapter):
-    pupa_model = pupa.scrape.Event
+class BillsAdapter(Adapter):
+    pupa_model = pupa.scrape.Bill
     aliases = []
     extras_keys = []
 
-    @make_item('agenda', wrapwith=list)
-    def gen_agenda(self):
-        for data in self.data.get('agenda'):
-            yield AgendaItemAdapter(data).get_instance_data()
+    @make_item('session')
+    def get_session(self):
+        import pdb; pdb.set_trace()
 
-    @make_item('all_day')
-    def get_all_day(self):
-        length = self.data['end_time'] - self.data['start_time']
-        if datetime.timedelta(hours=6) - length:
-            return True
-        else:
-            return False
+    @make_item('actions', wrapwith=list)
+    def gen_actions(self):
+        for data in self.data.get('actions'):
+            yield ActionAdapter(data).get_instance_data()
 
 
-class EventsConverter(Converter):
-    adapter = EventsAdapter
+class BillsConverter(Converter):
+    adapter = BillsAdapter
