@@ -21,8 +21,6 @@ class PupaExtBase(Base):
     # Names set on the generator and availabe to its children:
     # ------------------------------------------------------------------------
 
-    # The main organization, like City Council (i.e., not "Cow Subcommittee")
-    top_level_org = ChainedLookup('top_level_org')
     # The main generator (the object invoked by pupa). Will be the
     # parent chainmap of all other PupaExtBase types used in the module.
     generator = ChainedLookup('generator')

@@ -59,12 +59,6 @@ class PupaGenerator(PupaExtBase):
 
         return scraper
 
-    def set_toplevel_org(self, org):
-        '''Make the top-level org available to child types so they can
-        auto-create a membership for each person in it.
-        '''
-        self.top_level_org = org
-
 
 # ----------------------------------------------------------------------------
 # Importables

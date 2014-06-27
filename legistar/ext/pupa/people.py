@@ -31,15 +31,6 @@ class MembershipAdapter(Adapter):
 
     @make_item('organization_id')
     def get_org_id(self):
-        '''If the org is the top-level org, create a psuedo_id similar
-        to the one found in pupa.scrape.helpers. I mindlessly copied
-        this, so it might be wrong.
-        '''
-        if self.data['organization_id'] == self.top_level_org._id:
-            # XXX: This might be wrong.
-            msg = "Creating pseudo_id for %s's membership in %s."
-            self.warning(msg, self.person.name, self.top_level_org.name)
-            return make_psuedo_id(classification="legislature")
         return self.data['organization_id']
 
 
