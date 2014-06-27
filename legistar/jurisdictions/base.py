@@ -81,6 +81,7 @@ class Config(Base, metaclass=ConfigMeta):
         '''
         self.kwargs = kwargs
 
+    FASTMODE = True
     SESSION_CLASS = requests.Session
 
     mimetypes = Mimetypes()
@@ -525,6 +526,8 @@ class Config(Base, metaclass=ConfigMeta):
         session = self.kwargs.get('session')
         if session is None:
             session = self.SESSION_CLASS()
+            if self.FASTMODE:
+                session.cache_write_only = False
         return session
 
     def get_client(self):
