@@ -55,12 +55,9 @@ class MembershipConverter(Converter):
                 return created, org
 
             # Create the org.
-            org = pupa.scrape.Organization(name=org_name)
+            org = pupa.scrape.Organization(
+                name=org_name, classification=classification)
             created = True
-
-            # Store the council, if this is a council membership.
-            if org_name == self.cfg.TOPLEVEL_ORG_MEMBERSHIP_NAME_TEXT:
-                self.generator.set_toplevel_org(org)
 
             # Cache it.
             orgs[org_name] = org
@@ -78,6 +75,7 @@ class MembershipConverter(Converter):
         '''
         # Get or create the committee.
         org_name = data.pop('org')
+
         created, org = self.get_org(org_name)
         if created:
             yield org
