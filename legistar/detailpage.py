@@ -1,7 +1,9 @@
 import re
 from collections import defaultdict
 
-from legistar.base import Base, Visitor
+from  visitors import Visitor
+
+from legistar.base import Base
 from legistar.fields import ElementAccessor
 
 

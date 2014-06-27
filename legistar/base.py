@@ -3,7 +3,6 @@ import contextlib
 from collections import ChainMap
 
 import lxml.html
-from visitors import Visitor
 
 from legistar.pupatypes import PupatypeMixin
 from legistar.utils.handythings import (
