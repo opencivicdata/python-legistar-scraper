@@ -1,5 +1,6 @@
 from legistar.ext.pupa.scrapers import (
     LegistarPeopleScraper,
     LegistarOrgsScraper,
-    LegistarEventsScraper
+    LegistarEventsScraper,
+    LegistarBillsScraper
     )
