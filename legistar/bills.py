@@ -184,7 +184,7 @@ class BillsDetailForm(Form):
 
 class BillsDetailTableRow(TableRow, FieldAggregator, DateGetter):
     sources_node = 'bill action table'
-
+    disable_aggregator_funcs = True
     text_fields = (
         ('action_by', 'organization'),
         ('action', 'text'),
@@ -231,6 +231,7 @@ class BillsDetailTableRow(TableRow, FieldAggregator, DateGetter):
 
 
 class ActionBase(FieldAggregator):
+    disable_aggregator_funcs = True
 
     def get_prefix(self):
         '''The settings prefix for this view.

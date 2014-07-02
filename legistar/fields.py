@@ -113,6 +113,8 @@ class FieldAggregator(Base, ItemGenerator):
 
         I conceded that this is badly named.
         '''
+        if getattr(self, 'disable_aggregator_funcs', False):
+            return
         config = self.config
         pupatype = self.get_pupatype()
         pupatype_aggregator_funcs = config.aggregator_funcs.get(pupatype)
