@@ -55,6 +55,7 @@ class MembershipConverter(Converter):
                 return created, org
 
             # Create the org.
+            classification = self.cfg.get_org_classification(org_name)
             org = pupa.scrape.Organization(
                 name=org_name, classification=classification)
             created = True
