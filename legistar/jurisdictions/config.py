@@ -17,6 +17,13 @@ class NYC(Config):
     EVT_DETAIL_TEXT_VIDEO = 'Multimedia'
     EVT_DETAIL_TABLE_TEXT_VIDEO = 'Multimedia'
 
+    BILL_SEARCH_TIME_PERIOD = 'Last Month'
+    BILL_CLASSIFICATIONS = {
+        'Introduction': 'bill',
+        'Local Law': 'bill',
+        'Resolution': 'resolution',
+        }
+
     @make_item('person.district')
     def person_district(self, data):
         # First try to get it from bio.
@@ -38,7 +45,15 @@ class NYC(Config):
     def person_party(self, data):
         party = re.findall(r'Democrat|Republican', data['notes'], re.I)
         if party:
-            return party.pop()
+            party = party.pop()
+            if party.startswith('Democrat'):
+                party = 'Democratic'
+            return party
+
+    @make_item('bill.legislative_session')
+    def bill_legislative_session(self, data):
+        session = data['actions'][0]['date'].year
+        return str(session)
 
 
 class SanFrancisco(Config):

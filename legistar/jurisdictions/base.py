@@ -8,6 +8,7 @@ from collections import ChainMap, defaultdict
 from os.path import dirname, abspath, join
 
 import requests
+from opencivicdata import common as ocd_common
 
 import legistar
 from legistar.client import Client
@@ -486,6 +487,34 @@ class Config(Base, metaclass=ConfigMeta):
     BILL_ACTION_TEXT_ACTION_TEXT = 'Action text'
     BILL_ACTION_TEXT_PERSON = 'Person Name'
     BILL_ACTION_TEXT_VOTE = 'Vote'
+
+    BILL_DEFAULT_CLASSIFICATIONS = ChainMap({
+        })
+
+    @property
+    def _BILL_CLASSIFICATIONS(self):
+        '''Make the Config's clasifications inherit from this default set.
+        '''
+        classn = getattr(self, 'BILL_CLASSIFICATIONS', {})
+        return self.BILL_DEFAULT_CLASSIFICATIONS.new_child(classn)
+
+    def get_bill_classification(self, billtype):
+        '''Convert the legistar bill `type` column into
+        a pupa classification array.
+        '''
+        # Try to get the classn from the subtype.
+        classn = self._BILL_CLASSIFICATIONS.get(billtype)
+        if classn is not None:
+            return [classn]
+
+        # Bah, no matches--try to guess it.
+        type_lower = billtype.lower()
+        for classn in dict(ocd_common.BILL_CLASSIFICATION_CHOICES):
+            if classn in type_lower:
+                return [classn]
+
+        # None found; return emtpy array.
+        return []
 
     # ------------------------------------------------------------------------
     # Requests client config.
