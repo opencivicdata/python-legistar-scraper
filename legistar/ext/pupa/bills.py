@@ -10,24 +10,30 @@ class ActionAdapter(Adapter):
         ]
     extras_keys = ['version', 'media']
 
-    @make_item('type')
-    def get_type(self):
-        return []
+    @make_item('date')
+    def get_date(self):
+        return self.data.pop('date').strftime('%Y-%m-%d')
 
 
 class BillsAdapter(Adapter):
     pupa_model = pupa.scrape.Bill
-    aliases = []
-    extras_keys = []
+    aliases = [
+        ('file_number', 'identifier'),
+        ]
+    extras_keys = ['law_number', 'status']
 
-    @make_item('session')
-    def get_session(self):
-        import pdb; pdb.set_trace()
+    @make_item('classification')
+    def get_classn(self):
+        return self.cfg.get_bill_classification(self.data.pop('type'))
 
     @make_item('actions', wrapwith=list)
     def gen_actions(self):
         for data in self.data.get('actions'):
             yield ActionAdapter(data).get_instance_data()
+
+    @make_item('sponsorships')
+    def get_sponsorships(self):
+        return self.data.pop('sponsors', [])
 
 
 class BillsConverter(Converter):
