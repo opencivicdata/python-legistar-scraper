@@ -63,11 +63,18 @@ class Form(Base):
 
         # Parse the pagination control id name thingy.
         event_target = js.split("'")[1]
-        formdata = dict(__EVENTTARGET=event_target)
+
+        # Include the pagination target thingy in the query this time.
+        formdata = self.get_query(__EVENTTARGET=event_target)
+
+        # Blab.
+        msg = '%r requesting page %d of search results: %r'
+        formdata_copy = dict(formdata)
+        formdata.pop('__VIEWSTATE', None)
+        formdata.pop('__EVENTVALIDATION__', None)
+        self.info(msg, self, next(self.count), formdata)
 
         # Re-submit the form.
-        msg = '%r requesting page %d of search results: %r'
-        self.info(msg, self, next(self.count), formdata)
         self.submit(formdata)
 
     @try_jxn_delegation
