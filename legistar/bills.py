@@ -67,7 +67,7 @@ class BillsSearchForm(Form):
     sources_note = 'bills search table'
 
     @try_jxn_delegation
-    def get_query_simple(self, time_period=None, bodies=None):
+    def get_query_simple(self, time_period=None, bodies=None, **kwargs):
         '''Get the query for the simple search page.
         '''
         configval = self.get_config_value
@@ -81,12 +81,13 @@ class BillsSearchForm(Form):
             configval('id_el_name'): configval('id'),
             configval('text_el_name'): configval('text'),
             }
+        query.update(kwargs)
         self.debug('Query is %r' % query)
         query = dict(self.client.state, **query)
         return query
 
     @try_jxn_delegation
-    def get_query_advanced(self, time_period=None, bodies=None):
+    def get_query_advanced(self, time_period=None, bodies=None, **kwargs):
         '''Get the basic query for the advanced search page.
         '''
         configval = self.get_config_value
@@ -97,15 +98,16 @@ class BillsSearchForm(Form):
             configval('advanced_types_el_name'): bodies,
             configval('advanced_time_period_el_name'): time_period,
             }
+        query.update(kwargs)
         self.debug('Query is %r' % query)
         query = dict(self.client.state, **query)
         return query
 
     @try_jxn_delegation
-    def get_query(self):
+    def get_query(self, *args, **kwargs):
         if self.default_search_is_simple():
             self.debug('Using simple query.')
-            return self.get_query_simple()
+            return self.get_query_simple(*args, **kwargs)
         else:
             self.debug('Using advanced query.')
             return self.get_query_advanced()
