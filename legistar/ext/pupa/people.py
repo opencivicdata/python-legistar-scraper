@@ -186,6 +186,16 @@ class PeopleConverter(Converter):
 
         # Get the Person.
         self.person = self.get_adapter().get_instance()
+
+        # If a membership to the top-level org is given, steal the
+        # start/end dates and nuke it.
+        for i, memb in enumerate(self.memberships):
+            if memb['org'] == self.cfg.TOPLEVEL_ORG_MEMBERSHIP_NAME_TEXT:
+                self.person._start_date = memb.get('start_date')
+                self.person._start_date = memb.get('end_date')
+            self.memberships.pop(i)
+            break
+
         yield self.person
 
         # Create memberships.
