@@ -162,8 +162,12 @@ class Chicago(Config):
     BILL_SEARCH_TABLE_TEXT_FILE_NUMBER = 'Record #'
     BILL_DETAIL_TEXT_COMMITTEE = 'Current Controlling Legislative Body'
 
-
-
+class MWRD(Config):
+    division_id = 'ocd-division/country:us/state:il/sewer:mwrd'
+    nicknames = ['mwrd']
+    root_url = 'https://mwrd.legistar.com'
+    
+    
 class BoroughofSitka(Config):
     '''Works with the defaults!
     '''
