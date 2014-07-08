@@ -72,11 +72,11 @@ class NYC(Config):
         if name:
             yield name
 
-    @overrides('BillsAdapter.get_vote_result')
-    def get_vote_result(self, data):
+    @overrides('VoteAdapter.get_vote_result')
+    def get_vote_result(self, value):
         '''This might be uniform enough to push back into base config.
         '''
-        if data['result'] == 'pass':
+        if value == 'pass':
             return 'pass'
         else:
             return 'fail'
