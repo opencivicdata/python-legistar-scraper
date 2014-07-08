@@ -1,6 +1,8 @@
 import datetime
+import collections
 
 import pupa.scrape
+from opencivicdata import common as ocd_common
 
 from legistar.utils.itemgenerator import make_item
 from legistar.jurisdictions.utils import try_jxn_delegation
@@ -14,10 +16,9 @@ def _get_date(date):
         return date
 
 class ActionAdapter(Adapter):
-    aliases = [
-        ('text', 'description'),
-        ]
+    aliases = [('text', 'description')]
     extras_keys = ['version', 'media', 'result']
+    drop_keys = ['sources']
 
     @make_item('date')
     def get_date(self):
@@ -25,16 +26,21 @@ class ActionAdapter(Adapter):
 
 
 class VoteAdapter(Adapter):
+    pupa_model = pupa.scrape.Vote
     text_fields = ['organization']
     aliases = [
         ('text', 'motion_text'),
         ]
-    drop_keys = ['votes']
+    drop_keys = ['date']
     extras_keys = ['version']
 
     @make_item('start_date')
     def get_date(self):
-        return _get_date(self.data['date'])
+        return _get_date(self.data.get('date'))
+
+    @make_item('result')
+    def get_result(self):
+        return self.get_vote_result(self.data['result'])
 
     @make_item('votes', wrapwith=list)
     def gen_votes(self):
@@ -42,23 +48,58 @@ class VoteAdapter(Adapter):
             res = {}
             res['option'] = self.get_vote_option(data['vote'])
             res['voter'] = data['person']
-            yield data
+            yield res
 
-# (self, *, legislative_session, motion_text, start_date, classification, result,
-#                  identifier='', bill=None, organization=None, chamber=None, **kwargs):
+    def get_instance(self, **extra_instance_data):
+        data = self.get_instance_data()
+        data.update(extra_instance_data)
+
+        # XXX: Temporarily hardcode the vote class'n.
+        data['classification'] = 'passage:bill'
+
+        # Drop the org if necessary. When org is the top-level org, omit.
+        if self.drop_organization(data):
+            data.pop('organization', None)
+
+        vote_data_list = data.pop('votes')
+
+        vote = self.pupa_model(**data)
+
+        counts = collections.Counter()
+        for vote_data in vote_data_list:
+            # Jinx!
+            counts[vote_data['option']] += 1
+            vote.vote(**vote_data)
+
+        for option, value in counts.items():
+            vote.set_count(option, value)
+
+        for source in data.pop('sources'):
+            vote.add_source(**source)
+
+        return vote
 
     # ------------------------------------------------------------------------
     # Overridables
     # ------------------------------------------------------------------------
     @try_jxn_delegation
-    def get_vote_result(self, data):
+    def get_vote_result(self, value):
         '''
         '''
         raise NotImplemented()
 
     @try_jxn_delegation
     def get_vote_option(self, option_text):
+        option_text = option_text.replace('-', ' ').lower()
         return self.cfg._BILL_VOTE_OPTION_MAP[option_text]
+
+    @try_jxn_delegation
+    def drop_organization(self, data):
+        '''If this function returns True, the org is dropped.
+
+        XXX: Right now, always drops the org.
+        '''
+        return data.pop('organization', None)
 
 
 class BillsAdapter(Adapter):
@@ -77,7 +118,8 @@ class BillsAdapter(Adapter):
         for data in self.data.get('actions'):
             data = dict(data)
             data.pop('votes')
-            yield self.make_child(ActionAdapter, data).get_instance_data()
+            action = self.make_child(ActionAdapter, data).get_instance_data()
+            yield action
 
     @make_item('sponsorships')
     def get_sponsorships(self):
@@ -86,9 +128,10 @@ class BillsAdapter(Adapter):
     @make_item('votes', wrapwith=list)
     def gen_votes(self):
         for data in self.data.get('actions'):
-            for vote in data.get('votes', []):
-                more_data = dict(legislative_session=)
-                yield self.make_child(VoteAdapter, data).get_instance_data()
+            converter = self.make_child(VoteAdapter, data)
+            more_data = dict(
+                legislative_session=self.data['legislative_session'])
+            yield converter.get_instance(**more_data)
 
     @make_item('subject')
     def _gen_subjects(self, wrapwith=list):
@@ -108,10 +151,11 @@ class BillsAdapter(Adapter):
 
         for action in data.pop('actions'):
             action.pop('extras')
+            self.drop_action_organization(action)
             bill.add_action(**action)
 
         for sponsor in data.pop('sponsors'):
-            if not self.drop_sponsor(sponsor):
+            if not self.should_drop_sponsor(sponsor):
                 kwargs = dict(
                     classification=self.get_sponsor_classification(sponsor),
                     entity_type=self.get_sponsor_entity_type(sponsor),
@@ -119,15 +163,21 @@ class BillsAdapter(Adapter):
                 kwargs.update(sponsor)
                 bill.add_sponsorship(**kwargs)
 
-        import pdb; pdb.set_trace()
+        for source in data.pop('sources'):
+            bill.add_source(**source)
 
-        return bill
+        yield bill
+
+        for vote in data.pop('votes'):
+            vote.set_bill(bill)
+            yield vote
+
 
     # ------------------------------------------------------------------------
     # Overridables: sponsorships
     # ------------------------------------------------------------------------
     @try_jxn_delegation
-    def drop_sponsor(self, data):
+    def should_drop_sponsor(self, data):
         '''If this function retruns True, the sponsor is dropped.
         '''
         return False
@@ -137,7 +187,7 @@ class BillsAdapter(Adapter):
         '''Return the sponsor's pupa classification. Legistar generally
         doesn't provide any info like this, so we just return "".
         '''
-        return ''
+        return 'sponsor'
 
     @try_jxn_delegation
     def get_sponsor_entity_type(self, data):
@@ -151,6 +201,20 @@ class BillsAdapter(Adapter):
         provide this.
         '''
         return False
+
+    # ------------------------------------------------------------------------
+    # Overridables: actions
+    # ------------------------------------------------------------------------
+    @try_jxn_delegation
+    def drop_action_organization(self, data):
+        '''
+        XXX: This temporarily drops the action['organization'] from all
+        actions. See pupa issue #105 https://github.com/opencivicdata/pupa/issues/105/
+
+        When the organization is the top-level org, it doesn't get set
+        on the action.
+        '''
+        data.pop('organization', None)
 
     # ------------------------------------------------------------------------
     # Overridables: miscellaneous
