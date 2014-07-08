@@ -56,13 +56,16 @@ class Adapter(PupaExtBase, ItemGenerator):
         self.args = args
         self.kwargs = kwargs
 
-    def get_instance_data(self):
+    def get_instance_data(self, **extra_instance_data):
         '''Converts legistar dict output into data suitable for
         pupa.scrape pupa_model invocation. For example, datetimes need to
         be stringified. Based on class-level properties, dict items
         will be renamed, overwritten, or moved into `extras`. Mutates
         the legistar dict in place.
         '''
+        data = dict(self.data)
+        date.update(extra_instance_data)
+
         # Collect the make_item output.
         self.data.update(self)
 
