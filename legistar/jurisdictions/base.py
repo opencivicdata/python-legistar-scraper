@@ -510,24 +510,6 @@ class Config(Base, metaclass=ConfigMeta):
         classn = getattr(self, 'BILL_CLASSIFICATIONS', {})
         return self.BILL_DEFAULT_CLASSIFICATIONS.new_child(classn)
 
-    def get_bill_classification(self, billtype):
-        '''Convert the legistar bill `type` column into
-        a pupa classification array.
-        '''
-        # Try to get the classn from the subtype.
-        classn = self._BILL_CLASSIFICATIONS.get(billtype)
-        if classn is not None:
-            return [classn]
-
-        # Bah, no matches--try to guess it.
-        type_lower = billtype.lower()
-        for classn in dict(ocd_common.BILL_CLASSIFICATION_CHOICES):
-            if classn in type_lower:
-                return [classn]
-
-        # None found; return emtpy array.
-        return []
-
     # ------------------------------------------------------------------------
     # Requests client config.
     # ------------------------------------------------------------------------
