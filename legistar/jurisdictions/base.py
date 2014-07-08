@@ -488,6 +488,18 @@ class Config(Base, metaclass=ConfigMeta):
     BILL_ACTION_TEXT_PERSON = 'Person Name'
     BILL_ACTION_TEXT_VOTE = 'Vote'
 
+    BILL_DEFAULT_VOTE_OPTION_MAP =  ChainMap({
+        'Affirmative': 'yes',
+        'Negative': 'no',
+        'Absent': 'absent',
+        'Abstain': 'abstain',
+        })
+
+    @property
+    def _BILL_VOTE_OPTION_MAP(self):
+        options = getattr(self, 'BILL_VOTE_OPTION_MAP', {})
+        return self.BILL_DEFAULT_VOTE_OPTION_MAP.new_child(options)
+
     BILL_DEFAULT_CLASSIFICATIONS = ChainMap({
         })
 
