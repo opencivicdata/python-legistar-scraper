@@ -65,7 +65,7 @@ class Adapter(PupaExtBase, ItemGenerator):
         the legistar dict in place.
         '''
         data = dict(self.data)
-        date.update(extra_instance_data)
+        data.update(extra_instance_data)
 
         # Collect the make_item output.
         data.update(self)
