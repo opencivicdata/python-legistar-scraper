@@ -11,6 +11,7 @@ class NYC(Config):
     '''
     nicknames = ['nyc', 'nyc']
     root_url = 'http://legistar.council.nyc.gov/'
+    classification = 'government'
     division_id = 'ocd-division/country:us/state:ny/place:new_york'
 
     EVT_SEARCH_TABLE_TEXT_VIDEO = 'Multimedia'
