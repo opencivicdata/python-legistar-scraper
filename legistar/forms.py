@@ -70,9 +70,9 @@ class Form(Base):
         # Blab.
         msg = '%r requesting page %d of search results: %r'
         formdata_copy = dict(formdata)
-        formdata.pop('__VIEWSTATE', None)
-        formdata.pop('__EVENTVALIDATION__', None)
-        self.info(msg, self, next(self.count), formdata)
+        formdata_copy.pop('__VIEWSTATE', None)
+        formdata_copy.pop('__EVENTVALIDATION__', None)
+        self.info(msg, self, next(self.count), formdata_copy)
 
         # Re-submit the form.
         self.submit(formdata)
