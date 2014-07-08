@@ -1,4 +1,5 @@
 import re
+import types
 import inspect
 import datetime
 
@@ -148,11 +149,11 @@ class Converter(PupaExtBase):
         self.data = legistar_data
 
     def __iter__(self):
-        '''Creates the pupa Legislator instance, adds its memberships,
-        and returns it.
-        '''
-        # Get the Person.
-        yield self.get_adapter().get_instance()
+        data = self.get_adapter().get_instance()
+        if isinstance(data, types.GeneratorType):
+            yield from data
+        else:
+            yield data
 
     def get_adapter(self, data=None):
         return self.make_child(self.adapter, data or self.data)
