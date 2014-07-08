@@ -180,9 +180,18 @@ class Foley(Config):
 
 
 class Maricopa(Config):
+    '''XXX: Bill search Form doesn't work for Maricopa, for some reason.
+    '''
     nicknames = ['maricopa']
     root_url = 'http://maricopa.legistar.com/'
     PPL_SEARCH_TABLE_DETAIL_AVAILABLE = False
+
+    # @overrides('BillsSearchForm.get_extra_query')
+    # def bills_get_extra_query(self):
+    #     import pdb; pdb.set_trace()
+    #     return {
+    #         'ctl00_tabTop_ClientState': '{"selectedIndexes":["0"],"logEntries":[],"scrollState":{}}'
+    #     }
 
 
 class Mesa(Config):
@@ -495,7 +504,3 @@ class Longview(Config):
 class Olympia(Config):
     nicknames = ['olympia']
     root_url = 'http://olympia.legistar.com/'
-
-
-
-
