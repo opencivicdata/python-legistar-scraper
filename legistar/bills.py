@@ -158,10 +158,13 @@ class BillsDetailView(DetailView, BillsFields):
             data = ElementAccessor(el)
             url = data.get_url()
 
-            self.debug('Sleeping in between head requests.')
-            time.sleep(1)
-            resp = self.client.head(url=url)
-            mimetype = resp.headers['content-type']
+            # self.debug('Sleeping in between head requests.')
+            # time.sleep(1)
+            # resp = self.client.head(url=url)
+            # mimetype = resp.headers['content-type']
+            mimetype = 'application/pdf'
+            self.critical("FUDGING MIMETYPE")
+
             yield dict(
                 name=data.get_text(),
                 links=[dict(
@@ -211,10 +214,12 @@ class BillsDetailTableRow(TableRow, FieldAggregator, DateGetter):
         url = data.get_url()
         if url is None:
             raise self.SkipItem()
-        self.debug('Sleeping in between head requests.')
-        time.sleep(1)
-        resp = self.client.head(url=url)
-        mimetype = resp.headers['content-type']
+        # self.debug('Sleeping in between head requests.')
+        # time.sleep(1)
+        # resp = self.client.head(url=url)
+        # mimetype = resp.headers['content-type']
+        mimetype = 'application/pdf'
+        self.critical("FUDGING MIMETYPE")
         return dict(
             name=data.get_text(),
             links=[dict(

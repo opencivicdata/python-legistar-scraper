@@ -132,7 +132,7 @@ class Adapter(PupaExtBase, ItemGenerator):
         pprint.pprint(instance_data)
         print('*' * 30)
         pprint.pprint(instance.as_dict())
-        import pdb; pdb.set_trace()
+        # import pdb; pdb.set_trace()
 
         # Okeedoke, we're done.
         return instance
