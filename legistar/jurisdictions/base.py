@@ -37,6 +37,11 @@ class ConfigMeta(type):
         if division_id is not None:
             JXN_CONFIGS[division_id] = cls
 
+        # Add (div_id, classn) for strict use with pupa.
+        classification = attrs.get('classification')
+        if classification is not None:
+            JXN_CONFIGS[(division_id, classification)] = cls
+
         # Also nicknames.
         for name in attrs.get('nicknames', []):
             JXN_CONFIGS[name] = cls

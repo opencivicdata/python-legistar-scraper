@@ -55,8 +55,10 @@ class PupaGenerator(PupaExtBase):
         corresponding scraper. Inherit its chainmap.
         '''
         div_id = self.inst.jurisdiction.division_id
-        scraper = LegistarScraper.get_scraper(
+        classn = self.inst.jurisdiction.classification
+        scraper = LegistarScraper.get_scraper_strict(
             division_id=div_id,
+            classification=classn,
             # Pass in the pupa scraper as requests client.
             session=self.inst)
 

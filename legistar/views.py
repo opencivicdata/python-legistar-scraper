@@ -124,8 +124,12 @@ class LegistarScraper(View):
         yield from self.get_pupatype_searchview(pupatype)
 
     @classmethod
-    def get_config(cls, *args, url=None, division_id=None, **kwargs):
-        '''Get the correct scraper by url or division_id.
+    def get_config(
+            cls, *args, url=None, division_id=None, **kwargs):
+        '''Get the correct scraper by url or division_id. Doesn't
+        correctly resolve possibly ambituity due to multiple
+        jxns with different classifications within a single division_id.
+        See `get_config_strict` for that.
         '''
         config_type = None
 
@@ -157,6 +161,28 @@ class LegistarScraper(View):
     @classmethod
     def get_scraper(cls, *args, **kwargs):
         config_obj = cls.get_config(*args, **kwargs)
+        scraper = cls(**kwargs)
+        scraper.set_parent_chainmap(config_obj.chainmap)
+        return scraper
+
+    # ------------------------------------------------------------------------
+    # These stricter scraper-getter functions are for pupa.
+    # ------------------------------------------------------------------------
+    @classmethod
+    def get_config_strict(cls, division_id, classification, **kwargs):
+        key = (division_id, classification)
+        try:
+            config_type = JXN_CONFIGS[key]
+        except KeyError:
+            msg = ("There doesn't appear to be a scraper defined for "
+                   "jurisdiction %r yet.")
+            raise ScraperNotFound(msg % key)
+        config_obj = config_type(**kwargs)
+        return config_obj
+
+    @classmethod
+    def get_scraper_strict(cls, division_id, classification, **kwargs):
+        config_obj = cls.get_config_strict(division_id, classification)
         scraper = cls(**kwargs)
         scraper.set_parent_chainmap(config_obj.chainmap)
         return scraper

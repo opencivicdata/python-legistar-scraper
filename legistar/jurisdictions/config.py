@@ -85,7 +85,7 @@ class NYC(Config):
 class SanFrancisco(Config):
     nicknames = ['sf', 'frisco', 'thoms-home-town-sortof']
     root_url = 'https://sfgov.legistar.com'
-    classification = ['government']
+    classification = 'government'
     division_id = 'ocd-division/country:us/state:ca/place:san_francisco'
 
     TOPLEVEL_ORG_MEMBERSHIP_TITLE_TEXT = 'Supervisor'
@@ -168,8 +168,8 @@ class MWRD(Config):
     division_id = 'ocd-division/country:us/state:il/sewer:mwrd'
     nicknames = ['mwrd']
     root_url = 'https://mwrd.legistar.com'
-    
-    
+
+
 class BoroughofSitka(Config):
     '''Works with the defaults!
     '''
