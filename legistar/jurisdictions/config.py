@@ -83,7 +83,7 @@ class NYC(Config):
 
 
 class SanFrancisco(Config):
-    nicknames = ['sf', 'frisco', 'strinkytown', 'thoms-home-town-sortof']
+    nicknames = ['sf', 'frisco', 'thoms-home-town-sortof']
     root_url = 'https://sfgov.legistar.com'
     classification = ['government']
     division_id = 'ocd-division/country:us/state:ca/place:san_francisco'
