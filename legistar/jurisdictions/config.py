@@ -54,6 +54,32 @@ class NYC(Config):
         session = data['actions'][0]['date'].year
         return str(session)
 
+    SPONSORSHIP_JUNK = (
+        '(in conjunction with the Mayor)'
+        )
+
+    @overrides('BillsAdapter.drop_sponsor')
+    def drop_sponsor(self, data):
+        '''If this function retruns True, the sponsor obj is exluded from the
+        sponsors list.
+        '''
+        return data['name'] in self.cfg.SPONSORSHIP_JUNK
+
+    @overrides('BillsAdapter.gen_subjects')
+    def gen_subjects(self):
+        name = self.data['name'].strip()
+        if name:
+            yield name
+
+    @overrides('BillsAdapter.get_vote_result')
+    def get_vote_result(self, data):
+        '''This might be uniform enough to push back into base config.
+        '''
+        if data['result'] == 'pass':
+            return 'pass'
+        else:
+            return 'fail'
+
 
 class SanFrancisco(Config):
     nicknames = ['sf', 'frisco', 'strinkytown', 'thoms-home-town-sortof']
