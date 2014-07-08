@@ -94,14 +94,14 @@ class Adapter(PupaExtBase, ItemGenerator):
         for cls in reversed(self.pupa_model.__mro__):
             yield inspect.getfullargspec(self.pupa_model)
 
-    def get_instance(self):
+    def get_instance(self, **extra_instance_data):
         '''We can't pass compliant dicty objects into the pupa pupa_model
         constructors, so this hack passes the constructor data in, then
         manually setattr's all the remaining values.
 
         XXX: push this back into pupa?
         '''
-        instance_data = self.get_instance_data()
+        instance_data = self.get_instance_data(**extra_instance_data)
 
         # Aggregate all the positional args this pupa_model requires.
         args = {}
