@@ -3,6 +3,7 @@ import datetime
 import pupa.scrape
 
 from legistar.utils.itemgenerator import make_item
+from legistar.jurisdictions.utils import try_jxn_delegation
 from legistar.ext.pupa.base import Adapter, Converter
 
 
