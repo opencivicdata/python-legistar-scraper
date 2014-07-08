@@ -48,6 +48,8 @@ class Adapter(PupaExtBase, ItemGenerator):
     aliases = []
     # Values at these keys will be moved into the extras dict.
     extras_keys = []
+    # Values at these keys get dropped.
+    drop_keys = []
 
     def __init__(self, legistar_data, *args, **kwargs):
         self.data = legistar_data
@@ -74,7 +76,12 @@ class Adapter(PupaExtBase, ItemGenerator):
                 value = self.data.pop(key, None)
                 if value is not None:
                     extras[key] = value
-        return self.data
+
+        # Drop keys.
+        for key in self.drop_keys:
+            data.pop(key, None)
+
+        return data
 
     def _gen_argspecs(self):
         '''Collects all argspecs for the objects __mro__, to make sure
