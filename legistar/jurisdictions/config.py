@@ -17,7 +17,6 @@ class NYC(Config):
     EVT_DETAIL_TEXT_VIDEO = 'Multimedia'
     EVT_DETAIL_TABLE_TEXT_VIDEO = 'Multimedia'
 
-    BILL_SEARCH_TIME_PERIOD = 'Last Month'
     BILL_CLASSIFICATIONS = {
         'Introduction': 'bill',
         'Local Law': 'bill',
