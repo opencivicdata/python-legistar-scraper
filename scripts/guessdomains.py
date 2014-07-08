@@ -41,7 +41,7 @@ class Checker(scrapelib.Scraper):
         if self.FASTMODE:
             self.cache_write_only = False
 
-        cache_dir = '_cache'
+        cache_dir = '.cache'
         self.cache_storage = scrapelib.FileCache(cache_dir)
 
     def __enter__(self):
