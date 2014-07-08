@@ -67,7 +67,7 @@ class Adapter(PupaExtBase, ItemGenerator):
         date.update(extra_instance_data)
 
         # Collect the make_item output.
-        self.data.update(self)
+        data.update(self)
 
         # Apply the aliases.
         for oldkey, newkey in self.aliases:
