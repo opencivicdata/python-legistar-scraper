@@ -71,12 +71,12 @@ class Adapter(PupaExtBase, ItemGenerator):
 
         # Apply the aliases.
         for oldkey, newkey in self.aliases:
-            self.data[newkey] = self.data.pop(oldkey)
+            data[newkey] = data.pop(oldkey)
 
         # Move non-pupa keys into the extras dict.
-        with DictSetDefault(self.data, 'extras', {}) as extras:
+        with DictSetDefault(data, 'extras', {}) as extras:
             for key in self.extras_keys:
-                value = self.data.pop(key, None)
+                value = data.pop(key, None)
                 if value is not None:
                     extras[key] = value
 
