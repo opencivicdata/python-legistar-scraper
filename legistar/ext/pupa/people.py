@@ -165,6 +165,21 @@ class PeopleAdapter(Adapter):
             address = re.sub(r'([A-Z]{2})', replace_func, address)
             yield dict(type='address', value=address, note=officetype)
 
+    def get_instance(self, **extra_instance_data):
+        instance_data = self.get_instance_data(**extra_instance_data)
+        instance = self.pupa_model(
+            name=instance_data['name'],
+            image=instance_data['image'])
+
+        for key in ('links', 'sources', 'identifiers', 'contact_details'):
+            helper_name = ('add_' + key).rstrip('s')
+            helper = getattr(instance, helper_name)
+            for data in instance_data.get(key):
+                helper(**data)
+
+        instance.extras.update(instance_data['extras'])
+        return instance
+
 
 class PeopleConverter(Converter):
     '''Invokes the person and membership adapters to output pupa Person
@@ -192,7 +207,7 @@ class PeopleConverter(Converter):
         for i, memb in enumerate(self.memberships):
             if memb['org'] == self.cfg.TOPLEVEL_ORG_MEMBERSHIP_NAME_TEXT:
                 self.person._start_date = memb.get('start_date')
-                self.person._start_date = memb.get('end_date')
+                self.person._end_date = memb.get('end_date')
             self.memberships.pop(i)
             break
 
