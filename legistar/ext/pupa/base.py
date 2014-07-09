@@ -95,48 +95,10 @@ class Adapter(PupaExtBase, ItemGenerator):
             yield inspect.getfullargspec(self.pupa_model)
 
     def get_instance(self, **extra_instance_data):
-        '''We can't pass compliant dicty objects into the pupa pupa_model
-        constructors, so this hack passes the constructor data in, then
-        manually setattr's all the remaining values.
-
-        XXX: push this back into pupa?
+        '''The only supported way to create pupa objects is through the
+        python package, so subclasses must define this method.
         '''
-        instance_data = self.get_instance_data(**extra_instance_data)
-
-        # Aggregate all the positional args this pupa_model requires.
-        args = {}
-        for argspec in self._gen_argspecs():
-            for argname in argspec.args + argspec.kwonlyargs:
-                if argname == 'self':
-                    continue
-                if argname in args:
-                    continue
-                value = instance_data.get(argname)
-
-                # If the value is none, ditch it in favor of whatever
-                # defaults may be defined.
-                if not value:
-                    instance_data.pop(argname, None)
-                    continue
-
-                # Store the arg value.
-                args[argname] = value
-
-        # Create the bare-bones instance.
-        instance = self.pupa_model(**args)
-
-        # Now add all other data. It must be in valid pupa form.
-        for key in instance_data.keys() - args.keys():
-            setattr(instance, key, instance_data[key])
-
-        import pprint
-        pprint.pprint(instance_data)
-        print('*' * 30)
-        pprint.pprint(instance.as_dict())
-        # import pdb; pdb.set_trace()
-
-        # Okeedoke, we're done.
-        return instance
+        raise NotImplementedError()
 
 
 class Converter(PupaExtBase):
