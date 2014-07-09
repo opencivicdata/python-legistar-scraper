@@ -24,6 +24,9 @@ class NYC(Config):
         'Resolution': 'resolution',
         }
 
+    # ------------------------------------------------------------------------
+    # Methods to add specific fields onto person data.
+    # ------------------------------------------------------------------------
     @make_item('person.district')
     def person_district(self, data):
         # First try to get it from bio.
@@ -50,21 +53,34 @@ class NYC(Config):
                 party = 'Democratic'
             return party
 
+    # ------------------------------------------------------------------------
+    # Methods to add specific fields onto bill data.
+    # ------------------------------------------------------------------------
     @make_item('bill.legislative_session')
     def bill_legislative_session(self, data):
         session = data['actions'][0]['date'].year
         return str(session)
 
+    # ------------------------------------------------------------------------
+    # Methods for customizing the pupa conversion process
+    # ------------------------------------------------------------------------
     SPONSORSHIP_JUNK = (
         '(in conjunction with the Mayor)'
         )
 
-    @overrides('BillsAdapter.drop_sponsor')
-    def drop_sponsor(self, data):
+    @overrides('BillsAdapter.should_drop_sponsor')
+    def should_drop_sponsor(self, data):
         '''If this function retruns True, the sponsor obj is exluded from the
         sponsors list.
         '''
         return data['name'] in self.cfg.SPONSORSHIP_JUNK
+
+    @overrides('VoteAdapter.drop_organization')
+    def drop_organization(self, data):
+        return data.pop('organization', None)
+        DROP_ORGS = ['City Council', 'Mayor']
+        if data['organization'] in DROP_ORGS:
+            data.pop('organization', None)
 
     @overrides('BillsAdapter.gen_subjects')
     def gen_subjects(self):
@@ -80,6 +96,15 @@ class NYC(Config):
             return 'pass'
         else:
             return 'fail'
+
+    @overrides('VoteAdapter.classify_motion_text')
+    def classify_motion_text(self, motion_text):
+        motion_text = motion_text.lower()
+        if 'amended by' in motion_text:
+            return ['passage:amendment']
+        elif 'approved by council' in motion_text:
+            return ['passage:bill']
+        return []
 
 
 class SanFrancisco(Config):
