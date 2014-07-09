@@ -51,7 +51,7 @@ class MembershipConverter(Converter):
             org = orgs.get(org_name)
 
             if org is not None:
-                # Hache hit.
+                # Cache hit.
                 return created, org
 
             # Create the org.
