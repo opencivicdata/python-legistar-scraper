@@ -54,8 +54,8 @@ class VoteAdapter(Adapter):
         data = self.get_instance_data()
         data.update(extra_instance_data)
 
-        # XXX: Temporarily hardcode the vote class'n.
-        data['classification'] = 'passage:bill'
+        motion_text = data['motion_text']
+        data['classification'] = self.classify_motion_text(motion_text)
 
         # Drop the org if necessary. When org is the top-level org, omit.
         if self.drop_organization(data):
@@ -67,7 +67,6 @@ class VoteAdapter(Adapter):
 
         counts = collections.Counter()
         for vote_data in vote_data_list:
-            # Jinx!
             counts[vote_data['option']] += 1
             vote.vote(**vote_data)
 
@@ -100,6 +99,13 @@ class VoteAdapter(Adapter):
         XXX: Right now, always drops the org.
         '''
         return data.pop('organization', None)
+
+    @try_jxn_delegation
+    def classify_motion_text(self, motion_text):
+        '''Jurisdiction configs can override this to determine how
+        vote motions will be classified.
+        '''
+        return []
 
 
 class BillsAdapter(Adapter):
