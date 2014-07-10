@@ -85,8 +85,8 @@ class MembershipConverter(Converter):
         '''Retrieves the matching committee and adds this person
         as a member of the committee.
         '''
-        # Get or create the committee.
-        org_name = data.pop('org')
+        if 'person_id' not in data:
+            data['person_id'] = self.person._id
 
         created, org = self.get_org(org_name)
         if created:
