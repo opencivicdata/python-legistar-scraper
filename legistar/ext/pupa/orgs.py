@@ -11,12 +11,31 @@ class OrgsAdapter(Adapter):
     '''
     pupa_model = pupa.scrape.Organization
     aliases = []
-    extras_keys = ['meeting_location', 'num_members', 'num_vacancies']
+    extras_keys = [
+        'meeting_location', 'num_members', 'num_vacancies', 'type']
 
     @make_item('classification')
     def get_classn(self):
         legistar_type = self.data.pop('type')
         return self.config.get_org_classification(legistar_type)
+
+    def get_instance(self, **extra_instance_data):
+
+        instance_data = self.get_instance_data()
+        instance_data.update(extra_instance_data)
+
+        extras = instance_data.pop('extras')
+        sources = instance_data.pop('sources')
+        identifiers = instance_data.pop('identifiers')
+
+        instance = self.pupa_model(**instance_data)
+        instance.extras.update(extras)
+        for source in sources:
+            instance.add_source(**source)
+        for identifier in identifiers:
+            instance.add_identifier(**identifier)
+
+        return instance
 
 
 class OrgsConverter(Converter):
@@ -24,11 +43,3 @@ class OrgsConverter(Converter):
     objects.
     '''
     adapter = OrgsAdapter
-
-    def gen_agenda_items(self):
-        yield from self.make_child(AgendaItemConverter, self.agenda)
-
-    def __iter__(self):
-        self.agenda = self.data.pop('agenda', [])
-        yield self.get_adapter().get_instance()
-        yield from self.gen_agenda_items()
