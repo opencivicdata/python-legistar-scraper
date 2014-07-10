@@ -26,6 +26,9 @@ class AgendaItemAdapter(Adapter):
                 }
             yield data
 
+    def get_instance(self, **extra_instance_data):
+        return self.get_instance_data(**extra_instance_data)
+
 
 class EventsAdapter(Adapter):
     pupa_model = pupa.scrape.Event
@@ -45,6 +48,48 @@ class EventsAdapter(Adapter):
         else:
             return False
 
+    def add_agenda_data(self, agenda_item, data):
+        media = data.pop('media', [])
+        entities = data.pop('entities', [])
+        subjects = data.pop('subjects', [])
+
+        for media in media:
+            agenda_item.add_media_link(**media)
+        for entity in entities:
+            agenda_item.add_entity(**media)
+        for subjects in subjects:
+            agenda_item.add_subject(**subject)
+
+
+    def get_instance(self, **extra_instance_data):
+        instance_data = self.get_instance_data(**extra_instance_data)
+
+        media = instance_data.pop('media', [])
+        participants = instance_data.pop('participants', [])
+        documents = instance_data.pop('documents', [])
+        agenda = instance_data.pop('agenda', [])
+        extras = instance_data.pop('extras', [])
+        sources = instance_data.pop('sources', [])
+
+        instance = self.pupa_model(**instance_data)
+
+        for media in media:
+            instance.add_media_link(**media)
+        for participant in participants:
+            instance.add_participant(**participant)
+        for document in documents:
+            instance.add_document(**document)
+        for source in sources:
+            instance.add_source(**source)
+
+        instance.extras.update(extras)
+
+        for agenda_data in agenda:
+            description = agenda_data.pop('description')
+            agenda_item = instance.add_agenda_item(description)
+            self.add_agenda_data(agenda_item, agenda_data)
+
+        return instance
 
 class EventsConverter(Converter):
     adapter = EventsAdapter
