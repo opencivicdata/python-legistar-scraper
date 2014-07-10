@@ -41,6 +41,18 @@ class OrgsFields(FieldAggregator):
         for url, notes in grouped.items():
             yield dict(url=url, note=', '.join(sorted(notes)))
 
+    @make_item('identifiers', wrapwith=list)
+    def gen_identifiers(self):
+        '''Yield out the internal legistar organization id and guid found
+        in the detail page url.
+        '''
+        detail_url = self.get_field_url('name')
+        url = urlparse(detail_url)
+        for idtype, ident in parse_qsl(url.query):
+            yield dict(
+                scheme="legistar_" + idtype.lower(),
+                identifier=ident)
+
 
 class OrgsSearchView(SearchView):
     sources_note = 'Organizations search table'
@@ -70,18 +82,6 @@ class OrgsDetailView(DetailView, OrgsFields):
     @make_item('notes')
     def get_district(self):
         return self.get_field_text('notes')
-
-    @make_item('identifiers', wrapwith=list)
-    def gen_identifiers(self):
-        '''Yield out the internal legistar organization id and guid found
-        in the detail page url.
-        '''
-        detail_url = self.chainmap['sources'][self.sources_note]
-        url = urlparse(detail_url)
-        for idtype, ident in parse_qsl(url.query):
-            yield dict(
-                scheme="legistar_" + idtype.lower(),
-                identifier=ident)
 
 
 class OrgsDetailTable(Table):

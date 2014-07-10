@@ -125,7 +125,6 @@ class PeopleDetailView(DetailView, PeopleFields):
         return self.get_field_img_src('Photo')
 
     @make_item('identifiers', wrapwith=list)
-
     def gen_identifiers(self):
         '''Yield out the internal legistar person id and guid found
         in the detail page url.
