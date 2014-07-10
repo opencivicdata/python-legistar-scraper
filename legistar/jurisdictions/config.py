@@ -36,8 +36,10 @@ class NYC(Config):
     # ------------------------------------------------------------------------
     @make_item('person.district')
     def person_district(self, data):
+        '''This corresponds to the label field on organizations posts.
+        '''
         # First try to get it from bio.
-        dist = re.findall(r'District\s+(\d+)', data['notes'])
+        dist = re.findall(r'District\s+\d+', data['notes'])
         if dist:
             return dist.pop()
 
