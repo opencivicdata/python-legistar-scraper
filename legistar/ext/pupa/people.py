@@ -88,9 +88,12 @@ class MembershipConverter(Converter):
         if 'person_id' not in data:
             data['person_id'] = self.person._id
 
-        created, org = self.get_org(org_name)
-        if created:
-            yield org
+        # Get or create the committee.
+        if 'organization_id' not in data:
+            org_name = data.pop('org')
+            created, org = self.get_org(org_name)
+            if created:
+                yield org
 
         # Add the person and org ids.
         data.update(
