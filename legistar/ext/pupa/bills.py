@@ -32,7 +32,7 @@ class VoteAdapter(Adapter):
         ('text', 'motion_text'),
         ]
     drop_keys = ['date']
-    extras_keys = ['version']
+    extras_keys = ['version', 'media']
 
     @make_item('start_date')
     def get_date(self):
