@@ -62,6 +62,8 @@ class VoteAdapter(Adapter):
             data.pop('organization', None)
 
         vote_data_list = data.pop('votes')
+        extras = data.pop('extras')
+        sources = data.pop('sources')
 
         vote = self.pupa_model(**data)
 
@@ -73,8 +75,10 @@ class VoteAdapter(Adapter):
         for option, value in counts.items():
             vote.set_count(option, value)
 
-        for source in data.pop('sources'):
+        for source in sources:
             vote.add_source(**source)
+
+        vote.extras.update(extras)
 
         return vote
 
