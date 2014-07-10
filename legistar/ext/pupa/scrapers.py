@@ -33,15 +33,25 @@ class PupaGenerator(PupaExtBase):
         return set(pupatypes + self._pupatypes)
 
     def __get__(self, inst, type_=None):
-        self.inst = inst
-        return self
+        return self.set_instance(inst)
 
     def __call__(self, *args, **kwargs):
         self.args = args
         self.kwargs = kwargs
         return self
 
+    def set_instance(self, instance):
+        '''Where the PupaGenerator is not getattr's from the pupa Jurisdiction
+        and the descriptor functionality is bypassed, this method sets the
+        instance manually and gives the generator access to the jurisdiction.
+        '''
+        self.inst = instance
+        return self
+
     def __iter__(self):
+        yield from self.gen_pupatype_data()
+
+    def gen_pupatype_data(self):
         scraper = self.get_legistar_scraper()
         self.orgs = {}
 
