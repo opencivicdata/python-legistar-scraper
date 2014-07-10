@@ -126,6 +126,14 @@ class MembershipConverter(Converter):
             end_date=self.person._end_date)
         yield self.create_membership(membership)
 
+        # create a party membership
+        if self.party:
+            membership = dict(
+                person_id=self.person._id,
+                organization_id=make_psuedo_id(
+                    classification="party", name=self.party),
+                role='member')
+            yield self.create_membership(membership)
 
 
 # ------------------------------------------------------------------------
