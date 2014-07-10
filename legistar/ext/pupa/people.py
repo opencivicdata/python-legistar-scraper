@@ -119,8 +119,13 @@ class MembershipConverter(Converter):
 
         membership = dict(
             person_id=self.person._id,
-            organization_id=make_psuedo_id(classification="party", name=self.party),
-            role='member')
+            organization_id=make_psuedo_id(classification="legislature"),
+            post_id=make_psuedo_id(**post_kwargs),
+            role='member',
+            start_date=self.person._start_date,
+            end_date=self.person._end_date)
+        yield self.create_membership(membership)
+
 
 
 # ------------------------------------------------------------------------
