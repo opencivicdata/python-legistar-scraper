@@ -34,6 +34,17 @@ class MembershipAdapter(Adapter):
     def get_org_id(self):
         return self.data['organization_id']
 
+    def get_instance(self, **extra_instance_data):
+        # Get instance data.
+        instance_data = self.get_instance_data()
+        instance_data.update(extra_instance_data)
+        extras = instance_data.pop('extras')
+
+        # Create the instance.
+        instance = self.pupa_model(**instance_data)
+        instance.extras.update(extras)
+        return instance
+
 
 class MembershipConverter(Converter):
     adapter = MembershipAdapter
