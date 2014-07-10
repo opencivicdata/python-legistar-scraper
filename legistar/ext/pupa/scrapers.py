@@ -68,12 +68,18 @@ class PupaGenerator(PupaExtBase):
         # Yield out any accumulated objects.
         yield from self.orgs.values()
 
-    def get_legistar_scraper(self):
-        '''Get the owner instance's jurisdiction and retrieve the
-        corresponding scraper. Inherit its chainmap.
+    def get_jurisdiction(self):
+        '''Return the jursdiction object. Overridden by LegistarOrgsGetter.
         '''
-        div_id = self.inst.jurisdiction.division_id
-        classn = self.inst.jurisdiction.classification
+        return self.inst.jurisdiction
+
+    def get_legistar_scraper(self):
+        '''Gets the owner instance's jurisdiction and retrieve the
+        corresponding scraper. Inherits its chainmap.
+        '''
+        pupa_jxn = self.get_jurisdiction()
+        div_id = pupa_jxn.division_id
+        classn = pupa_jxn.classification
         scraper = LegistarScraper.get_scraper_strict(
             division_id=div_id,
             classification=classn,
@@ -84,7 +90,6 @@ class PupaGenerator(PupaExtBase):
         scraper.config.provide_chainmap_to(self)
         # So children can access the generator.
         self.chainmap['generator'] = self
-
         return scraper
 
 
