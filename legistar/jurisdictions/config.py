@@ -24,6 +24,13 @@ class NYC(Config):
         'Resolution': 'resolution',
         }
 
+    ORG_CLASSIFICATIONS = {
+        'Land Use': 'committee',
+        'Subcommittee': 'committee',
+        'Task Force': 'commission',
+        'Town Hall Meeting': 'commission',
+    }
+
     # ------------------------------------------------------------------------
     # Methods to add specific fields onto person data.
     # ------------------------------------------------------------------------
