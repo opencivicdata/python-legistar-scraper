@@ -21,8 +21,16 @@ class PupaGenerator(PupaExtBase):
         events=EventsConverter,
         bills=BillsConverter)
 
+    # Subclasses can set this attr, or callers can pass it in as an
+    # __init__ arg.
+    pupatypes = ()
+
     def __init__(self, *pupatypes):
-        self.pupatypes = pupatypes
+        self._pupatypes = pupatypes
+
+    def get_pupatypes(self):
+        pupatypes = getattr(self, 'pupatypes', ())
+        return set(pupatypes + self._pupatypes)
 
     def __get__(self, inst, type_=None):
         self.inst = inst
@@ -37,7 +45,7 @@ class PupaGenerator(PupaExtBase):
         scraper = self.get_legistar_scraper()
         self.orgs = {}
 
-        for pupatype in self.pupatypes:
+        for pupatype in self.get_pupatypes():
             # Get the corresponding converter type.
             converter_type = self.converter_types[pupatype]
             for data in scraper.gen_pupatype_data(pupatype):
