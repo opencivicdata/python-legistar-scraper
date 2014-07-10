@@ -179,7 +179,7 @@ class Config(Base, metaclass=ConfigMeta):
 
         other = [('board', 'commission')]
         for word, classn in other:
-            if work in type_lower:
+            if word in type_lower:
                 return classn
 
         # Not found--complain.
