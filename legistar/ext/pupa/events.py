@@ -60,7 +60,6 @@ class EventsAdapter(Adapter):
         for subjects in subjects:
             agenda_item.add_subject(**subject)
 
-
     def get_instance(self, **extra_instance_data):
         instance_data = self.get_instance_data(**extra_instance_data)
 
