@@ -1,26 +1,18 @@
 '''This module exports a single helper to serve as the get_organizations
 callable on pupa jurisdictions.
 '''
-from legistar.ext.pupa.base import PupaExtBase
-from legistar.ext.pupa.scrapers import LegistarOrgsScraper
+from legistar.ext.pupa.scrapers import PupaGenerator
 
 
-class LegistarOrgsGetter(PupaExtBase):
+class _OrgsGetter(PupaGenerator):
+    def get_jurisdiction(self):
+        return self.inst
 
-    def __init__(self, *args, **kwargs):
-        self.args = args
-        self.kwargs = kwargs
 
-    def __get__(self, inst, type_=None):
-        self.inst = inst
-        return self
-
-    def __call__(self):
-        '''Per pupa.scrape.jurisdiction.JurisdictionScraper, the get_organizations
-        function takes no arguments.
-        '''
-        return self
-
-    def __iter__(self):
-        for org in self.make_child(LegistarOrgsScraper):
-            import pdb; pdb.set_trace()
+def generate_orgs(pupa_jurisdiction):
+    '''This function generates orgs that can be inspected,
+    mutated, etc, in the pupa Jurisdiction.get_organizations method.
+    '''
+    orgs = _OrgsGetter('orgs')
+    orgs.set_instance(pupa_jurisdiction)
+    yield from orgs.gen_pupatype_data()
