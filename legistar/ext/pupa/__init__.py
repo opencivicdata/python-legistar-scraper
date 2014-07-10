@@ -4,3 +4,5 @@ from legistar.ext.pupa.scrapers import (
     LegistarEventsScraper,
     LegistarBillsScraper
     )
+
+from legistar.ext.pupa.get_organizations import LegistarOrgsGetter
