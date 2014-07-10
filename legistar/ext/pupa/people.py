@@ -96,12 +96,11 @@ class MembershipConverter(Converter):
                 yield org
 
         # Add the person and org ids.
-        data.update(
-            person_id=self.person._id,
-            organization_id=org._id)
+            data['organization_id'] = org._id
 
         # Convert the membership to pupa object.
-        membership = self.get_instance(data)
+        adapter = self.make_child(self.adapter, data)
+        membership = adapter.get_instance()
         yield membership
 
     def create_memberships(self):
@@ -112,7 +111,13 @@ class MembershipConverter(Converter):
         # Also, if the person has a party, emit a party membership.
         if not self.party:
             return
-        yield self.adapter.pupa_model(
+
+        post_kwargs = {}
+        post_kwargs['organization__classification'] = 'legislature'
+        if self.district:
+            post_kwargs['label'] = self.district
+
+        membership = dict(
             person_id=self.person._id,
             organization_id=make_psuedo_id(classification="party", name=self.party),
             role='member')
