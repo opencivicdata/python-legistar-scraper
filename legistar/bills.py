@@ -161,15 +161,15 @@ class BillsDetailView(DetailView, BillsFields):
             # self.debug('Sleeping in between head requests.')
             # time.sleep(1)
             # resp = self.client.head(url=url)
-            # mimetype = resp.headers['content-type']
-            mimetype = 'application/pdf'
-            self.critical("FUDGING MIMETYPE")
+            # media_type = resp.headers['content-type']
+            media_type = 'application/pdf'
+            self.critical("FUDGING media_type")
 
             yield dict(
                 name=data.get_text(),
                 links=[dict(
                     url=data.get_url(),
-                    mimetype=mimetype)])
+                    media_type=media_type)])
 
     @make_item('actions', wrapwith=list)
     def gen_action(self):
@@ -217,14 +217,14 @@ class BillsDetailTableRow(TableRow, FieldAggregator, DateGetter):
         # self.debug('Sleeping in between head requests.')
         # time.sleep(1)
         # resp = self.client.head(url=url)
-        # mimetype = resp.headers['content-type']
-        mimetype = 'application/pdf'
-        self.critical("FUDGING MIMETYPE")
+        # media_type = resp.headers['content-type']
+        media_type = 'application/pdf'
+        self.critical("FUDGING media_type")
         return dict(
             name=data.get_text(),
             links=[dict(
                 url=data.get_url(),
-                mimetype=mimetype)])
+                media_type=media_type)])
 
     @make_item('media', wrapwith=list)
     def gen_media(self):

@@ -44,7 +44,7 @@ class FieldAccessor(Base):
     def is_blank(self):
         raise NotImplementedError()
 
-    def get_mimetype(self):
+    def get_media_type(self):
         raise NotImplementedError()
 
     def get_media_url(self):
@@ -212,7 +212,7 @@ class ElementAccessor(FieldAccessor):
     def is_blank(self):
         return self._is_blank(self.text)
 
-    def get_mimetype(self):
+    def get_media_type(self):
         gif_url = None
         for xpath in ('string(.//img/@src)', 'string(..//img/@src)'):
             gif_url = self.el.xpath(xpath)

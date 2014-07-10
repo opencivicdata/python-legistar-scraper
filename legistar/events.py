@@ -45,7 +45,7 @@ class EventsFields(FieldAggregator):
                 links=[
                     dict(
                         url=field.get_media_url(),
-                        mimetype=field.get_mimetype())
+                        media_type=field.get_media_type())
                 ])
             yield media
 
@@ -65,9 +65,9 @@ class EventsFields(FieldAggregator):
             elif field.get_url() is None:
                 continue
             document = dict(
-                name=field.get_text(),
+                note=field.get_text(),
                 url=field.get_url(),
-                mimetype=field.get_mimetype())
+                media_type=field.get_media_type())
             yield document
 
     @make_item('participants', wrapwith=list)
@@ -271,7 +271,7 @@ class EventsDetailTableRow(TableRow):
                 links=[
                     dict(
                         url=field.get_media_url(),
-                        mimetype=field.get_mimetype())
+                        media_type=field.get_media_type())
                 ])
             yield media
 
