@@ -5,3 +5,4 @@ readline==6.2.4.1
 requests==2.2.1
 uni
 visitors
+pip install git+https://github.com/opencivicdata/python-opencivicdata.git
