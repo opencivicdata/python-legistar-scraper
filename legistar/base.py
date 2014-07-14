@@ -2,6 +2,7 @@ import types
 import contextlib
 from collections import ChainMap
 
+import pytz
 import lxml.html
 
 from legistar.pupatypes import PupatypeMixin

@@ -11,6 +11,7 @@ class AgendaItemAdapter(Adapter):
     extras_keys = [
         'action', 'action_details', 'file_number',
         'version', 'type', 'result']
+    drop_keys = ['date']
 
     @make_item('related_entities', wrapwith=list)
     def gen_related_entities(self):
@@ -43,10 +44,16 @@ class EventsAdapter(Adapter):
     @make_item('all_day')
     def get_all_day(self):
         length = self.data['end_time'] - self.data['start_time']
-        if datetime.timedelta(hours=6) - length:
-            return True
-        else:
+        zero = datetime.timedelta()
+        # If it's 6 hours or less, it's just a partial day meeting.
+        if zero <= (datetime.timedelta(hours=6) - length):
             return False
+        else:
+            return True
+
+    @make_item('timezone')
+    def get_timezone(self):
+        return self.cfg.TIMEZONE
 
     def add_agenda_data(self, agenda_item, data):
         media = data.pop('media', [])

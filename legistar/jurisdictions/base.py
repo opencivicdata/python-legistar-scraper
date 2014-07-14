@@ -13,7 +13,7 @@ from opencivicdata import common as ocd_common
 import legistar
 from legistar.client import Client
 from legistar.base import Base, CachedAttr, NoClobberDict
-from legistar.jurisdictions.utils import Tabs, Mimetypes, Views
+from legistar.jurisdictions.utils import Tabs, Mediatypes, Views
 from legistar.jurisdictions.utils import overrides, try_jxn_delegation
 from legistar.utils.itemgenerator import make_item
 
@@ -76,6 +76,11 @@ class ConfigMeta(type):
         cls.override_funcs = dict(registry)
 
 
+class ConfigError(Exception):
+    '''For complaining about config issues.
+    '''
+
+
 class Config(Base, metaclass=ConfigMeta):
     '''The base configuration for a Legistar instance. Various parts can be
     overridden.
@@ -90,12 +95,31 @@ class Config(Base, metaclass=ConfigMeta):
     FASTMODE = True
     SESSION_CLASS = requests.Session
 
-    mimetypes = Mimetypes()
-    MIMETYPE_GIF_PDF = ('/images/pdf.gif', 'application/pdf')
-    MIMETYPE_EXT_PDF = ('pdf', 'application/pdf')
-    MIMETYPE_GIF_VIDEO = ('/images/video.gif', 'application/x-shockwave-flash')
-    MIMETYPE_EXT_DOC = ('doc', 'application/vnd.msword')
-    MIMETYPE_EXT_DOCX = ('docx', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document')
+    # UTC timezone for creating fully tz qualified datetimes.
+    _utc = pytz.timezone('UTC')
+
+    @CachedAttr
+    def timezone(self):
+        '''Returns pytz.timezone instance for the jxn's TIMEZONE setting.
+        '''
+        try:
+            tz = self.TIMEZONE
+        except AttributeError as e:
+            msg = 'Please set TIMEZONE on %r' % self
+            raise ConfigError(msg) from e
+        return pytz.timezone(tz)
+
+    def datetime_add_tz(self, dt):
+        '''Add fully qualified timezone to dt.
+        '''
+        return self.timezone.localize(dt).astimezone(self._utc)
+
+    mediatypes = Mediatypes()
+    MEDIATYPE_GIF_PDF = ('/images/pdf.gif', 'application/pdf')
+    MEDIATYPE_EXT_PDF = ('pdf', 'application/pdf')
+    MEDIATYPE_GIF_VIDEO = ('/images/video.gif', 'application/x-shockwave-flash')
+    MEDIATYPE_EXT_DOC = ('doc', 'application/vnd.msword')
+    MEDIATYPE_EXT_DOCX = ('docx', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document')
 
     TAB_TEXT_ID = 'ctl00_tabTop'
     TAB_TEXT_XPATH_TMPL = 'string(//div[@id="%s"]//a[contains(@class, "rtsSelected")])'
@@ -188,7 +212,7 @@ class Config(Base, metaclass=ConfigMeta):
             organization classification (see http://opencivicdata.readthedocs.org/en/latest/data/organization.html#basics).
             Please edit %r by adding a top-level ORG_CLASSIFICATIONS
             dictionary that maps %r value to a pupa classification.'''
-        raise ValueError(msg % (orgtype, self.config, orgtype))
+        raise ConfigError(msg % (orgtype, self.config, orgtype))
 
     # ------------------------------------------------------------------------
     # Events general config.

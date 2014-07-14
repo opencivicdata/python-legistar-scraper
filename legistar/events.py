@@ -133,6 +133,7 @@ class EventsSearchTableRow(TableRow, EventsFields):
         '''
         end_time = re.search(r'DTEND:([\dT]+)', self.get_ical_data()).group(1)
         dt = datetime.strptime(end_time, r'%Y%m%dT%H%M%S')
+        dt = self.cfg.datetime_add_tz(dt)
         return dt
 
     @make_item('start_time')
@@ -141,6 +142,7 @@ class EventsSearchTableRow(TableRow, EventsFields):
         '''
         end_time = re.search(r'DTSTART:([\dT]+)', self.get_ical_data()).group(1)
         dt = datetime.strptime(end_time, r'%Y%m%dT%H%M%S')
+        dt = self.cfg.datetime_add_tz(dt)
         return dt
 
 

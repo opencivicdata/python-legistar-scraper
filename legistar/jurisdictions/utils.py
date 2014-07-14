@@ -38,7 +38,7 @@ class Tabs:
                 return tab
 
 
-class Mimetypes:
+class Mediatypes:
     '''The fact that this class exists just proves that opening up
     government data is really important. All it does is aggregate the
     MIMETYPE_GIF_ settings and convert them to a dict that relates
@@ -49,7 +49,7 @@ class Mimetypes:
         return dict(self._gen_items(inst))
 
     def _gen_items(self, inst):
-        prefixes = ('MIMETYPE_GIF_', 'MIMETYPE_EXT_')
+        prefixes = ('MEDIATYPE_GIF_', 'MEDIATYPE_EXT_')
         for name in dir(inst):
             for prefix in prefixes:
                 if name.startswith(prefix):

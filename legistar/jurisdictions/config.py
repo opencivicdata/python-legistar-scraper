@@ -9,7 +9,9 @@ class NYC(Config):
     and bio are all combined into a `notes` field on legislator detail
     pages, so the custom functions below are necessary to extract those.
     '''
-    nicknames = ['nyc', 'nyc']
+    TIMEZONE = 'America/New_York'
+
+    nicknames = ['nyc']
     root_url = 'http://legistar.council.nyc.gov/'
     classification = 'government'
     division_id = 'ocd-division/country:us/state:ny/place:new_york'

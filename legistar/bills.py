@@ -22,7 +22,9 @@ class DateGetter:
         fmt = self.get_config_value('datetime_format')
         text = self.get_field_text(label_text)
         if text is not None:
-            return datetime.strptime(text, fmt)
+            dt = datetime.strptime(text, fmt)
+            dt = self.cfg.datetime_add_tz(dt)
+            return dt
 
 
 class BillsFields(FieldAggregator, DateGetter):

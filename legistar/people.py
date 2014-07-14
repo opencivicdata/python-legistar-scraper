@@ -163,7 +163,9 @@ class PeopleDetailTableRow(TableRow):
             return
         text = text.strip("*")
         try:
-            return datetime.strptime(text, '%m/%d/%Y')
+            dt = datetime.strptime(text, '%m/%d/%Y')
+            dt = self.cfg.datetime_add_tz(dt)
+            return dt
         except TypeError:
             pass
 
@@ -174,7 +176,9 @@ class PeopleDetailTableRow(TableRow):
             return
         text = text.strip("*")
         try:
-            return datetime.strptime(text, '%m/%d/%Y')
+            dt = datetime.strptime(text, '%m/%d/%Y')
+            dt = self.cfg.datetime_add_tz(dt)
+            return dt
         except TypeError:
             pass
 
