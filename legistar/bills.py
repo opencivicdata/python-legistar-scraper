@@ -160,12 +160,8 @@ class BillsDetailView(DetailView, BillsFields):
             data = ElementAccessor(el)
             url = data.get_url()
 
-            # self.debug('Sleeping in between head requests.')
-            # time.sleep(1)
-            # resp = self.client.head(url=url)
-            # media_type = resp.headers['content-type']
-            media_type = 'application/pdf'
-            self.critical("FUDGING media_type")
+            resp = self.client.head(url=url)
+            media_type = resp.headers['content-type']
 
             yield dict(
                 name=data.get_text(),
@@ -216,12 +212,8 @@ class BillsDetailTableRow(TableRow, FieldAggregator, DateGetter):
         url = data.get_url()
         if url is None:
             raise self.SkipItem()
-        # self.debug('Sleeping in between head requests.')
-        # time.sleep(1)
-        # resp = self.client.head(url=url)
-        # media_type = resp.headers['content-type']
-        media_type = 'application/pdf'
-        self.critical("FUDGING media_type")
+        resp = self.client.head(url=url)
+        media_type = resp.headers['content-type']
         return dict(
             name=data.get_text(),
             links=[dict(
