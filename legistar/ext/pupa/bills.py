@@ -164,13 +164,13 @@ class BillsAdapter(Adapter):
             self.drop_action_organization(action)
             bill.add_action(**action)
 
-        for sponsor in data.pop('sponsors'):
-            if not self.should_drop_sponsor(sponsor):
+        for sponsorship in data.pop('sponsorships'):
+            if not self.should_drop_sponsor(sponsorship):
                 kwargs = dict(
-                    classification=self.get_sponsor_classification(sponsor),
-                    entity_type=self.get_sponsor_entity_type(sponsor),
-                    primary=self.get_sponsor_primary(sponsor))
-                kwargs.update(sponsor)
+                    classification=self.get_sponsor_classification(sponsorship),
+                    entity_type=self.get_sponsor_entity_type(sponsorship),
+                    primary=self.get_sponsor_primary(sponsorship))
+                kwargs.update(sponsorship)
                 bill.add_sponsorship(**kwargs)
 
         for source in data.pop('sources'):
