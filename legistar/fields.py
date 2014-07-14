@@ -224,7 +224,7 @@ class ElementAccessor(FieldAccessor):
         else:
             _, extension = self.get_url().rsplit('.', 1)
             key = extension
-        return self.cfg.mimetypes.get(key.lower())
+        return self.cfg.mediatypes.get(key.lower())
 
     def get_img_src(self):
         '''Returns the first string in the field data.
