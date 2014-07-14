@@ -13,6 +13,8 @@ class Client(Base):
     '''This object handles sending GET and POST requests and maintains
     the weird ASPX client state nonsense.
     '''
+    CONNECTION_ERROR_SLEEP = 15
+
     def __init__(self):
         self.state = dict.fromkeys((
             '__EVENTVALIDATION',
@@ -60,8 +62,9 @@ class Client(Base):
             except ConnectionError as exc:
                 self.exc = exc
                 self.exception(exc)
-                self.warning('Client got connection error. Sleeping 2 seconds.')
-                time.sleep(2)
+                msg = 'Client got connection error. Sleeping %d seconds.'
+                self.warning(msg % self.CONNECTION_ERROR_SLEEP)
+                time.sleep(self.CONNECTION_ERROR_SLEEP)
         raise self.exc
 
     def get(self, url, **kwargs):
