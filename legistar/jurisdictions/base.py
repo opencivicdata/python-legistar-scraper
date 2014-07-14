@@ -520,11 +520,11 @@ class Config(Base, metaclass=ConfigMeta):
 
     BILL_DEFAULT_VOTE_OPTION_MAP =  ChainMap({
         'affirmative': 'yes',
-        'aegative': 'no',
+        'negative': 'no',
         'absent': 'absent',
         'abstain': 'abstain',
         'non voting': 'not voting',
-        'excused': 'not voting',
+        'excused': 'excused',
         })
 
     @property
