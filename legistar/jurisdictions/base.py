@@ -93,7 +93,7 @@ class Config(Base, metaclass=ConfigMeta):
         '''
         self.kwargs = kwargs
 
-    FASTMODE = True
+    FASTMODE = False
     SESSION_CLASS = requests.Session
 
     # UTC timezone for creating fully tz qualified datetimes.
