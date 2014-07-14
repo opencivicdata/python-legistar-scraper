@@ -73,6 +73,15 @@ class PupaGenerator(PupaExtBase):
         '''
         return self.inst.jurisdiction
 
+    def get_pupa_scraper(self):
+        '''Get a pupa scraper to serve as the requests.session
+        subtype used by the legistar scrapers.
+        '''
+        if isinstance(self.inst, pupa.scrape.Scraper):
+            return self.inst
+        scraper = pupa.scrape.Scraper(self.inst, '_cache')
+        return scraper
+
     def get_legistar_scraper(self):
         '''Gets the owner instance's jurisdiction and retrieve the
         corresponding scraper. Inherits its chainmap.
@@ -84,7 +93,7 @@ class PupaGenerator(PupaExtBase):
             division_id=div_id,
             classification=classn,
             # Pass in the pupa scraper as requests client.
-            session=self.inst)
+            session=self.get_pupa_scraper())
 
         # Inherit the jurisdiction's chainmap!
         scraper.config.provide_chainmap_to(self)
