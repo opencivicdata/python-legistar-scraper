@@ -10,6 +10,7 @@ class _OrgsGetter(PupaGenerator):
     it's the same as any PupaGenerator.
     '''
     pupatypes = ('orgs',)
+
     def get_jurisdiction(self):
         return self.inst
 

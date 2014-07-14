@@ -97,5 +97,6 @@ class EventsAdapter(Adapter):
 
         return instance
 
+
 class EventsConverter(Converter):
     adapter = EventsAdapter
