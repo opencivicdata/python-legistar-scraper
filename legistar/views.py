@@ -182,7 +182,7 @@ class LegistarScraper(View):
 
     @classmethod
     def get_scraper_strict(cls, division_id, classification, **kwargs):
-        config_obj = cls.get_config_strict(division_id, classification)
+        config_obj = cls.get_config_strict(division_id, classification, **kwargs)
         scraper = cls(**kwargs)
         scraper.set_parent_chainmap(config_obj.chainmap)
         return scraper
