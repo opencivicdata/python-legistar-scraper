@@ -133,7 +133,7 @@ class BillsAdapter(Adapter):
 
     @make_item('sponsorships')
     def get_sponsorships(self):
-        return self.data['sponsors']
+        return self.data.get('sponsors', [])
 
     @make_item('votes', wrapwith=list)
     def gen_votes(self):
