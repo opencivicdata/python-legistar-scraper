@@ -75,11 +75,10 @@ class BillsSearchForm(Form):
         configval = self.get_config_value
         time_period = time_period or configval('time_period')
         bodies = bodies or configval('types')
-        clientstate = json.dumps({'value': time_period})
         query = {
             configval('types_el_name'): bodies,
             configval('time_period_el_name'): time_period,
-            configval('clientstate_el_name'): clientstate,
+            configval('button_el_name'): configval('button'),
             configval('id_el_name'): configval('id'),
             configval('text_el_name'): configval('text'),
             }

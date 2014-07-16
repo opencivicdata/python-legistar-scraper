@@ -423,7 +423,7 @@ class Config(Base, metaclass=ConfigMeta):
     BILL_SEARCH_SWITCH_SIMPLE = 'simple search'
 
     # Simple search form.
-    BILL_SEARCH_TIME_PERIOD = 'This Month'
+    BILL_SEARCH_TIME_PERIOD = 'This Year'
     BILL_SEARCH_TYPES = 'All Types'
     BILL_SEARCH_TYPES_EL_NAME = 'ctl00$ContentPlaceHolder1$lstTypeBasic'
     BILL_SEARCH_TIME_PERIOD_EL_NAME = 'ctl00$ContentPlaceHolder1$lstYears'
@@ -431,12 +431,14 @@ class Config(Base, metaclass=ConfigMeta):
     BILL_SEARCH_ID = BILL_SEARCH_TEXT = 'on'
     BILL_SEARCH_ID_EL_NAME = 'ctl00$ContentPlaceHolder1$chkID'
     BILL_SEARCH_TEXT_EL_NAME = 'ctl00$ContentPlaceHolder1$chkText'
+    BILL_SEARCH_BUTTON_EL_NAME = 'ctl00$ContentPlaceHolder1$btnSearch'
+    BILL_SEARCH_BUTTON = 'Search Legislation'
 
     # Variants for the advanced search form.
     BILL_SEARCH_ADVANCED_TYPES_EL_NAME = 'ctl00$ContentPlaceHolder1$lstType'
     BILL_SEARCH_ADVANCED_TIME_PERIOD_EL_NAME = 'ctl00$ContentPlaceHolder1$lstYearsAdvanced'
     BILL_SEARCH_ADVANCED_BUTTON_EL_NAME = 'ctl00$ContentPlaceHolder1$btnSearch2'
-    BILL_SEARCH_ADVANCED_BUTTON = 'Search Legislation'
+    BILL_SEARCH_ADVANCED_BUTTON = BILL_SEARCH_BUTTON
 
     # Search table.
     BILL_SEARCH_TABLE_TEXT_FILE_NUMBER = 'File #'
