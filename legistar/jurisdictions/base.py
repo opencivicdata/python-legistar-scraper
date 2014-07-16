@@ -143,6 +143,9 @@ class Config(Base, metaclass=ConfigMeta):
     views = Views()
 
     NO_RECORDS_FOUND_TEXT = ['No records were found', 'No records to display.']
+    # This text is shown if something is wrong with the query.
+    # Bad request, basically. Means the code needs edits.
+    BAD_QUERY_TEXT = ['Please enter your search criteria.']
     RESULTS_TABLE_XPATH = '//table[contains(@class, "rgMaster")]'
 
     # ------------------------------------------------------------------------

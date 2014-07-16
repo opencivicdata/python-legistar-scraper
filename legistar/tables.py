@@ -86,6 +86,13 @@ class Table(Base):
                     self.debug(msg % self)
                     raise StopIteration()
 
+            for bad_query_text in self.cfg.BAD_QUERY_TEXT:
+                if bad_query_text in tr.text_content().strip():
+                    msg = ('Invalid query! This means the function that '
+                           'determines the query data probably needs edits.')
+                    self.critical(msg)
+                    raise StopIteration()
+
             # Collect all the cells.
             cells = []
             for el in tr.xpath('.//td'):
