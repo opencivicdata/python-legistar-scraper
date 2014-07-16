@@ -1,19 +1,23 @@
 #!/usr/bin/env python
 #
 # Simple script showing how to read a mitmproxy dump file
-#
+# PS -- This garbage only works on python 2.7, because mitmproxy only 2.7
 import urlparse
 from libmproxy import flow
 import json, sys
 
-if 1 < len(sys.argv):
-    with open(sys.argv[1], "rb") as f:
+x = []
+for filename in sys.argv[1:]:
+
+    with open(filename, "rb") as f:
         freader = flow.FlowReader(f)
         last = list(freader.stream())[-1]
         params = dict(urlparse.parse_qsl(last.request.get_decoded_content()))
         del params['__VIEWSTATE']
         del params['__EVENTVALIDATION']
-        import pdb; pdb.set_trace()
+        x.append(params)
+
+import pdb; pdb.set_trace()
 
 
 ny = {'ctl00$ContentPlaceHolder1$btnSearch': 'Search Legislation',
