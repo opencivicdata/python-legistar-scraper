@@ -550,7 +550,6 @@ class Config(Base, metaclass=ConfigMeta):
     # ------------------------------------------------------------------------
     # Requests client config.
     # ------------------------------------------------------------------------
-    ENABLE_PROXIES = False
 
     # Client sleeping is disabled by default, because the main use of this
     # library is with http://github.com/opencivicdata/pupa, which delegates
@@ -566,6 +565,8 @@ class Config(Base, metaclass=ConfigMeta):
         }
 
     # Route the requests through mitmproxy. http://mitmproxy.org/
+    # ENABLE_PROXIES = True
+    ENABLE_PROXIES = False
     proxies = dict.fromkeys(['http', 'https'], 'http://localhost:8080')
     requests_kwargs = dict(
         headers=REQUEST_HEADERS)
