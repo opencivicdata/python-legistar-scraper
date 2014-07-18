@@ -5,6 +5,7 @@ import lxml.html
 import contextlib
 
 from requests.exceptions import ConnectionError
+from hercules import DictSetDefault
 
 from legistar.base import Base
 
@@ -88,10 +89,12 @@ class Client(Base):
         self.sleep()
         return resp
 
-    def post(self, url, data=None, **kwargs):
+    def post(self, url, data=None, extra_headers=None, **kwargs):
         '''Send a POST request, check it, update state, and sleep.
         '''
         _kwargs = dict(self.cfg.requests_kwargs)
+        with DictSetDefault(_kwargs, 'headers', {}) as headers:
+            headers.update(extra_headers or {})
         _kwargs.update(kwargs)
         _data = dict(self.state)
 

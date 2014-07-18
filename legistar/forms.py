@@ -31,7 +31,7 @@ class Form(Base):
         pass
 
     @try_jxn_delegation
-    def submit(self, formdata=None):
+    def submit(self, formdata=None, extra_headers=None):
         # Call the pre-submit hook.
         if not self._submitted_first:
             self.before_first_submit()
@@ -39,7 +39,7 @@ class Form(Base):
 
         # Then submit the form.
         self.debug('%r is fetching %s', self, self.url)
-        resp = self.cfg.client.post(self.url, formdata)
+        resp = self.cfg.client.post(self.url, formdata, extra_headers)
         doc = lxml.html.fromstring(resp.text)
         doc.make_links_absolute(self.url)
         self.doc = doc
@@ -63,19 +63,21 @@ class Form(Base):
 
         # Parse the pagination control id name thingy.
         event_target = js.split("'")[1]
+        get_query = getattr(self, 'get_pagination_query', self.get_query)
 
         # Include the pagination target thingy in the query this time.
-        formdata = self.get_query(__EVENTTARGET=event_target)
+        formdata = get_query(__EVENTTARGET=event_target)
 
         # Blab.
         msg = '%r requesting page %d of search results: %r'
         formdata_copy = dict(formdata)
         formdata_copy.pop('__VIEWSTATE', None)
-        formdata_copy.pop('__EVENTVALIDATION__', None)
+        formdata_copy.pop('__EVENTVALIDATION', None)
         self.info(msg, self, next(self.count), formdata_copy)
 
         # Re-submit the form.
-        self.submit(formdata)
+        extra_headers = dict(referer=self.url)
+        self.submit(formdata, extra_headers)
 
     @try_jxn_delegation
     def __iter__(self):

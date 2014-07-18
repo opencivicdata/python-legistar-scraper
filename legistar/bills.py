@@ -76,6 +76,8 @@ class BillsSearchForm(Form):
         time_period = time_period or configval('time_period')
         bodies = bodies or configval('types')
         query = {
+            'ctl00_tabTop_ClientState': '{"selectedIndexes":["1"],"logEntries":[],"scrollState":{}}',
+            'ctl00_RadScriptManager1_TSM': ';;System.Web.Extensions, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35:en-US:fa6755fd-da1a-49d3-9eb4-1e473e780ecd:ea597d4b:b25378d2;Telerik.Web.UI, Version=2014.1.403.45, Culture=neutral, PublicKeyToken=121fae78165ba3d4:en-US:68d9452f-f268-45b2-8db7-8c3bbf305b8d:16e4e7cd:f7645509:24ee1bba:e330518b:88144a7a:1e771326:8e6f0d33:ed16cbdc:f46195d3:19620875:874f8ea2:cda80b3:383e4ce8:2003d0b8:aa288e2d:258f1c72:c128760b:c8618e41:1a73651d:333f8d94:58366029',
             configval('types_el_name'): bodies,
             configval('time_period_el_name'): time_period,
             configval('button_el_name'): configval('button'),
@@ -88,30 +90,47 @@ class BillsSearchForm(Form):
         return query
 
     @try_jxn_delegation
+    def get_pagination_query(self, **kwargs):
+        '''Get the query for the next page.
+        '''
+        configval = self.get_config_value
+        query = self.get_query(**kwargs)
+        query.pop('ctl00_ContentPlaceHolder1_lstMax_ClientState', None)
+        query.pop('ctl00$ContentPlaceHolder1$btnSearch2', None)
+        query = dict(self.client.state, **query)
+        return query
+
+    @try_jxn_delegation
     def get_query_advanced(self, time_period=None, bodies=None, **kwargs):
         '''Get the basic query for the advanced search page.
         '''
         configval = self.get_config_value
         time_period = time_period or configval('time_period')
-        bodies = bodies or configval('types')
         query = {
-            configval('advanced_button_el_name'): configval('advanced_button'),
-            configval('advanced_types_el_name'): bodies,
-            configval('advanced_time_period_el_name'): time_period,
-            }
+          'ctl00$ContentPlaceHolder1$btnSearch2': 'Search Legislation',
+          'ctl00$ContentPlaceHolder1$lstMax': 'All',
+          'ctl00$ContentPlaceHolder1$lstYearsAdvanced': time_period,
+          }
         query.update(kwargs)
         self.debug('Query is %r' % query)
         query = dict(self.client.state, **query)
         return query
 
+    def _writedoc(self):
+        import lxml.html
+        with open('current_legistar_doc.html', 'wb') as f:
+            f.write(lxml.html.tostring(self.doc))
+
     @try_jxn_delegation
     def get_query(self, *args, **kwargs):
         if self.default_search_is_simple():
-            self.debug('Using simple query.')
-            return self.get_query_simple(*args, **kwargs)
-        else:
-            self.debug('Using advanced query.')
-            return self.get_query_advanced()
+            self.switch_to_advanced_search()
+        return self.get_query_advanced(**kwargs)
+
+    def switch_to_advanced_search(self):
+        self.debug('Switching to advanced search form.')
+        query = dict(__EVENTTARGET='ctl00$ContentPlaceHolder1$btnSwitch')
+        self.submit(query)
 
     def default_search_is_simple(self):
         '''Is the default page the simple search interface? Or advanced?
@@ -130,7 +149,6 @@ class BillsSearchForm(Form):
 
 class BillsDetailView(DetailView, BillsFields):
     sources_note = 'bill detail'
-
     text_fields = ('version', 'name')
 
     @make_item('agenda')

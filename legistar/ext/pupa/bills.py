@@ -176,6 +176,8 @@ class BillsAdapter(Adapter):
         for source in data.pop('sources'):
             bill.add_source(**source)
 
+        bill.extras.update(data.pop('extras'))
+
         yield bill
 
         for vote in data.pop('votes'):
