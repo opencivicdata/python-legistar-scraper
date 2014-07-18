@@ -144,6 +144,7 @@ class Philadelphia(Config):
     scrape. They also don't have org detail pages, so all we can
     get are org names, requiring a separate org scrape.
     '''
+    TIMEZONE = 'America/New_York'
     nicknames = ['philly', 'pa']
     root_url = 'https://phila.legistar.com'
     division_id = 'ocd-division/country:us/state:pa/place:philadelphia'
