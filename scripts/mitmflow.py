@@ -2,20 +2,138 @@
 #
 # Simple script showing how to read a mitmproxy dump file
 # PS -- This garbage only works on python 2.7, because mitmproxy only 2.7
+import sys
+import pprint
+import requests
 import urlparse
 from libmproxy import flow
 import json, sys
+import requests
+import lxml.html
+import logging
+
+
+logging.basicConfig(level=logging.DEBUG)
+
+
+def diff(d1, d2):
+    for x in set(d1.items()) - set(d2.items()):
+        print(x)
+
+def diffall(x):
+    for d1, d2 in zip(*x):
+        diff(d1, d2)
+        print('*' * 40)
+
+
+def convert_flow(flow_stream):
+    '''Given a flow obj, return an equivalent requests.Request object.
+    '''
+    for flowobj in flow_stream:
+        yield convert_flowobj(flowobj)
+
+
+def convert_flowobj(flowobj):
+    request = flowobj.request
+    data = dict(urlparse.parse_qsl(request.get_decoded_content()))
+    req = requests.Request(
+        method=request.method,
+        url=request.get_url(),
+        headers=dict(request.headers.items()),
+        cookies=dict((k, v[0]) for (k, v) in request.get_cookies().items()),
+        data=data)
+    return req
+
+
+def serialize_request(request):
+    data = dict(request.data)
+    data.pop('__VIEWSTATE')
+    data.pop('__EVENTVALIDATION')
+    req = dict(
+        method=request.method,
+        url=request.url,
+        headers=request.headers,
+        cookies=request.cookies,
+        data=data)
+    return req
+
+
+class Client:
+
+    def __init__(self):
+        self.state = dict.fromkeys((
+            '__EVENTVALIDATION',
+            '__VIEWSTATE',
+            '__EVENTTARGET',
+            '__EVENTARGUMENT',
+            ))
+
+
+    def update_state(self, resp):
+        '''Get the weird ASPX client state nonsense from the response
+        and update the Client's state so it can be sent with future requests.
+        '''
+        doc = lxml.html.fromstring(resp.text)
+        form = dict(doc.forms[0].fields)
+        for key in set(self.state.keys()) & set(form.keys()):
+            self.state[key] = form.get(key)
+
+    def update_request(self, request, force=False):
+        for key in set(self.state.keys()) & set(request.data.keys()):
+            do_update = force or (key in self.state)
+            if do_update:
+                request.data[key] = self.state[key]
+
+
+def write_resp(resp):
+    with open('COW.html', 'wb') as f:
+        f.write(resp.content)
+        _data = dict(req.data)
+        _data.pop('__VIEWSTATE')
+        pprint.pprint(_data)
 
 x = []
 for filename in sys.argv[1:]:
-
     with open(filename, "rb") as f:
         freader = flow.FlowReader(f)
-        last = list(freader.stream())[-1]
-        params = dict(urlparse.parse_qsl(last.request.get_decoded_content()))
-        del params['__VIEWSTATE']
-        del params['__EVENTVALIDATION']
-        x.append(params)
+        data = []
+
+        # -------------------------
+        client = None
+        session = requests.Session()
+        session.proxies = dict.fromkeys(['http', 'https'], 'http://localhost:8080')
+        flow = list(freader.stream())
+        flow = list(convert_flow(flow))
+        while flow:
+            req = flow.pop(0)
+            if client is not None:
+                client.update_request(req)
+            else:
+                client = Client()
+            resp = session.send(req.prepare())
+            client.update_state(resp)
+            write_resp(resp)
+            serialize_request(req)
+
+        while True:
+            event_target = req.data['__EVENTTARGET']
+            event_target = event_target[:-1] + str(int(event_target[-1]) + 2)
+            req.data['__EVENTTARGET'] = event_target
+            client.update_request(req)
+            resp = session.send(req.prepare())
+            client.update_state(resp)
+            write_resp(resp)
+            import pdb; pdb.set_trace()
+        #--------------------------
+
+        for flowobj in flow:
+            print(flowobj.request.method)
+            if flowobj.request.method == 'POST':
+                params = dict(urlparse.parse_qsl(flowobj.request.get_decoded_content()))
+                del params['__VIEWSTATE']
+                del params['__EVENTVALIDATION']
+                data.append(params)
+    x.append(data)
 
 import pdb; pdb.set_trace()
 
