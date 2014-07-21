@@ -128,6 +128,7 @@ class SanFrancisco(Config):
     classification = 'government'
     division_id = 'ocd-division/country:us/state:ca/place:san_francisco'
 
+    TIMEZONE = 'America/Los_Angeles'
     TOPLEVEL_ORG_MEMBERSHIP_TITLE_TEXT = 'Supervisor'
     TOPLEVEL_ORG_MEMBERSHIP_NAME_TEXT = 'Board of Supervisors'
     EVT_SEARCH_TABLE_TEXT_AUDIO = 'Audio'  # sfgov has this
@@ -136,6 +137,24 @@ class SanFrancisco(Config):
     @make_item('person.district')
     def get_district(self, data):
         return self.DEFAULT_AT_LARGE_STRING
+
+    @make_item('bill.legislative_session')
+    def bill_legislative_session(self, data):
+        if data['actions']:
+            session = data['actions'][0]['date'].year
+        else:
+            import pdb; pdb.set_trace()
+            session = data['on_agenda'].year
+        return str(session)
+
+    @overrides('VoteAdapter.get_vote_result')
+    def get_vote_result(self, value):
+        '''This might be uniform enough to push back into base config.
+        '''
+        if value.lower() == 'pass':
+            return 'pass'
+        else:
+            return 'fail'
 
 
 class Philadelphia(Config):
