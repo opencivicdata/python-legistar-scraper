@@ -127,7 +127,10 @@ class BillsDetailView(DetailView, BillsFields):
 
     @make_item('actions', wrapwith=list)
     def gen_action(self):
-        yield from self.Form(self)
+        actions = list(self.Form(self))
+        if not actions:
+            raise self.SkipDocument()
+        return actions
 
 
 class BillsDetailTable(Table):

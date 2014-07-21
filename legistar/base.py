@@ -83,12 +83,20 @@ class SessionLookup(ChainedLookup):
         return inst.cfg.get_session()
 
 
+class SkipDocument(Exception):
+    '''Raised when a condition encountered during scrape means this entire
+    document is garbage that should be skipped.
+    '''
+
+
 class Base(PupatypeMixin):
     '''Lookups for these attributes on subtypes will fail over
     to whatever object's ChainMap the object's own ChainMap was derived
     from, and on up the chain, all the way back the jursdiction's config
     obj.
     '''
+    SkipDocument = SkipDocument
+
     # The jxn config object.
     config = config_obj = cfg = ChainedLookup('config')
     url = ChainedLookup('url')
