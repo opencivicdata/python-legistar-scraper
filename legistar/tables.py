@@ -104,8 +104,12 @@ class Table(Base):
 
             # Create a super wrappy set of wrapped wrappers.
             data = zip(header_text, cells)
-            record = self.make_child(TableRow, data, view=self.view)
-            yield record.asdict()
+            document = self.make_child(TableRow, data, view=self.view)
+            try:
+                yield document.asdict()
+            except self.SkipDocument:
+                pass
+
 
     def __iter__(self):
         yield from self.gen_rows()
