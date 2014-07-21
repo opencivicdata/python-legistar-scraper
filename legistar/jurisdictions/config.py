@@ -167,6 +167,7 @@ class Philadelphia(Config):
     nicknames = ['philly', 'pa']
     root_url = 'https://phila.legistar.com'
     division_id = 'ocd-division/country:us/state:pa/place:philadelphia'
+    classification = 'government'
 
     # C'mon Philly, what's up with that.
     EVT_SEARCH_TABLE_DETAIL_AVAILABLE = False
