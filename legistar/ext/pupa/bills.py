@@ -141,7 +141,9 @@ class BillsAdapter(Adapter):
             converter = self.make_child(VoteAdapter, data)
             more_data = dict(
                 legislative_session=self.data['legislative_session'])
-            yield converter.get_instance(**more_data)
+            vote = converter.get_instance(**more_data)
+            if vote.votes:
+                yield vote
 
     @make_item('subject')
     def _gen_subjects(self, wrapwith=list):
