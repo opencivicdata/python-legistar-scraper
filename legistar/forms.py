@@ -81,15 +81,15 @@ class Form(Base):
 
     @try_jxn_delegation
     def __iter__(self):
-        Table = self.view.viewtype_meta.Table
+        yield from self.gen_documents()
 
-        # Don't submit queries if we're testing.
+    def gen_documents(self):
+        Table = self.view.viewtype_meta.Table
         if self.skip_first_submit:
             pass
         else:
             self.submit(self.get_query())
         yield from self.make_child(Table, view=self.view)
-
         while True:
             self.submit_next_page()
             yield from self.make_child(Table, view=self.view)

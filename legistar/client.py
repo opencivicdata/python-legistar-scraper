@@ -1,6 +1,8 @@
-import logging
 import time
+import pprint
 import random
+import logging
+import requests
 import lxml.html
 import contextlib
 

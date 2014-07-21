@@ -4,6 +4,9 @@ import time
 import collections
 from datetime import datetime
 
+import lxml.html
+
+from legistar.bill_search import gen_responses
 from legistar.forms import Form
 from legistar.tables import Table, TableRow
 from legistar.views import SearchView, DetailView
@@ -66,85 +69,21 @@ class BillsSearchTable(Table):
 class BillsSearchForm(Form):
     '''Model the legistar "Legislation" search form.
     '''
-    sources_note = 'bills search table'
+    sources_note = 'bill search table'
 
-    @try_jxn_delegation
-    def get_query_simple(self, time_period=None, bodies=None, **kwargs):
-        '''Get the query for the simple search page.
-        '''
-        configval = self.get_config_value
-        time_period = time_period or configval('time_period')
-        bodies = bodies or configval('types')
-        query = {
-            'ctl00_tabTop_ClientState': '{"selectedIndexes":["1"],"logEntries":[],"scrollState":{}}',
-            'ctl00_RadScriptManager1_TSM': ';;System.Web.Extensions, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35:en-US:fa6755fd-da1a-49d3-9eb4-1e473e780ecd:ea597d4b:b25378d2;Telerik.Web.UI, Version=2014.1.403.45, Culture=neutral, PublicKeyToken=121fae78165ba3d4:en-US:68d9452f-f268-45b2-8db7-8c3bbf305b8d:16e4e7cd:f7645509:24ee1bba:e330518b:88144a7a:1e771326:8e6f0d33:ed16cbdc:f46195d3:19620875:874f8ea2:cda80b3:383e4ce8:2003d0b8:aa288e2d:258f1c72:c128760b:c8618e41:1a73651d:333f8d94:58366029',
-            configval('types_el_name'): bodies,
-            configval('time_period_el_name'): time_period,
-            configval('button_el_name'): configval('button'),
-            configval('id_el_name'): configval('id'),
-            configval('text_el_name'): configval('text'),
-            }
-        query.update(kwargs)
-        self.debug('Query is %r' % query)
-        query = dict(self.client.state, **query)
-        return query
+    def gen_docs_from_response(self, resp):
+        Table = self.view.viewtype_meta.Table
+        doc = lxml.html.fromstring(resp.text)
+        doc.make_links_absolute(self.url)
+        self.doc = doc
+        table = self.make_child(Table, view=self.view)
+        yield from table
+        # table = iter(table)
+        # yield next(table)
 
-    @try_jxn_delegation
-    def get_pagination_query(self, **kwargs):
-        '''Get the query for the next page.
-        '''
-        configval = self.get_config_value
-        query = self.get_query(**kwargs)
-        query.pop('ctl00_ContentPlaceHolder1_lstMax_ClientState', None)
-        query.pop('ctl00$ContentPlaceHolder1$btnSearch2', None)
-        query = dict(self.client.state, **query)
-        return query
-
-    @try_jxn_delegation
-    def get_query_advanced(self, time_period=None, bodies=None, **kwargs):
-        '''Get the basic query for the advanced search page.
-        '''
-        configval = self.get_config_value
-        time_period = time_period or configval('time_period')
-        query = {
-          'ctl00$ContentPlaceHolder1$btnSearch2': 'Search Legislation',
-          'ctl00$ContentPlaceHolder1$lstMax': 'All',
-          'ctl00$ContentPlaceHolder1$lstYearsAdvanced': time_period,
-          }
-        query.update(kwargs)
-        self.debug('Query is %r' % query)
-        query = dict(self.client.state, **query)
-        return query
-
-    def _writedoc(self):
-        import lxml.html
-        with open('current_legistar_doc.html', 'wb') as f:
-            f.write(lxml.html.tostring(self.doc))
-
-    @try_jxn_delegation
-    def get_query(self, *args, **kwargs):
-        if self.default_search_is_simple():
-            self.switch_to_advanced_search()
-        return self.get_query_advanced(**kwargs)
-
-    def switch_to_advanced_search(self):
-        self.debug('Switching to advanced search form.')
-        query = dict(__EVENTTARGET='ctl00$ContentPlaceHolder1$btnSwitch')
-        self.submit(query)
-
-    def default_search_is_simple(self):
-        '''Is the default page the simple search interface? Or advanced?
-        As of now, seems only Chicago defaults to the advanced search page.
-        This guesses by looking for a known advanced search param name.
-        '''
-        advanced_id = self.get_config_value('advanced_time_period_el_name')
-        advanced = bool(self.doc.xpath('//*[@name="%s"]' % advanced_id))
-        if advanced:
-            self.debug('Found advanced search interface at %r' % self.url)
-            return False
-        else:
-            self.debug('Found simple search interface at %r' % self.url)
-            return True
+    def gen_documents(self):
+        for resp in gen_responses():
+            yield from self.gen_docs_from_response(resp)
 
 
 class BillsDetailView(DetailView, BillsFields):

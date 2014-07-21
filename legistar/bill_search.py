@@ -1,3 +1,12 @@
+'''Why, why does this hacky module exists, you might ask? I spent days
+trying to get legistar to respond to advanced search form queries the
+right way. Finally, I decided that reverse engineering this piece garbage
+is just not worth my time. So this module replays the requests that
+Firefox sends, captured earlier through mitmproxy. The client object
+maintains the state of the aspx app, and it just works. Burn the sevel hells,
+legistar, you crufty, HTTP-misunderstanding, second-rate, monumental Microsofty
+antipattern.
+'''
 import requests
 import lxml.html
 import logging
@@ -17,13 +26,9 @@ class Client:
             '__EVENTTARGET',
             '__EVENTARGUMENT',
             ), '')
-        # req = requests.Request(method="GET", url='http://nyc.legistar.com/')
-        # resp = self.session.send(req.prepare())
-        # self.write_resp(req, resp)
-        # self.update_state(resp)
         req = requests.Request(method="GET", url='http://nyc.legistar.com/Legislation.aspx')
         resp = self.session.send(req.prepare())
-        self.write_resp(req, resp)
+        # self.write_resp(req, resp)
         self.update_state(resp)
 
     def hydrate_request(self, data):
@@ -61,12 +66,10 @@ class Client:
             req = self.hydrate_request(req)
         self.update_request(req)
         resp = self.session.send(req.prepare())
-        client.update_state(resp)
-        self.write_resp(req, resp)
+        self.update_state(resp)
+        # self.write_resp(req, resp)
+        return resp
 
-
-
-# This request switches to the advanced search page.
 req1 = {
     'method': 'POST',
     'url': 'http://nyc.legistar.com/Legislation.aspx',
@@ -243,6 +246,7 @@ req3 = {
     }
 
 
+
 def incr_page(req):
     event_target = req['data']['__EVENTTARGET']
     event_target = event_target[:-1] + str(int(event_target[-1]) + 2)
@@ -250,9 +254,14 @@ def incr_page(req):
     return req
 
 
-client = Client()
-client.send(req1)
-client.send(req2)
-client.send(req3)
-client.send(incr_page(req3))
-import pdb; pdb.set_trace()
+def gen_responses():
+    client = Client()
+    # Switch to advanced search.
+    client.send(req1)
+    # Submit.
+    yield client.send(req2)
+    # Get page 2.
+    yield client.send(req3)
+    # Get pages 3 and up.
+    while True:
+        yield client.send(incr_page(req3))
