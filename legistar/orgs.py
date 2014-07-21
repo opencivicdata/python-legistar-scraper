@@ -72,8 +72,8 @@ class OrgsSearchForm(Form):
     skip_first_submit = True
     sources_note = 'organizations search table'
 
-    def get_query(self):
-        return dict(self.client.state)
+    def get_query(self, **kwargs):
+        return dict(self.client.state, **kwargs)
 
 
 class OrgsDetailView(DetailView, OrgsFields):
