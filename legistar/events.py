@@ -41,12 +41,9 @@ class EventsFields(FieldAggregator):
                 continue
 
             media = dict(
-                name=field.get_text(),
-                links=[
-                    dict(
-                        url=field.get_media_url(),
-                        media_type=field.get_media_type())
-                ])
+                note=field.get_text(),
+                url=field.get_media_url(),
+                media_type=field.get_media_type() or '')
             yield media
 
     @make_item('documents', wrapwith=list)
