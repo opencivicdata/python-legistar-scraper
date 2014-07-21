@@ -201,7 +201,7 @@ class PeopleAdapter(Adapter):
         instance_data = self.get_instance_data(**extra_instance_data)
         instance = self.pupa_model(
             name=instance_data['name'],
-            image=instance_data['image'])
+            image=instance_data.get('image', ''))
 
         for key in ('links', 'sources', 'identifiers', 'contact_details'):
             helper_name = ('add_' + key).rstrip('s')
