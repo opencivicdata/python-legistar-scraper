@@ -177,10 +177,12 @@ class Config(Base, metaclass=ConfigMeta):
         'Clerk': 'commission',
         'Executive Office': 'commission',
         'Primary Legislative Body': 'legislature',
+        'Legislative Body': 'legislature',
         'Secondary Legislative Body': 'legislature',
         'City Council': 'legislature',
         'Board of Supervisors': 'legislature',
         'Agency': 'commission',
+        'Task Force': 'commission',
         })
 
     @property
