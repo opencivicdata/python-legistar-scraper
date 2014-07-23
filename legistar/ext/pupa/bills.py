@@ -40,6 +40,8 @@ class VoteAdapter(Adapter):
 
     @make_item('result')
     def get_result(self):
+        if not self.data['result']:
+            raise self.SkipItem()
         return self.get_vote_result(self.data['result'])
 
     @make_item('votes', wrapwith=list)
