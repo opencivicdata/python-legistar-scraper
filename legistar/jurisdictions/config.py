@@ -20,10 +20,9 @@ class NYC(Config):
     EVT_DETAIL_TEXT_VIDEO = 'Multimedia'
     EVT_DETAIL_TABLE_TEXT_VIDEO = 'Multimedia'
 
-    BILL_VOTE_OPTION_MAP = {
-        'maternity': 'excused',
-        'conflict': 'abstain',
-        }
+    # BILL_VOTE_OPTION_MAP = {
+    #     'maternity': 'excused',
+    #     }
 
     BILL_CLASSIFICATIONS = {
         'Introduction': 'bill',
