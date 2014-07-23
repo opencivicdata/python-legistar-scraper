@@ -49,6 +49,7 @@ class VoteAdapter(Adapter):
         for data in self.data['votes']:
             res = {}
             res['option'] = self.get_vote_option(data['vote'])
+            res['note'] = data['vote']
             res['voter'] = data['person']
             yield res
 
