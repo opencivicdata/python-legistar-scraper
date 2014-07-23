@@ -83,7 +83,7 @@ class BillsSearchForm(Form):
 
     def gen_documents(self):
         for resp in gen_responses():
-            yield from self.gen_docs_from_response(resp)
+            yield from iter(self.gen_docs_from_response(resp))
 
 
 class BillsDetailView(DetailView, BillsFields):
