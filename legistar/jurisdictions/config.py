@@ -22,6 +22,7 @@ class NYC(Config):
 
     BILL_VOTE_OPTION_MAP = {
         'maternity': 'excused',
+        'conflict': 'abstain',
         }
 
     BILL_CLASSIFICATIONS = {
