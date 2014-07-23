@@ -249,9 +249,10 @@ req3 = {
 
 def incr_page(req):
     event_target = req['data']['__EVENTTARGET']
-    event_target = event_target[:-1] + str(int(event_target[-1]) + 2)
+    # Such crap.
+    event_target = event_target[:-2] + str(int(event_target[-2:]) + 2).zfill(2)
     req['data']['__EVENTTARGET'] = event_target
-    return req
+    return event_target, req
 
 
 def gen_responses():
@@ -264,4 +265,9 @@ def gen_responses():
     yield client.send(req3)
     # Get pages 3 and up.
     while True:
-        yield client.send(incr_page(req3))
+        event_target, req = incr_page(req3)
+        resp = client.send(req)
+        if event_target not in resp.text:
+            return
+        else:
+            yield resp
