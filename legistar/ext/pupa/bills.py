@@ -195,7 +195,6 @@ class BillsAdapter(Adapter):
         for identifier in data.pop('identifiers'):
             bill.add_identifier(**identifier)
 
-        import pdb; pdb.set_trace()
         yield bill
 
         for vote in data.pop('votes'):

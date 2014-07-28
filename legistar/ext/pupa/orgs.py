@@ -35,7 +35,7 @@ class OrgsAdapter(Adapter):
 
     def get_instance(self, **extra_instance_data):
 
-        if not self.should_drop_organization(self.data):
+        if self.should_drop_organization(self.data):
             return
 
         instance_data = self.get_instance_data()
