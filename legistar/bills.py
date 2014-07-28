@@ -3,6 +3,7 @@ import json
 import time
 import collections
 from datetime import datetime
+from urllib.parse import urlparse, parse_qsl
 
 import lxml.html
 
@@ -82,7 +83,7 @@ class BillsSearchForm(Form):
         # yield next(table)
 
     def gen_documents(self):
-        for resp in gen_responses():
+        for resp in gen_responses(self.url):
             yield from iter(self.gen_docs_from_response(resp))
 
 

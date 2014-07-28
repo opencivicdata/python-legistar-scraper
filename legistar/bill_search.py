@@ -7,18 +7,20 @@ maintains the state of the aspx app, and it just works. Burn the sevel hells,
 legistar, you crufty, HTTP-misunderstanding, second-rate, monumental Microsofty
 antipattern.
 '''
+import copy
 import requests
 import lxml.html
 import logging
 import pprint
-
+from urllib.parse import urlparse, parse_qsl
 
 logging.basicConfig(level=logging.DEBUG)
 
 
 class Client:
 
-    def __init__(self):
+    def __init__(self, host):
+        self.host = host
         self.session = requests.Session()
         self.state = dict.fromkeys((
             '__EVENTVALIDATION',
@@ -26,7 +28,8 @@ class Client:
             '__EVENTTARGET',
             '__EVENTARGUMENT',
             ), '')
-        req = requests.Request(method="GET", url='http://nyc.legistar.com/Legislation.aspx')
+        url = 'http://%s/Legislation.aspx' % host
+        req = requests.Request(method="GET", url=url)
         resp = self.session.send(req.prepare())
         # self.write_resp(req, resp)
         self.update_state(resp)
@@ -61,19 +64,25 @@ class Client:
             pprint.pprint(_data)
             import pdb; pdb.set_trace()
 
-    def send(self, req):
+    def send(self, host, req):
+        req = copy.deepcopy(req)
+        req['url'] = req['url'] % host
+        headers = req['headers']
+        if 'Host' in headers:
+            headers['Host'] = headers['Host'] % host
+        if 'Referer' in headers:
+            headers['Referer'] = headers['Referer'] % host
         if isinstance(req, dict):
             req = self.hydrate_request(req)
         self.update_request(req)
         resp = self.session.send(req.prepare())
         self.update_state(resp)
-        # self.write_resp(req, resp)
+        self.write_resp(req, resp)
         return resp
 
 req1 = {
     'method': 'POST',
-    'url': 'http://nyc.legistar.com/Legislation.aspx',
-
+    'url': 'http://%s/Legislation.aspx',
     'cookies': {
         ' Setting-61-ASP.calendar_aspx.gridCalendar.SortExpression': 'MeetingStartDate DESC',
         ' Setting-61-ASP.legislation_aspx.gridMain.SortExpression': 'MatterID DESC',
@@ -114,8 +123,8 @@ req1 = {
         'Content-Length': '37519',
         'Content-Type': 'application/x-www-form-urlencoded',
         'Cookie': 'Setting-61-Legislation Options=ID|Text|; Setting-61-Legislation Year=This Year; Setting-61-Legislation Type=All; Setting-61-ASP.legislation_aspx.gridMain.SortExpression=MatterID DESC; __utma=196938163.1626544919.1405688217.1405698268.1405700259.5; __utmc=196938163; __utmz=196938163.1405688217.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none); __atuvc=13%7C29; Setting-61-Calendar Options=info|; Setting-61-Calendar Year=This Month; Setting-61-Calendar Body=All; Setting-61-ASP.calendar_aspx.gridCalendar.SortExpression=MeetingStartDate DESC; __utmb=196938163.2.10.1405700259',
-        'Host': 'nyc.legistar.com',
-        'Referer': 'http://nyc.legistar.com/Legislation.aspx',
+        'Host': '%s',
+        'Referer': 'http://%s/Legislation.aspx',
         'User-Agent': 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:30.0) Gecko/20100101 Firefox/30.0'
         },
 
@@ -123,8 +132,7 @@ req1 = {
 
 req2 = {
     'method': 'POST',
-    'url': 'http://nyc.legistar.com/Legislation.aspx',
-
+    'url': 'http://%s/Legislation.aspx',
     'cookies': {
         ' Setting-61-ASP.calendar_aspx.gridCalendar.SortExpression': 'MeetingStartDate DESC',
         ' Setting-61-ASP.legislation_aspx.gridMain.SortExpression': 'MatterID DESC',
@@ -177,8 +185,8 @@ req2 = {
         'Content-Length': '834864',
         'Content-Type': 'application/x-www-form-urlencoded',
         'Cookie': 'Setting-61-Legislation Options=ID|Text|; Setting-61-Legislation Year=This Year; Setting-61-Legislation Type=All; Setting-61-ASP.legislation_aspx.gridMain.SortExpression=MatterID DESC; __utma=196938163.1626544919.1405688217.1405698268.1405700259.5; __utmc=196938163; __utmz=196938163.1405688217.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none); __atuvc=14%7C29; Setting-61-Calendar Options=info|; Setting-61-Calendar Year=This Month; Setting-61-Calendar Body=All; Setting-61-ASP.calendar_aspx.gridCalendar.SortExpression=MeetingStartDate DESC; __utmb=196938163.3.10.1405700259',
-        'Host': 'nyc.legistar.com',
-        'Referer': 'http://nyc.legistar.com/Legislation.aspx',
+        'Host': '%s',
+        'Referer': 'http://%s/Legislation.aspx',
         'User-Agent': 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:30.0) Gecko/20100101 Firefox/30.0'
         },
     }
@@ -186,8 +194,7 @@ req2 = {
 
 req3 = {
     'method': 'POST',
-    'url': 'http://nyc.legistar.com/Legislation.aspx',
-
+    'url': 'http://%s/Legislation.aspx',
     'cookies': {
         ' Setting-61-ASP.calendar_aspx.gridCalendar.SortExpression': 'MeetingStartDate DESC',
         ' Setting-61-ASP.legislation_aspx.gridMain.SortExpression': 'MatterID DESC',
@@ -239,8 +246,8 @@ req3 = {
         'Content-Length': '953155',
         'Content-Type': 'application/x-www-form-urlencoded',
         'Cookie': 'Setting-61-Legislation Options=ID|Text|; Setting-61-Legislation Year=This Year; Setting-61-Legislation Type=; Setting-61-ASP.legislation_aspx.gridMain.SortExpression=MatterID DESC; __utma=196938163.1626544919.1405688217.1405698268.1405700259.5; __utmc=196938163; __utmz=196938163.1405688217.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none); __atuvc=15%7C29; Setting-61-Calendar Options=info|; Setting-61-Calendar Year=This Month; Setting-61-Calendar Body=All; Setting-61-ASP.calendar_aspx.gridCalendar.SortExpression=MeetingStartDate DESC; __utmb=196938163.4.10.1405700259',
-        'Host': 'nyc.legistar.com',
-        'Referer': 'http://nyc.legistar.com/Legislation.aspx',
+        'Host': '%s',
+        'Referer': 'http://%s/Legislation.aspx',
         'User-Agent': 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:30.0) Gecko/20100101 Firefox/30.0'
         },
     }
@@ -255,18 +262,19 @@ def incr_page(req):
     return event_target, req
 
 
-def gen_responses():
-    client = Client()
+def gen_responses(url):
+    host = urlparse(url).netloc
+    client = Client(host)
     # Switch to advanced search.
-    client.send(req1)
+    client.send(host, req1)
     # Submit.
-    yield client.send(req2)
+    yield client.send(host, req2)
     # Get page 2.
-    yield client.send(req3)
+    yield client.send(host, req3)
     # Get pages 3 and up.
     while True:
         event_target, req = incr_page(req3)
-        resp = client.send(req)
+        resp = client.send(host, req)
         if event_target not in resp.text:
             return
         else:
