@@ -139,6 +139,8 @@ class BillsAdapter(Adapter):
             data = dict(data)
             data.pop('votes')
             action = self.make_child(ActionAdapter, data).get_instance_data()
+            if action['description'] is None:
+                action['description'] = ''
             yield action
 
     @make_item('sponsorships')
