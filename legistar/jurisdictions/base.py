@@ -541,6 +541,18 @@ class Config(Base, metaclass=ConfigMeta):
         options = getattr(self, 'BILL_VOTE_OPTION_MAP', {})
         return self.BILL_DEFAULT_VOTE_OPTION_MAP.new_child(options)
 
+    BILL_DEFAULT_VOTE_RESULT_MAP =  ChainMap({
+        'pass': 'pass',
+        'passed': 'pass',
+        'fail': 'fail',
+        'failed': 'fail',
+        })
+
+    @property
+    def _BILL_VOTE_RESULT_MAP(self):
+        options = getattr(self, 'BILL_VOTE_RESULT_MAP', {})
+        return self.BILL_DEFAULT_VOTE_RESULT_MAP.new_child(options)
+
     BILL_DEFAULT_CLASSIFICATIONS = ChainMap({
         })
 
