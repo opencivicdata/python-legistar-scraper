@@ -28,6 +28,8 @@ class PupaGenerator(PupaExtBase):
     def __init__(self, *pupatypes):
         self._pupatypes = pupatypes
 
+        self.idents = set()
+
     def get_pupatypes(self):
         pupatypes = getattr(self, 'pupatypes', ())
         return set(pupatypes + self._pupatypes)

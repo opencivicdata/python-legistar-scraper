@@ -117,8 +117,9 @@ class BillsDetailView(DetailView, BillsFields):
             data = ElementAccessor(el)
             url = data.get_url()
 
-            resp = self.client.head(url=url)
-            media_type = resp.headers['content-type']
+            media_type = 'application/pdf'
+            # resp = self.client.head(url=url)
+            # media_type = resp.headers['content-type']
 
             yield dict(
                 name=data.get_text(),
@@ -184,8 +185,10 @@ class BillsDetailTableRow(TableRow, FieldAggregator, DateGetter):
         url = data.get_url()
         if url is None:
             raise self.SkipItem()
-        resp = self.client.head(url=url)
-        media_type = resp.headers['content-type']
+        self.info('Sending HEAD request for %r' % url)
+        media_type = 'application/pdf'
+        # resp = self.client.head(url=url)
+        # media_type = resp.headers['content-type']
         return dict(
             name=data.get_text(),
             links=[dict(
