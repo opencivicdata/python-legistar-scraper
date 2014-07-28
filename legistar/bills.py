@@ -133,6 +133,18 @@ class BillsDetailView(DetailView, BillsFields):
             raise self.SkipDocument()
         return actions
 
+    @make_item('identifiers', wrapwith=list)
+    def gen_identifiers(self):
+        '''Yield out the internal legistar bill id and guid found
+        in the detail page url.
+        '''
+        detail_url = self.chainmap['sources'][self.sources_note]
+        url = urlparse(detail_url)
+        for idtype, ident in parse_qsl(url.query):
+            yield dict(
+                scheme="legistar_" + idtype.lower(),
+                identifier=ident)
+
 
 class BillsDetailTable(Table):
     sources_note = 'bill detail table'
