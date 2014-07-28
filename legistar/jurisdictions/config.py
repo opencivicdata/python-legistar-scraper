@@ -90,13 +90,6 @@ class NYC(Config):
         '''
         return data['name'] in self.cfg.SPONSORSHIP_JUNK
 
-    @overrides('VoteAdapter.drop_organization')
-    def drop_organization(self, data):
-        return data.pop('organization', None)
-        DROP_ORGS = ['City Council', 'Mayor']
-        if data['organization'] in DROP_ORGS:
-            data.pop('organization', None)
-
     @overrides('BillsAdapter.gen_subjects')
     def gen_subjects(self):
         name = self.data['name'].strip()
@@ -185,6 +178,19 @@ class Philadelphia(Config):
         rgx = '(%s)' % '|'.join(self.person_titles)
         import pdb; pdb.set_trace()
         return re.sub(rgx, '', )
+
+    @overrides('OrgAdapter.should_drop_organization')
+    def should_drop_organization(self, data):
+        import pdb; pdb.set_trace()
+
+    @make_item('bill.legislative_session')
+    def bill_legislative_session(self, data):
+        if data['actions']:
+            session = data['actions'][0]['date'].year
+        else:
+            import pdb; pdb.set_trace()
+            session = data['on_agenda'].year
+        return str(session)
 
 
 class Madison(Config):

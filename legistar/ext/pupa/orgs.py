@@ -24,7 +24,19 @@ class OrgsAdapter(Adapter):
         legistar_type = self.data.pop('type')
         return self.config.get_org_classification(legistar_type)
 
+    @try_jxn_delegation
+    def should_drop_organization(self, data):
+        '''If this function is overridden and returns true, matching orgs
+        won't be emitted by the OrgsAdapter. Introduced specifically to
+        handle the Philadelphia situation, where roles and potentially
+        other weird data is listed on the jxn's org search page.
+        '''
+        return False
+
     def get_instance(self, **extra_instance_data):
+
+        if not self.should_drop_organization(self.data):
+            return
 
         instance_data = self.get_instance_data()
         instance_data.update(extra_instance_data)

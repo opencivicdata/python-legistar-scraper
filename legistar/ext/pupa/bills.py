@@ -61,7 +61,7 @@ class VoteAdapter(Adapter):
         data['classification'] = self.classify_motion_text(motion_text)
 
         # Drop the org if necessary. When org is the top-level org, omit.
-        if self.drop_organization(data):
+        if self.should_drop_organization(data):
             data.pop('organization', None)
 
         vote_data_list = data.pop('votes')
@@ -100,12 +100,12 @@ class VoteAdapter(Adapter):
         return self.cfg._BILL_VOTE_OPTION_MAP[option_text]
 
     @try_jxn_delegation
-    def drop_organization(self, data):
-        '''If this function returns True, the org is dropped.
+    def should_drop_organization(self, data):
+        '''If this function returns True, the org is dropped from the vote obj.
 
         XXX: Right now, always drops the org.
         '''
-        return data.pop('organization', None)
+        return True
 
     @try_jxn_delegation
     def classify_motion_text(self, motion_text):
