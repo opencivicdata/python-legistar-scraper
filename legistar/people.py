@@ -17,6 +17,10 @@ class PeopleFields(FieldAggregator):
     def get_fullname(self):
         return self.get_field_text('fullname')
 
+    @make_item('district')
+    def get_district(self):
+        return self.get_field_text('district')
+
     @make_item('website')
     def get_website(self):
         return self.get_field_url('website')
