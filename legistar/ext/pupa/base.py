@@ -112,6 +112,12 @@ class Converter(PupaExtBase):
 
     def __iter__(self):
         data = self.get_adapter().get_instance()
+
+        # This allows adapters to return None from get_instance
+        # as a way of dropping data that shoulnd't make it into pupa.
+        if not data:
+            return
+
         if isinstance(data, types.GeneratorType):
             yield from data
         else:
