@@ -263,9 +263,12 @@ class SolanoCounty(Config):
 
 
 class Chicago(Config):
-    division_id = 'ocd-jurisdiction/country:us/state:il/place:chicago'
+    division_id = 'ocd-division/country:us/state:il/place:chicago'
     nicknames = ['chicago', 'windy']
     root_url = 'https://chicago.legistar.com'
+    classification = 'government'
+    TIMEZONE = 'America/Chicago'
+
     PPL_DETAIL_TABLE_TEXT_ORG = 'Legislative Body'
     PPL_SEARCH_TABLE_TEXT_FULLNAME = 'Person Name'
     PPL_SEARCH_TABLE_TEXT_WEBSITE =  'Website'
