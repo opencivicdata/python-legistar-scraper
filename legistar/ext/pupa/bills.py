@@ -89,13 +89,18 @@ class VoteAdapter(Adapter):
     # Overridables
     # ------------------------------------------------------------------------
     @try_jxn_delegation
-    def get_vote_result(self, value):
+    def get_vote_result(self, result):
+        '''Noramalizes the vote result value using the default values on
+        Config base, possibly overridded by jxn.BILL_VOTE_RESULT_MAP.
         '''
-        '''
-        raise NotImplemented()
+        result = result.replace('-', ' ').lower()
+        return self.cfg._BILL_VOTE_RESULT_MAP[result]
 
     @try_jxn_delegation
     def get_vote_option(self, option_text):
+        '''Noramalizes the vote option value using the default values on
+        Config base, possibly overridded by jxn.BILL_VOTE_OPTION_MAP.
+        '''
         option_text = option_text.replace('-', ' ').lower()
         return self.cfg._BILL_VOTE_OPTION_MAP[option_text]
 
