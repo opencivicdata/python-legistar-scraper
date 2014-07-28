@@ -47,6 +47,8 @@ class VoteAdapter(Adapter):
     @make_item('votes', wrapwith=list)
     def gen_votes(self):
         for data in self.data['votes']:
+            if not data:
+                continue
             res = {}
             res['option'] = self.get_vote_option(data['vote'])
             res['note'] = data['vote']
