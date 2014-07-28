@@ -73,8 +73,13 @@ class NYC(Config):
     # ------------------------------------------------------------------------
     @make_item('bill.legislative_session')
     def bill_legislative_session(self, data):
-        session = data['actions'][0]['date'].year
+        if data['actions']:
+            session = data['actions'][0]['date'].year
+        else:
+            import pdb; pdb.set_trace()
+            session = data['on_agenda'].year
         return str(session)
+
 
     # ------------------------------------------------------------------------
     # Methods for customizing the pupa conversion process
