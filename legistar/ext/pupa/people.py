@@ -209,18 +209,27 @@ class PeopleAdapter(Adapter):
 
     def get_instance(self, **extra_instance_data):
         instance_data = self.get_instance_data(**extra_instance_data)
+
+        if self.should_drop_person(instance_data):
+            return
+
         instance = self.pupa_model(
             name=instance_data['name'],
             image=instance_data.get('image', ''))
 
+
         for key in ('links', 'sources', 'identifiers', 'contact_details'):
             helper_name = ('add_' + key).rstrip('s')
             helper = getattr(instance, helper_name)
-            for data in instance_data.get(key):
+            for data in instance_data.get(key, []):
                 helper(**data)
 
         instance.extras.update(instance_data['extras'])
         return instance
+
+    @try_jxn_delegation
+    def should_drop_person(self, data):
+        return False
 
 
 class PeopleConverter(Converter):

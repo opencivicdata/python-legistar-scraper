@@ -269,6 +269,11 @@ class Chicago(Config):
     BILL_SEARCH_TABLE_TEXT_FILE_NUMBER = 'Record #'
     BILL_DETAIL_TEXT_COMMITTEE = 'Current Controlling Legislative Body'
 
+    @overrides('PersonAdapter.should_drop_person')
+    def should_drop_person(self, data):
+        import pdb; pdb.set_trace()
+
+
 class MWRD(Config):
     division_id = 'ocd-division/country:us/state:il/sewer:mwrd'
     nicknames = ['mwrd']
