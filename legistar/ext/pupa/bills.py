@@ -188,12 +188,15 @@ class BillsAdapter(Adapter):
 
         bill.extras.update(data.pop('extras'))
 
+        for identifier in data.pop('identifiers'):
+            bill.add_identifier(**identifier)
+
+        import pdb; pdb.set_trace()
         yield bill
 
         for vote in data.pop('votes'):
             vote.set_bill(bill)
             yield vote
-
 
     # ------------------------------------------------------------------------
     # Overridables: sponsorships
