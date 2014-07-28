@@ -37,6 +37,12 @@ class MembershipAdapter(Adapter):
     def get_org_id(self):
         return self.data['organization_id']
 
+    @make_item('role')
+    def get_org_id(self):
+        '''Role defaults to empty string.
+        '''
+        return self.data['role'] or ''
+
     def get_instance(self, **extra_instance_data):
         # Get instance data.
         instance_data = self.get_instance_data()
@@ -46,6 +52,7 @@ class MembershipAdapter(Adapter):
         # Create the instance.
         instance = self.pupa_model(**instance_data)
         instance.extras.update(extras)
+
         return instance
 
 
