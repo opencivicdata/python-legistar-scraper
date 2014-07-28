@@ -115,6 +115,11 @@ class Base(PupatypeMixin):
     exception = ChainedLookup('exception')
 
     @property
+    def firefox(self):
+        from legistar import selenium_client
+        return selenium_client.browser
+
+    @property
     def chainmap(self):
         '''This property manages the instance's ChainMap objects.
         '''
