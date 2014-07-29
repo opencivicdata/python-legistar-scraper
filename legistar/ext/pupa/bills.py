@@ -162,7 +162,7 @@ class BillsAdapter(Adapter):
             more_data = dict(
                 legislative_session=self.data['legislative_session'])
             vote = converter.get_instance(**more_data)
-            if vote.votes:
+            if vote is not None and vote.votes:
                 yield vote
 
     @make_item('subject')
@@ -202,6 +202,9 @@ class BillsAdapter(Adapter):
 
         for identifier in data.pop('identifiers'):
             bill.add_identifier(**identifier)
+
+        if bill.title is None:
+            bill.title = ''
 
         yield bill
 
