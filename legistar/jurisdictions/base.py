@@ -427,7 +427,7 @@ class Config(Base, metaclass=ConfigMeta):
     # Bill search config.
     # ------------------------------------------------------------------------
     # The element name of the link to switch btw simple, advanced search.
-    BILL_SEARCH_SWITCH_EL_NAME = 'ctl00_ContentPlaceHolder1_btnSwitch'
+    BILL_SEARCH_SWITCH_EL_ID = 'ctl00_ContentPlaceHolder1_btnSwitch'
     # The button text to switch to simple search, normalized to lower case.
     BILL_SEARCH_SWITCH_SIMPLE = 'simple search'
 
