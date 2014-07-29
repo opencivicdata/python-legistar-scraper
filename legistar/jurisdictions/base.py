@@ -151,6 +151,10 @@ class Config(Base, metaclass=ConfigMeta):
     # ------------------------------------------------------------------------
     # Orgs general config.
     # ------------------------------------------------------------------------
+    # Which pupatype legistar scraper should be used to generate the list of
+    # orgs at the beginning of a pupa scrape.
+    GET_ORGS_FROM = 'orgs'
+
     ORG_SEARCH_VIEW_CLASS = 'legistar.orgs.OrgsSearchView'
     ORG_DETAIL_VIEW_CLASS = 'legistar.orgs.OrgsDetailView'
     ORG_SEARCH_TABLE_CLASS = 'legistar.orgs.OrgsSearchTable'

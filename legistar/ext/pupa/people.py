@@ -1,7 +1,12 @@
+import os
 import re
+# import glob
+# import json
 
+import pupa
 import pupa.scrape
 from pupa.utils import make_psuedo_id
+from hercules import CachedAttr
 
 from legistar.utils.itemgenerator import make_item
 from legistar.ext.pupa.base import Adapter, Converter, SetDefault
@@ -62,6 +67,28 @@ class MembershipConverter(Converter):
     def __iter__(self):
         yield from self.create_memberships()
 
+    # @CachedAttr
+    # def scraped_orgs(self):
+    #     '''Create a name --> data dict from the scrape
+    #     org data.
+    #     '''
+    #     path = os.path.join(
+    #         pupa.settings.SCRAPED_DATA_DIR,
+    #         self.cfg.pupa_jxn.__module__)
+    #     orgs = {}
+    #     for filename in glob.glob(os.path.join(path, 'organization*')):
+    #         with open(filename) as f:
+    #             data = json.load(f)
+    #             orgs[data['name']] = data
+    #     return orgs
+
+    # def get_org_id(self, org_name):
+    #     '''Gets org from the same name from scraped data.
+    #     '''
+    #     orgs = self.scraped_orgs
+    #     if org_name in orgs:
+    #         return orgs[org_name]['_id']
+
     def get_org(self, org_name):
         '''Gets or creates the org with name equal to
         kwargs['name']. Caches the result.
@@ -70,6 +97,21 @@ class MembershipConverter(Converter):
         with SetDefault(self, 'orgs', {}) as orgs:
             # Get the org.
             org = orgs.get(org_name)
+
+            if org is not None:
+                # Cache hit.
+                return created, org
+
+            # Create the org.
+            classification = self.cfg.get_org_classification(org_name)
+            org = pupa.scrape.Organization(
+                name=org_name, classification=classification)
+            for source in self.person.sources:
+                org.add_source(**source)
+            created = True
+
+            # Cache it.
+            orgs[org_name] = org
 
             if org is not None:
                 # Cache hit.
@@ -91,6 +133,7 @@ class MembershipConverter(Converter):
 
         return created, org
 
+
     def create_membership(self, data):
         '''Retrieves the matching committee and adds this person
         as a member of the committee.
@@ -98,15 +141,18 @@ class MembershipConverter(Converter):
         if 'person_id' not in data:
             data['person_id'] = self.person._id
 
-        # Get or create the committee.
+        # Get the committee.
         if 'organization_id' not in data:
             org_name = data.pop('org')
             created, org = self.get_org(org_name)
             if created:
                 yield org
 
-        # Add the person and org ids.
+            # Add the person and org ids.
             data['organization_id'] = org._id
+
+            # org_id = self.get_org_id(org_name)
+            # data['organization_id'] = org_id
 
         # Convert the membership to pupa object.
         adapter = self.make_child(self.adapter, data)
@@ -262,7 +308,9 @@ class PeopleConverter(Converter):
             self.memberships.pop(i)
             break
 
-        yield self.person
-
         # Create memberships.
-        yield from self.gen_memberships()
+        memberships = list(self.gen_memberships())
+        if memberships:
+            # Don't yield out people with no memberships.
+            yield self.person
+            yield from iter(memberships)

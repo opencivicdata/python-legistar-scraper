@@ -127,10 +127,12 @@ class SanFrancisco(Config):
     division_id = 'ocd-division/country:us/state:ca/place:san_francisco'
 
     TIMEZONE = 'America/Los_Angeles'
+
     TOPLEVEL_ORG_MEMBERSHIP_TITLE_TEXT = 'Supervisor'
     TOPLEVEL_ORG_MEMBERSHIP_NAME_TEXT = 'Board of Supervisors'
     EVT_SEARCH_TABLE_TEXT_AUDIO = 'Audio'  # sfgov has this
     BILL_SEARCH_TABLE_TEXT_INTRO_DATE = 'Introduced'
+    GET_ORGS_FROM = 'people'
 
     @make_item('person.district')
     def get_district(self, data):
@@ -144,15 +146,6 @@ class SanFrancisco(Config):
             import pdb; pdb.set_trace()
             session = data['on_agenda'].year
         return str(session)
-
-    @overrides('VoteAdapter.get_vote_result')
-    def get_vote_result(self, value):
-        '''This might be uniform enough to push back into base config.
-        '''
-        if value.lower() == 'pass':
-            return 'pass'
-        else:
-            return 'fail'
 
 
 class Philadelphia(Config):
@@ -269,6 +262,7 @@ class Chicago(Config):
     classification = 'government'
     TIMEZONE = 'America/Chicago'
 
+    GET_ORGS_FROM = 'people'
     PPL_DETAIL_TABLE_TEXT_ORG = 'Legislative Body'
     PPL_SEARCH_TABLE_TEXT_FULLNAME = 'Person Name'
     PPL_SEARCH_TABLE_TEXT_WEBSITE =  'Website'

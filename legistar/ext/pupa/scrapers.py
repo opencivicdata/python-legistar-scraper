@@ -28,8 +28,6 @@ class PupaGenerator(PupaExtBase):
     def __init__(self, *pupatypes):
         self._pupatypes = pupatypes
 
-        self.idents = set()
-
     def get_pupatypes(self):
         pupatypes = getattr(self, 'pupatypes', ())
         return set(pupatypes + self._pupatypes)
@@ -98,6 +96,7 @@ class PupaGenerator(PupaExtBase):
             session=self.get_pupa_scraper())
 
         # Inherit the jurisdiction's chainmap!
+        scraper.config.pupa_jxn = pupa_jxn
         scraper.config.provide_chainmap_to(self)
         # So children can access the generator.
         self.chainmap['generator'] = self
