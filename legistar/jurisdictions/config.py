@@ -164,9 +164,9 @@ class Philadelphia(Config):
         import pdb; pdb.set_trace()
         return re.sub(rgx, '', )
 
-    @overrides('OrgAdapter.should_drop_organization')
+    @overrides('OrgsAdapter.should_drop_organization')
     def should_drop_organization(self, data):
-        import pdb; pdb.set_trace()
+        return data['type'].lower() not in ('committee', 'department')
 
     @make_item('bill.legislative_session')
     def bill_legislative_session(self, data):
