@@ -134,7 +134,8 @@ class BillsAdapter(Adapter):
     aliases = [
         ('file_number', 'identifier'),
         ]
-    extras_keys = ['law_number', 'status']
+    extras_keys = [
+        'law_number', 'status', 'journal_page']
 
     @make_item('classification')
     def get_classn(self):
