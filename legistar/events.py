@@ -117,11 +117,11 @@ class EventsSearchTableRow(TableRow, EventsFields):
 
     @make_item('name')
     def get_name(self):
-        '''The pupa name, or Legistar "topic" of the meeting.
+        '''The pupa name of the meeting. In some jurisdictions,
+        the topic field will be better. But it caused dupes
+        in NYC.
         '''
-        name = self.get_field_text('topic')
-        if name is None:
-            name = self.get_field_text('name')
+        name = self.get_field_text('name')
         return name
 
     @make_item('end_time')
