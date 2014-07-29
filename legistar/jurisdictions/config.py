@@ -262,6 +262,23 @@ class Chicago(Config):
     def should_drop_person(self, data):
         import pdb; pdb.set_trace()
 
+    @overrides('OrgsAdapter.get_classification')
+    def orgs_get_classn(self):
+        return self.cfg.get_org_classification(self.data['name'])
+
+    @overrides('OrgsAdapter.should_drop_organization')
+    def should_drop_organization(self, data):
+        return 'office of' in data['name'].lower()
+
+    @make_item('bill.legislative_session')
+    def bill_legislative_session(self, data):
+        if data['actions']:
+            session = data['actions'][0]['date'].year
+        else:
+            import pdb; pdb.set_trace()
+            session = data['on_agenda'].year
+        return str(session)
+
 
 class MWRD(Config):
     division_id = 'ocd-division/country:us/state:il/sewer:mwrd'
