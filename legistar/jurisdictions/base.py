@@ -532,6 +532,7 @@ class Config(Base, metaclass=ConfigMeta):
     BILL_DEFAULT_VOTE_OPTION_MAP =  ChainMap({
         'yes': 'yes',
         'aye': 'yes',
+        'yea': 'yes',
         'affirmative': 'yes',
         'no': 'no',
         'nay': 'no',
