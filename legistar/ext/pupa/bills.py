@@ -18,7 +18,7 @@ def _get_date(date):
 class ActionAdapter(Adapter):
     aliases = [('text', 'description')]
     extras_keys = ['version', 'media', 'result']
-    drop_keys = ['sources']
+    drop_keys = ['sources', 'journal_page']
 
     @make_item('date')
     def get_date(self):
@@ -32,7 +32,7 @@ class VoteAdapter(Adapter):
         ('text', 'motion_text'),
         ]
     drop_keys = ['date']
-    extras_keys = ['version', 'media']
+    extras_keys = ['version', 'media', 'journal_page']
 
     @make_item('start_date')
     def get_date(self):
@@ -135,7 +135,7 @@ class BillsAdapter(Adapter):
         ('file_number', 'identifier'),
         ]
     extras_keys = [
-        'law_number', 'status', 'journal_page']
+        'law_number', 'status']
 
     @make_item('classification')
     def get_classn(self):
