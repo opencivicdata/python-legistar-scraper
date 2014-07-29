@@ -20,10 +20,6 @@ class NYC(Config):
     EVT_DETAIL_TEXT_VIDEO = 'Multimedia'
     EVT_DETAIL_TABLE_TEXT_VIDEO = 'Multimedia'
 
-    # BILL_VOTE_OPTION_MAP = {
-    #     'maternity': 'excused',
-    #     }
-
     BILL_CLASSIFICATIONS = {
         'Introduction': 'bill',
         'Local Law': 'bill',
@@ -100,15 +96,6 @@ class NYC(Config):
         name = self.data['name'].strip()
         if name:
             yield name
-
-    @overrides('VoteAdapter.get_vote_result')
-    def get_vote_result(self, value):
-        '''This might be uniform enough to push back into base config.
-        '''
-        if value == 'pass':
-            return 'pass'
-        else:
-            return 'fail'
 
     @overrides('VoteAdapter.classify_motion_text')
     def classify_motion_text(self, motion_text):

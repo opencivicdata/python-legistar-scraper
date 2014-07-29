@@ -530,12 +530,16 @@ class Config(Base, metaclass=ConfigMeta):
     BILL_ACTION_TEXT_VOTE = 'Vote'
 
     BILL_DEFAULT_VOTE_OPTION_MAP =  ChainMap({
+        'yes': 'yes',
+        'aye': 'yes',
         'affirmative': 'yes',
+        'no': 'no',
+        'nay': 'no',
         'negative': 'no',
         'absent': 'absent',
-        'abstain': 'abstain',
         'non voting': 'not voting',
         'excused': 'excused',
+        'abstain': 'abstain',
         'conflict': 'abstain',
         'maternity': 'excused',
         })
