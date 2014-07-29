@@ -42,7 +42,8 @@ class VoteAdapter(Adapter):
     def get_result(self):
         if not self.data['result']:
             raise self.SkipItem()
-        return self.get_vote_result(self.data['result'])
+        result = self.get_vote_result(self.data['result'])
+        return result
 
     @make_item('votes', wrapwith=list)
     def gen_votes(self):
@@ -85,6 +86,11 @@ class VoteAdapter(Adapter):
 
         vote.extras.update(extras)
 
+        # Skip no-result "votes"
+        # https://sfgov.legistar.com/LegislationDetail.aspx?ID=1866659&GUID=A23A12AB-C833-4235-81A1-02AD7B8E7CF0&Options=Advanced&Search
+        if vote.result is None:
+            return
+
         return vote
 
     # ------------------------------------------------------------------------
@@ -96,7 +102,8 @@ class VoteAdapter(Adapter):
         Config base, possibly overridded by jxn.BILL_VOTE_RESULT_MAP.
         '''
         result = result.replace('-', ' ').lower()
-        return self.cfg._BILL_VOTE_RESULT_MAP[result]
+        result = self.cfg._BILL_VOTE_RESULT_MAP[result]
+        return result
 
     @try_jxn_delegation
     def get_vote_option(self, option_text):
