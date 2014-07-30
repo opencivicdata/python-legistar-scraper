@@ -1,7 +1,7 @@
 import os
 import re
-# import glob
-# import json
+import glob
+import json
 
 import pupa
 import pupa.scrape
@@ -67,28 +67,6 @@ class MembershipConverter(Converter):
     def __iter__(self):
         yield from self.create_memberships()
 
-    # @CachedAttr
-    # def scraped_orgs(self):
-    #     '''Create a name --> data dict from the scrape
-    #     org data.
-    #     '''
-    #     path = os.path.join(
-    #         pupa.settings.SCRAPED_DATA_DIR,
-    #         self.cfg.pupa_jxn.__module__)
-    #     orgs = {}
-    #     for filename in glob.glob(os.path.join(path, 'organization*')):
-    #         with open(filename) as f:
-    #             data = json.load(f)
-    #             orgs[data['name']] = data
-    #     return orgs
-
-    # def get_org_id(self, org_name):
-    #     '''Gets org from the same name from scraped data.
-    #     '''
-    #     orgs = self.scraped_orgs
-    #     if org_name in orgs:
-    #         return orgs[org_name]['_id']
-
     def get_org(self, org_name):
         '''Gets or creates the org with name equal to
         kwargs['name']. Caches the result.
@@ -116,15 +94,6 @@ class MembershipConverter(Converter):
             if org is not None:
                 # Cache hit.
                 return created, org
-
-            # Create the org.
-            classification = self.cfg.get_org_classification(org_name)
-            org = pupa.scrape.Organization(
-                name=org_name, classification=classification)
-            created = True
-
-            # Cache it.
-            orgs[org_name] = org
 
             # Add a source to the org.
             for source in self.person.sources:
