@@ -154,6 +154,7 @@ class Config(Base, metaclass=ConfigMeta):
     # Which pupatype legistar scraper should be used to generate the list of
     # orgs at the beginning of a pupa scrape.
     GET_ORGS_FROM = 'orgs'
+    EXCLUDE_TOPLEVEL_ORG_MEMBERSHIPS = True
 
     ORG_SEARCH_VIEW_CLASS = 'legistar.orgs.OrgsSearchView'
     ORG_DETAIL_VIEW_CLASS = 'legistar.orgs.OrgsDetailView'
