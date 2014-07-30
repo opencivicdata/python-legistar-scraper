@@ -286,12 +286,42 @@ class PeopleConverter(Converter):
             if memb['org'] == self.cfg.TOPLEVEL_ORG_MEMBERSHIP_NAME_TEXT:
                 self.person._start_date = memb.get('start_date')
                 self.person._end_date = memb.get('end_date')
-            self.memberships.pop(i)
+            if self.cfg.EXCLUDE_TOPLEVEL_ORG_MEMBERSHIPS:
+                self.memberships.pop(i)
             break
 
         # Create memberships.
         memberships = list(self.gen_memberships())
+        yield self.person
         if memberships:
             # Don't yield out people with no memberships.
-            yield self.person
             yield from iter(memberships)
+        else:
+            # The person has no memberships. Give him/her
+            #  a membership in the legislature.
+            org = self.scraped_legislature
+            yield pupa.scrape.Membership(
+                person_id=self.person._id,
+                organization_id=org['_id'])
+
+    def scraped_orgs(self):
+        '''Create a name --> data dict from the scrape
+        org data.
+        '''
+        path = os.path.join(
+            pupa.settings.SCRAPED_DATA_DIR,
+            self.cfg.pupa_jxn.__module__)
+        orgs = {}
+        for filename in glob.glob(os.path.join(path, 'organization*')):
+            with open(filename) as f:
+                data = json.load(f)
+                orgs[data['name']] = data
+        return orgs
+
+    @CachedAttr
+    def scraped_legislature(self):
+        '''Gets previously scrape legislature org.
+        '''
+        for org in self.scraped_orgs().values():
+            if org['classification'] == 'legislature':
+                return org
