@@ -56,7 +56,7 @@ class FieldAggregator(Base, ItemGenerator):
     config values. It's __iter__ method generates a list of 2-tuples,
     so to convert it to a dict, it's just dict(instance).
     '''
-    def get_label_text(self, key):
+    def get_label_text(self, key, skipitem=True):
         '''Get field label text using the class's prefix:
 
         self.get_label_text('topic') --> self.cfg.EVT_TABLE_TEXT_TOPIC
@@ -65,8 +65,9 @@ class FieldAggregator(Base, ItemGenerator):
         try:
             return super().get_config_value(key)
         except self.ConfigAttributeError:
-            self.info('No field %s found on %r. Skipping.', key, self)
-            raise self.SkipItem()
+            if skipitem:
+                self.info('No field %s found on %r. Skipping.', key, self)
+                raise self.SkipItem()
 
     def get_field_data(self, label_text):
         key = self.get_label_text(label_text)
