@@ -38,7 +38,7 @@ class EventsAdapter(Adapter):
 
     @make_item('agenda', wrapwith=list)
     def gen_agenda(self):
-        for data in self.data.get('agenda'):
+        for data in self.data.get('agenda', []):
             yield AgendaItemAdapter(data).get_instance_data()
 
     @make_item('all_day')
