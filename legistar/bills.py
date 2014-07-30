@@ -217,6 +217,33 @@ class BillsDetailView(DetailView, BillsFields):
                 scheme="legistar_" + idtype.lower(),
                 identifier=ident)
 
+    @make_item('legislative_session')
+    def get_legislative_session(self):
+        dates = []
+        labels = ('agenda', 'created')
+        for label in labels:
+            labeltext = self.get_label_text(label, skipitem=False)
+            if labeltext not in self.field_data.keys():
+                continue
+            if not self.field_data[labeltext]:
+                continue
+            data = self.field_data[labeltext][0]
+            fmt = self.get_config_value('datetime_format')
+            text = data.get_text()
+            if text is not None:
+                dt = datetime.strptime(text, fmt)
+                dt = self.cfg.datetime_add_tz(dt)
+                dates.append(dt)
+
+        _, actions = self.gen_action()
+        for action in actions:
+            dates.append(action['date'])
+
+        if dates:
+            return str(max(dates).year)
+
+        self.critical('Need session date.')
+        import pdb; pdb.set_trace()
 
 class BillsDetailTable(Table):
     sources_note = 'bill detail table'
