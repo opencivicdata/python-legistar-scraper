@@ -91,7 +91,9 @@ class EventsAdapter(Adapter):
         instance.extras.update(extras)
 
         for agenda_data in agenda:
-            description = agenda_data.pop('description')
+            description = agenda_data.pop('description', '')
+            if not description:
+                continue
             agenda_item = instance.add_agenda_item(description)
             self.add_agenda_data(agenda_item, agenda_data)
 
