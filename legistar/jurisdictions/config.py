@@ -314,7 +314,13 @@ class LassenCounty(Config):
     '''Works with the defaults!
     '''
     nicknames = ['lassen']
-    root_url = 'http://ramkumar.legistar.com/'
+    root_url = 'http://lassen.legistar.com/'
+    division_id = 'ocd-division/country:us/state:ca/county:lassen'
+    classification = 'government'
+    TIMEZONE = 'America/Los_Angeles'
+
+    BILL_DETAIL_TEXT_AGENDA = 'OnAgenda2'
+    GET_ORGS_FROM = 'people'
 
 
 class LongBeach(Config):
