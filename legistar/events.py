@@ -22,7 +22,7 @@ class EventsFields(FieldAggregator):
 
     @make_item('description')
     def get_description(self):
-        return self.get_field_text('description')
+        return self.get_field_text('topic') or 'Meeting'
 
     @make_item('media', wrapwith=list)
     def gen_media(self):
@@ -171,6 +171,7 @@ class EventsSearchForm(Form):
 class EventsDetailView(DetailView, EventsFields):
     sources_note = 'event detail'
 
+
     @make_item('agenda', wrapwith=list)
     def gen_agenda(self):
         yield from self.Form(self)
@@ -200,7 +201,7 @@ class EventsDetailTableRow(TableRow):
 
     @make_item('description')
     def get_description(self):
-        return self.get_field_text('title')
+        return self.get_field_text('title') or 'Meeting'
 
     @make_item('agenda_num')
     def get_agenda_num(self):
