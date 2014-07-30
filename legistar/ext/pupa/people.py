@@ -102,6 +102,14 @@ class MembershipConverter(Converter):
 
         return created, org
 
+    @try_jxn_delegation
+    def should_drop_organization(self, data):
+        '''If this function is overridden and returns true, matching orgs
+        won't be emitted by the OrgsAdapter. Introduced specifically to
+        handle the Philadelphia situation, where roles and potentially
+        other weird data is listed on the jxn's org search page.
+        '''
+        return False
 
     def create_membership(self, data):
         '''Retrieves the matching committee and adds this person
@@ -109,6 +117,10 @@ class MembershipConverter(Converter):
         '''
         if 'person_id' not in data:
             data['person_id'] = self.person._id
+
+        if hasattr(self.cfg, 'should_drop_organization'):
+            if self.cfg.should_drop_organization(dict(name=data['org'])):
+                return
 
         # Get the committee.
         if 'organization_id' not in data:
