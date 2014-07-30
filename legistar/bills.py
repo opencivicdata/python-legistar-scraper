@@ -211,6 +211,8 @@ class BillsDetailView(DetailView, BillsFields):
         detail_url = self.chainmap['sources'][self.sources_note]
         url = urlparse(detail_url)
         for idtype, ident in parse_qsl(url.query):
+            if idtype == 'options' or ident == 'Advanced':
+                continue
             yield dict(
                 scheme="legistar_" + idtype.lower(),
                 identifier=ident)
