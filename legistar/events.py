@@ -279,3 +279,6 @@ class EventsDetailTableRow(TableRow):
 class EventsDetailForm(Form):
     skip_first_submit = True
     sources_note = 'event detail'
+
+    def get_query(self, **kwargs):
+        return kwargs
