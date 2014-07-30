@@ -133,6 +133,10 @@ class Philadelphia(Config):
     PPL_SEARCH_TABLE_DETAIL_AVAILABLE = False
     BILL_DETAIL_TEXT_COMMITTEE = 'In control'
 
+    ORG_CLASSIFICATIONS = {
+        'CITY COUNCIL': 'legislature',
+    }
+
     @make_item('person.district')
     def get_district(self, data):
         return self.DEFAULT_AT_LARGE_STRING
