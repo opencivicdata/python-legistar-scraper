@@ -84,7 +84,7 @@ class EventsAdapter(Adapter):
         for participant in participants:
             instance.add_participant(**participant)
         for document in documents:
-            instance.add_document(**document)
+            instance.add_document(on_duplicate='ignore', **document)
         for source in sources:
             instance.add_source(**source)
 
