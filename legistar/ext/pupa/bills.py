@@ -1,8 +1,10 @@
 import datetime
 import collections
+from urllib.parse import urlparse, parse_qsl
 
 import pupa.scrape
 from opencivicdata import common as ocd_common
+from hercules import CachedAttr
 
 from legistar.utils.itemgenerator import make_item
 from legistar.jurisdictions.utils import try_jxn_delegation
@@ -33,6 +35,32 @@ class VoteAdapter(Adapter):
         ]
     drop_keys = ['date']
     extras_keys = ['version', 'media', 'journal_page']
+
+    @make_item('identifier')
+    def get_identifier(self):
+        '''The internal legistar bill id and guid found
+        in the detail page url.
+        '''
+        i = self.data.pop('i')
+        for source in self.data['sources']:
+            if not 'historydetail' in source['url'].lower():
+                continue
+            url = urlparse(source['url'])
+            ids = {}
+            for idtype, ident in parse_qsl(url.query):
+                if idtype == 'options':
+                    continue
+                ids[idtype.lower()] = ident
+            return ids['guid']
+
+        # The vote has no "action details" page, thus no identifier.
+        # Fudge one based on the bill's guid.
+        for source in self.bill_adapter.data['identifiers']:
+            if source['scheme'] != 'legistar_guid':
+                continue
+            return '%s-vote%d' % (source['identifier'], i)
+
+        import pdb; pdb.set_trace()
 
     @make_item('start_date')
     def get_date(self):
@@ -71,6 +99,7 @@ class VoteAdapter(Adapter):
         extras = data.pop('extras')
         sources = data.pop('sources')
 
+        data.pop('i', None)
         vote = self.pupa_model(**data)
 
         counts = collections.Counter()
@@ -157,8 +186,10 @@ class BillsAdapter(Adapter):
 
     @make_item('votes', wrapwith=list)
     def gen_votes(self):
-        for data in self.data.get('actions'):
+        for i, data in enumerate(self.data.get('actions')):
+            data['i'] = i
             converter = self.make_child(VoteAdapter, data)
+            converter.bill_adapter = self
             more_data = dict(
                 legislative_session=self.data['legislative_session'])
             vote = converter.get_instance(**more_data)
