@@ -35,8 +35,8 @@ class DateGetter:
 class BillsFields(FieldAggregator, DateGetter):
 
     text_fields = (
-        'file_number', 'law_number', 'type', 'status',
-        'title', 'name', 'version', 'sponsor_office')
+        'law_number', 'type', 'status',
+        'name', 'version', 'sponsor_office')
 
     @make_item('intro_date')
     def get_intro_data(self):
@@ -140,6 +140,28 @@ class BillsSearchForm(Form):
 class BillsDetailView(DetailView, BillsFields):
     sources_note = 'bill detail'
     text_fields = ('version', 'name')
+
+    @make_item('file_number')
+    def get_file_number(self):
+        try:
+            return self.get_field_text('file_number')
+        except:
+            msg = (
+                'Bill appears to have no file number (bill_id). '
+                'Skipping it. If this is wrong, double check the '
+                'jurisdiction\'s BILL_DETAIL_TEXT_FILE_NUMBER setting '
+                'and make sure it matches the site.')
+            self.warning(msg)
+            import pudb; pudb.set_trace()
+            raise self.SkipDocument()
+
+    @make_item('title')
+    def get_title(self):
+        title = self.get_field_text('title')
+        # If no title, re-use type (i.e., "Resolution")
+        if not title:
+            title = self.get_field_text('type')
+        return title
 
     @make_item('agenda')
     def get_agenda_date(self):
