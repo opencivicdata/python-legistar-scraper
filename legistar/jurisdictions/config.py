@@ -16,6 +16,9 @@ class NYC(Config):
     classification = 'government'
     division_id = 'ocd-division/country:us/state:ny/place:new_york'
 
+    GET_ORGS_FROM = 'people'
+    EXCLUDE_TOPLEVEL_ORG_MEMBERSHIPS = False
+
     EVT_SEARCH_TABLE_TEXT_VIDEO = 'Multimedia'
     EVT_DETAIL_TEXT_VIDEO = 'Multimedia'
     EVT_DETAIL_TABLE_TEXT_VIDEO = 'Multimedia'
@@ -65,19 +68,6 @@ class NYC(Config):
             return party
 
     # ------------------------------------------------------------------------
-    # Methods to add specific fields onto bill data.
-    # ------------------------------------------------------------------------
-    @make_item('bill.legislative_session')
-    def bill_legislative_session(self, data):
-        if data['actions']:
-            session = data['actions'][0]['date'].year
-        else:
-            import pdb; pdb.set_trace()
-            session = data['on_agenda'].year
-        return str(session)
-
-
-    # ------------------------------------------------------------------------
     # Methods for customizing the pupa conversion process
     # ------------------------------------------------------------------------
     SPONSORSHIP_JUNK = (
@@ -124,15 +114,6 @@ class SanFrancisco(Config):
     @make_item('person.district')
     def get_district(self, data):
         return self.DEFAULT_AT_LARGE_STRING
-
-    @make_item('bill.legislative_session')
-    def bill_legislative_session(self, data):
-        if data['actions']:
-            session = data['actions'][0]['date'].year
-        else:
-            import pdb; pdb.set_trace()
-            session = data['on_agenda'].year
-        return str(session)
 
 
 class Philadelphia(Config):
