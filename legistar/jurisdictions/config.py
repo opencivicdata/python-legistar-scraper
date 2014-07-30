@@ -151,16 +151,39 @@ class Philadelphia(Config):
 
     @overrides('OrgsAdapter.should_drop_organization')
     def should_drop_organization(self, data):
-        return data['type'].lower() not in ('committee', 'department')
+        allowed_orgs = ('committee', 'department', 'city council')
+        return data['type'].lower() not in allowed_orgs
 
-    @make_item('bill.legislative_session')
-    def bill_legislative_session(self, data):
-        if data['actions']:
-            session = data['actions'][0]['date'].year
-        else:
-            import pdb; pdb.set_trace()
-            session = data['on_agenda'].year
-        return str(session)
+
+class Chicago(Config):
+    division_id = 'ocd-division/country:us/state:il/place:chicago'
+    nicknames = ['chicago', 'windy']
+    root_url = 'https://chicago.legistar.com'
+    classification = 'government'
+    TIMEZONE = 'America/Chicago'
+
+    GET_ORGS_FROM = 'people'
+    EXCLUDE_TOPLEVEL_ORG_MEMBERSHIPS = False
+
+    PPL_DETAIL_TABLE_TEXT_ORG = 'Legislative Body'
+    PPL_SEARCH_TABLE_TEXT_FULLNAME = 'Person Name'
+    PPL_SEARCH_TABLE_TEXT_WEBSITE =  'Website'
+    ORG_SEARCH_TABLE_TEXT_NAME = 'Legislative Body'
+
+    BILL_SEARCH_TABLE_TEXT_FILE_NUMBER = 'Record #'
+    BILL_DETAIL_TEXT_COMMITTEE = 'Current Controlling Legislative Body'
+
+    @overrides('OrgsAdapter.get_classification')
+    def orgs_get_classn(self):
+        return self.cfg.get_org_classification(self.data['name'])
+
+    @overrides('OrgsAdapter.should_drop_organization')
+    def should_drop_organization(self, data):
+        return 'office of' in data['name'].lower()
+
+    # @overrides('PersonAdapter.should_drop_person')
+    # def should_drop_person(self, data):
+    #     return 'office of' in data['name'].lower()
 
 
 class Madison(Config):
@@ -226,43 +249,6 @@ class SolanoCounty(Config):
     nicknames = ['solano']
     root_url = 'https://solano.legistar.com'
 
-
-class Chicago(Config):
-    division_id = 'ocd-division/country:us/state:il/place:chicago'
-    nicknames = ['chicago', 'windy']
-    root_url = 'https://chicago.legistar.com'
-    classification = 'government'
-    TIMEZONE = 'America/Chicago'
-
-    GET_ORGS_FROM = 'people'
-    PPL_DETAIL_TABLE_TEXT_ORG = 'Legislative Body'
-    PPL_SEARCH_TABLE_TEXT_FULLNAME = 'Person Name'
-    PPL_SEARCH_TABLE_TEXT_WEBSITE =  'Website'
-    ORG_SEARCH_TABLE_TEXT_NAME = 'Legislative Body'
-
-    BILL_SEARCH_TABLE_TEXT_FILE_NUMBER = 'Record #'
-    BILL_DETAIL_TEXT_COMMITTEE = 'Current Controlling Legislative Body'
-
-    @overrides('PersonAdapter.should_drop_person')
-    def should_drop_person(self, data):
-        import pdb; pdb.set_trace()
-
-    @overrides('OrgsAdapter.get_classification')
-    def orgs_get_classn(self):
-        return self.cfg.get_org_classification(self.data['name'])
-
-    @overrides('OrgsAdapter.should_drop_organization')
-    def should_drop_organization(self, data):
-        return 'office of' in data['name'].lower()
-
-    @make_item('bill.legislative_session')
-    def bill_legislative_session(self, data):
-        if data['actions']:
-            session = data['actions'][0]['date'].year
-        else:
-            import pdb; pdb.set_trace()
-            session = data['on_agenda'].year
-        return str(session)
 
 
 class MWRD(Config):
