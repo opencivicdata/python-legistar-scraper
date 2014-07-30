@@ -327,11 +327,7 @@ class BillsDetailAction(DetailView, ActionBase):
 
     @make_item('sources', wrapwith=list)
     def gen_sources(self):
-        grouped = collections.defaultdict(set)
-        for note, url in self.chainmap['sources'].items():
-            grouped[url].add(note)
-        for url, notes in grouped.items():
-            yield dict(url=url, note=', '.join(sorted(notes)))
+        yield dict(url=self.url, note='action detail')
 
 
 class BillsDetailActionTable(Table, ActionBase):
