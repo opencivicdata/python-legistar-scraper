@@ -541,10 +541,12 @@ class Config(Base, metaclass=ConfigMeta):
         'negative': 'no',
         'absent': 'absent',
         'non voting': 'not voting',
+        'not voting': 'not voting',
         'excused': 'excused',
         'abstain': 'abstain',
         'conflict': 'abstain',
         'maternity': 'excused',
+        'recused': 'excused',
         })
 
     @property
