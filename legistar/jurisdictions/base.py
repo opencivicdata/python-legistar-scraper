@@ -9,7 +9,6 @@ from os.path import dirname, abspath, join
 
 import pytz
 import requests
-from opencivicdata import common as ocd_common
 
 import legistar
 from legistar.client import Client
