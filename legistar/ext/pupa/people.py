@@ -131,13 +131,19 @@ class MembershipConverter(Converter):
             # Add the person and org ids.
             data['organization_id'] = org._id
 
-            # org_id = self.get_org_id(org_name)
-            # data['organization_id'] = org_id
-
         # Convert the membership to pupa object.
         adapter = self.make_child(self.adapter, data)
         membership = adapter.get_instance()
+
         yield membership
+
+    @try_jxn_delegation
+    def should_create_legislature_membership(self):
+        '''The default is to leave the membership in the legislature
+        to the content of the people detail pages. But Philly doesn't
+        provide it, hence this hack.
+        '''
+        return False
 
     def create_memberships(self):
         # Yield the memberships found in the person's detail table.
@@ -145,32 +151,12 @@ class MembershipConverter(Converter):
             yield from self.create_membership(membership)
 
         # Also, if the person has a party, emit a party membership.
-        if not self.party:
+        if not self.party and self.cfg.PPL_PARTY_REQUIRED:
             return
 
-        post_kwargs = {}
-        post_kwargs['organization__classification'] = 'legislature'
-        if self.district:
-            post_kwargs['label'] = self.district
-
-        membership = dict(
-            person_id=self.person._id,
-            organization_id=make_psuedo_id(classification="legislature"),
-            post_id=make_psuedo_id(**post_kwargs),
-            role='member',
-            start_date=self.person._start_date,
-            end_date=self.person._end_date)
-        yield self.create_membership(membership)
-
-        # create a party membership
-        if self.party:
-            membership = dict(
-                person_id=self.person._id,
-                organization_id=make_psuedo_id(
-                    classification="party", name=self.party),
-                role='member')
-            yield self.create_membership(membership)
-
+        if self.should_create_legislature_membership():
+            org = self.get_legislature()
+            org.add_member(self.person, role='Council Member')
 
 # ------------------------------------------------------------------------
 # People
@@ -278,49 +264,17 @@ class PeopleConverter(Converter):
 
         # Get the Person.
         self.person = self.get_adapter().get_instance()
+        if self.person is None:
+            return
 
         # If a membership to the top-level org is given, steal the
-        # start/end dates and nuke it.
+        # start/end dates.
         for i, memb in enumerate(self.memberships):
-            if memb['org'] == self.cfg.TOPLEVEL_ORG_MEMBERSHIP_NAME_TEXT:
-                self.person._start_date = memb.get('start_date')
-                self.person._end_date = memb.get('end_date')
-            if self.cfg.EXCLUDE_TOPLEVEL_ORG_MEMBERSHIPS:
-                self.memberships.pop(i)
-            break
+            if memb['org'] == self.cfg.TOPLEVEL_ORG_MEMBERSHIP_NAME:
+                self.person._start_date = memb.get('start_date', '')
+                self.person._end_date = memb.get('end_date', '')
 
         # Create memberships.
-        memberships = list(self.gen_memberships())
         yield self.person
-        if memberships:
-            # Don't yield out people with no memberships.
-            yield from iter(memberships)
-        else:
-            # The person has no memberships. Give him/her
-            #  a membership in the legislature.
-            org = self.scraped_legislature
-            yield pupa.scrape.Membership(
-                person_id=self.person._id,
-                organization_id=org['_id'])
+        yield from self.gen_memberships()
 
-    def scraped_orgs(self):
-        '''Create a name --> data dict from the scrape
-        org data.
-        '''
-        path = os.path.join(
-            pupa.settings.SCRAPED_DATA_DIR,
-            self.cfg.pupa_jxn.__module__)
-        orgs = {}
-        for filename in glob.glob(os.path.join(path, 'organization*')):
-            with open(filename) as f:
-                data = json.load(f)
-                orgs[data['name']] = data
-        return orgs
-
-    @CachedAttr
-    def scraped_legislature(self):
-        '''Gets previously scrape legislature org.
-        '''
-        for org in self.scraped_orgs().values():
-            if org['classification'] == 'legislature':
-                return org

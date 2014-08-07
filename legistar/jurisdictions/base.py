@@ -347,6 +347,7 @@ class Config(Base, metaclass=ConfigMeta):
     # ------------------------------------------------------------------------
     # People
     # ------------------------------------------------------------------------
+    PPL_PARTY_REQUIRED = True
 
     # View class config.
     PPL_SEARCH_VIEW_CLASS = 'legistar.people.PeopleSearchView'
