@@ -246,7 +246,19 @@ class BillsAdapter(Adapter):
 
         for vote in data.pop('votes'):
             vote.set_bill(bill)
+            if not vote.identifier:
+                import pdb; pdb.set_trace()
+            elif vote.identifier in self.vote_cache:
+                import pdb; pdb.set_trace()
+            else:
+                self.vote_cache[vote.identifier] = vote
             yield vote
+
+    @CachedAttr
+    def vote_cache(self):
+        '''So we don't dupe any votes. Maps identifier to vote obj.
+        '''
+        return {}
 
     # ------------------------------------------------------------------------
     # Overridables: sponsorships
