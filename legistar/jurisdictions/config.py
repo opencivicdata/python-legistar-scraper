@@ -91,9 +91,9 @@ class NYC(Config):
     def classify_motion_text(self, motion_text):
         motion_text = motion_text.lower()
         if 'amended by' in motion_text:
-            return ['passage:amendment']
+            return ['amendment-passage']
         elif 'approved by council' in motion_text:
-            return ['passage:bill']
+            return ['bill-passage']
         return []
 
 
