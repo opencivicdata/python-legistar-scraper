@@ -87,6 +87,8 @@ class DetailView(View, FieldAggregator):
 
 class LegistarScraper(View):
 
+    _config_cache = {}
+
     def gen_events(self):
         yield from self.gen_pupatype_objects('events')
 
@@ -171,13 +173,21 @@ class LegistarScraper(View):
     @classmethod
     def get_config_strict(cls, division_id, classification, **kwargs):
         key = (division_id, classification)
-        try:
-            config_type = JXN_CONFIGS[key]
-        except KeyError:
-            msg = ("There doesn't appear to be a scraper defined for "
-                   "jurisdiction %r yet.")
-            raise ScraperNotFound(msg % key)
-        config_obj = config_type(**kwargs)
+        cache = cls._config_cache
+        if key in cache:
+            config_obj = cache[key]
+            config_obj.kwargs = kwargs
+
+        else:
+            try:
+                config_type = JXN_CONFIGS[key]
+            except KeyError:
+                msg = ("There doesn't appear to be a scraper defined for "
+                       "jurisdiction %r yet.")
+                raise ScraperNotFound(msg % key)
+            config_obj = config_type(**kwargs)
+            cache[key] = config_obj
+
         return config_obj
 
     @classmethod
