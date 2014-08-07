@@ -267,6 +267,5 @@ class PeopleConverter(Converter):
                 self.person._end_date = memb.get('end_date', '')
 
         # Create memberships.
-        yield self.person
         yield from self.gen_memberships()
-
+        yield self.person
