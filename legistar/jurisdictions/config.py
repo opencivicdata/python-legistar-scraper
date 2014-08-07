@@ -108,6 +108,7 @@ class SanFrancisco(Config):
     TOPLEVEL_ORG_MEMBERSHIP_TITLE = 'Supervisor'
     TOPLEVEL_ORG_MEMBERSHIP_NAME = 'Board of Supervisors'
     EVT_SEARCH_TABLE_TEXT_AUDIO = 'Audio'  # sfgov has this
+    EVT_SEARCH_TIME_PERIOD = 'This Year'
     BILL_SEARCH_TABLE_TEXT_INTRO_DATE = 'Introduced'
     GET_ORGS_FROM = 'people'
 
