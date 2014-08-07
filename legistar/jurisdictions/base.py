@@ -347,6 +347,7 @@ class Config(Base, metaclass=ConfigMeta):
     # ------------------------------------------------------------------------
     # People
     # ------------------------------------------------------------------------
+    CREATE_LEGISLATURE_MEMBERSHIP = False
     PPL_PARTY_REQUIRED = True
 
     # View class config.

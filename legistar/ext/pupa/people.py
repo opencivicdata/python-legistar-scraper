@@ -137,14 +137,6 @@ class MembershipConverter(Converter):
 
         yield membership
 
-    @try_jxn_delegation
-    def should_create_legislature_membership(self):
-        '''The default is to leave the membership in the legislature
-        to the content of the people detail pages. But Philly doesn't
-        provide it, hence this hack.
-        '''
-        return False
-
     def create_memberships(self):
         # Yield the memberships found in the person's detail table.
         for membership in self.memberships:
@@ -154,9 +146,9 @@ class MembershipConverter(Converter):
         if not self.party and self.cfg.PPL_PARTY_REQUIRED:
             return
 
-        if self.should_create_legislature_membership():
+        if self.cfg.CREATE_LEGISLATURE_MEMBERSHIP:
             org = self.get_legislature()
-            org.add_member(self.person, role='Council Member')
+            self.person.add_membership(org, role='Council Member')
 
 # ------------------------------------------------------------------------
 # People
