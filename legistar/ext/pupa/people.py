@@ -70,7 +70,7 @@ class MembershipConverter(Converter):
     def get_legislature(self):
         '''Gets previously scrape legislature org.
         '''
-        return self.orgs[self.cfg.TOPLEVEL_ORG_MEMBERSHIP_NAME]
+        return self.config.org_cache[self.cfg.TOPLEVEL_ORG_MEMBERSHIP_NAME]
 
     def get_org(self, org_name):
         '''Gets or creates the org with name equal to
