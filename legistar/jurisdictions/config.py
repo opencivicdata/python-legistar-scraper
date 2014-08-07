@@ -17,7 +17,7 @@ class NYC(Config):
     division_id = 'ocd-division/country:us/state:ny/place:new_york'
 
     GET_ORGS_FROM = 'people'
-    EXCLUDE_TOPLEVEL_ORG_MEMBERSHIPS = False
+    EXCLUDE_TOPLEVEL_ORG_MEMBERSHIPS = True
 
     EVT_SEARCH_TABLE_TEXT_VIDEO = 'Multimedia'
     EVT_DETAIL_TEXT_VIDEO = 'Multimedia'

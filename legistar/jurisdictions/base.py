@@ -398,8 +398,8 @@ class Config(Base, metaclass=ConfigMeta):
     # The string indicating person's membership in the council, for example.
     # This is usually the first row in the person detail chamber.
     # It's the string value of the first PPL_MEMB_TABLE_TEXT_ROLE
-    TOPLEVEL_ORG_MEMBERSHIP_TITLE_TEXT = 'Council Member'
-    TOPLEVEL_ORG_MEMBERSHIP_NAME_TEXT = 'City Council'
+    TOPLEVEL_ORG_MEMBERSHIP_TITLE = 'Council Member'
+    TOPLEVEL_ORG_MEMBERSHIP_NAME = 'City Council'
 
     PPL_DETAIL_TABLE_TEXT_ORG = 'Department Name'
     PPL_DETAIL_TABLE_TEXT_ROLE = 'Title'
@@ -680,6 +680,13 @@ class Config(Base, metaclass=ConfigMeta):
             # },
         },
     }
+
+    # -----------------------------------------------------------------------
+    # Jxn-level org caching, for pupa.
+    # -----------------------------------------------------------------------
+    @CachedAttr
+    def org_cache(self):
+        return {}
 
     # -----------------------------------------------------------------------
     # Stuff related to testing.
