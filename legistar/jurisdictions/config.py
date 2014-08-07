@@ -132,6 +132,7 @@ class Philadelphia(Config):
     # C'mon Philly, what's up with that.
     EVT_SEARCH_TABLE_DETAIL_AVAILABLE = False
 
+    CREATE_LEGISLATURE_MEMBERSHIP = True
     PPL_SEARCH_TABLE_DETAIL_AVAILABLE = False
     PPL_PARTY_REQUIRED = False
 
