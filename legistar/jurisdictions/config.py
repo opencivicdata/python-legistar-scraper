@@ -105,8 +105,8 @@ class SanFrancisco(Config):
 
     TIMEZONE = 'America/Los_Angeles'
 
-    TOPLEVEL_ORG_MEMBERSHIP_TITLE_TEXT = 'Supervisor'
-    TOPLEVEL_ORG_MEMBERSHIP_NAME_TEXT = 'Board of Supervisors'
+    TOPLEVEL_ORG_MEMBERSHIP_TITLE = 'Supervisor'
+    TOPLEVEL_ORG_MEMBERSHIP_NAME = 'Board of Supervisors'
     EVT_SEARCH_TABLE_TEXT_AUDIO = 'Audio'  # sfgov has this
     BILL_SEARCH_TABLE_TEXT_INTRO_DATE = 'Introduced'
     GET_ORGS_FROM = 'people'
@@ -130,8 +130,14 @@ class Philadelphia(Config):
 
     # C'mon Philly, what's up with that.
     EVT_SEARCH_TABLE_DETAIL_AVAILABLE = False
+
     PPL_SEARCH_TABLE_DETAIL_AVAILABLE = False
+    PPL_PARTY_REQUIRED = False
+
     BILL_DETAIL_TEXT_COMMITTEE = 'In control'
+
+    EXCLUDE_TOPLEVEL_ORG_MEMBERSHIPS = False
+    TOPLEVEL_ORG_MEMBERSHIP_NAME = 'CITY COUNCIL'
 
     ORG_CLASSIFICATIONS = {
         'CITY COUNCIL': 'legislature',
@@ -154,6 +160,11 @@ class Philadelphia(Config):
         allowed_orgs = ('committee', 'department', 'city council')
         return data['type'].lower() not in allowed_orgs
 
+    @overrides('MembershipConverter.should_create_legislature_membership')
+    def should_create_legislature_membership(self):
+        if 'council' not in self.person.name:
+            return True
+
 
 class Chicago(Config):
     division_id = 'ocd-division/country:us/state:il/place:chicago'
@@ -163,7 +174,7 @@ class Chicago(Config):
     TIMEZONE = 'America/Chicago'
 
     GET_ORGS_FROM = 'people'
-    EXCLUDE_TOPLEVEL_ORG_MEMBERSHIPS = False
+    EXCLUDE_TOPLEVEL_ORG_MEMBERSHIPS = True
 
     PPL_DETAIL_TABLE_TEXT_ORG = 'Legislative Body'
     PPL_SEARCH_TABLE_TEXT_FULLNAME = 'Person Name'
@@ -179,11 +190,30 @@ class Chicago(Config):
 
     @overrides('OrgsAdapter.should_drop_organization')
     def should_drop_organization(self, data):
-        return 'office of' in data['name'].lower()
+        # Skip phone orgs like "Office of the Mayor"
+        return data['name'].lower().startswith('office of')
 
-    # @overrides('PersonAdapter.should_drop_person')
-    # def should_drop_person(self, data):
-    #     return 'office of' in data['name'].lower()
+    @overrides('BillsAdapter.should_drop_bill')
+    def should_drop_bill(self, data):
+        '''The chicago legistar site has type error where two bills in the
+        same session have the same id. One is just to approve a handicapped
+        parking permit. This drops it.
+        '''
+        drop_guids = [
+            'B99F2EAD-A0CF-44FA-899D-1AC5D8A561C7'
+            ]
+        for identifier in data['identifiers']:
+            if identifier['scheme'] == 'legistar_guid':
+                if identifier['identifier'] in drop_guids:
+                    return True
+
+        return False
+
+    @overrides('PeopleAdapter.should_drop_person')
+    def should_drop_bill(self, data):
+        if data['name'] in ('Emanuel, Rahm', 'Mendoza, Susana A.'):
+            return True
+        return False
 
 
 class Madison(Config):
