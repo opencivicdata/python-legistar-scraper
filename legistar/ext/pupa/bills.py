@@ -307,6 +307,12 @@ class BillsAdapter(Adapter):
     # Overridables: miscellaneous
     # ------------------------------------------------------------------------
     @try_jxn_delegation
+    def should_drop_bill(self, bill):
+        '''If this function retruns True, the bill is dropped.
+        '''
+        return False
+
+    @try_jxn_delegation
     def gen_subjects(self, data):
         '''Get whatever data from the scraped data represents subjects.
         '''
