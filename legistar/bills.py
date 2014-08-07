@@ -152,7 +152,6 @@ class BillsDetailView(DetailView, BillsFields):
                 'jurisdiction\'s BILL_DETAIL_TEXT_FILE_NUMBER setting '
                 'and make sure it matches the site.')
             self.warning(msg)
-            import pudb; pudb.set_trace()
             raise self.SkipDocument()
 
     @make_item('title')
