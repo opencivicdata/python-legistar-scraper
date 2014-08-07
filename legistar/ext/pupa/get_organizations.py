@@ -20,10 +20,12 @@ def generate_orgs(pupa_jurisdiction):
     orgs = OrgsGetter()
     orgs.set_instance(pupa_jurisdiction)
 
-    get_orgs_from = orgs.get_legistar_scraper().cfg.GET_ORGS_FROM
+    scraper = orgs.get_legistar_scraper()
+    config = scraper.config
+    get_orgs_from = config.GET_ORGS_FROM
     OrgsGetter.pupatypes = (get_orgs_from,)
 
-    for org in orgs:
-        if isinstance(org, pupa.scrape.Organization):
-            yield org
-    # yield from orgs.gen_pupatype_data()
+    for person_or_org in orgs:
+        if isinstance(person_or_org, pupa.scrape.Organization):
+            config.org_cache[person_or_org.name] = person_or_org
+            yield person_or_org
