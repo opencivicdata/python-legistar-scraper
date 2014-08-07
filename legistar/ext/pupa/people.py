@@ -25,7 +25,7 @@ class MembershipAdapter(Adapter):
         assuming there is no time portion associated with the date.
         Complain if there is.
         '''
-        if dt is None:
+        if not dt:
             raise self.SkipItem()
         else:
             return dt.strftime('%Y-%m-%d')
@@ -67,49 +67,46 @@ class MembershipConverter(Converter):
     def __iter__(self):
         yield from self.create_memberships()
 
+    def get_legislature(self):
+        '''Gets previously scrape legislature org.
+        '''
+        return self.orgs[self.cfg.TOPLEVEL_ORG_MEMBERSHIP_NAME]
+
     def get_org(self, org_name):
         '''Gets or creates the org with name equal to
         kwargs['name']. Caches the result.
         '''
         created = False
-        with SetDefault(self, 'orgs', {}) as orgs:
-            # Get the org.
-            org = orgs.get(org_name)
+        orgs = self.config.org_cache
 
-            if org is not None:
-                # Cache hit.
-                return created, org
+        # Get the org.
+        org = orgs.get(org_name)
 
-            # Create the org.
-            classification = self.cfg.get_org_classification(org_name)
-            org = pupa.scrape.Organization(
-                name=org_name, classification=classification)
-            for source in self.person.sources:
+        if org is not None:
+            # Cache hit.
+            return created, org
+
+        # Create the org.
+        classification = self.cfg.get_org_classification(org_name)
+        org = pupa.scrape.Organization(
+            name=org_name, classification=classification)
+        for source in self.person.sources:
+            org.add_source(**source)
+        created = True
+
+        # Cache it.
+        orgs[org_name] = org
+
+        if org is not None:
+            # Cache hit.
+            return created, org
+
+        # Add a source to the org.
+        for source in self.person.sources:
+            if 'detail' in source['note']:
                 org.add_source(**source)
-            created = True
-
-            # Cache it.
-            orgs[org_name] = org
-
-            if org is not None:
-                # Cache hit.
-                return created, org
-
-            # Add a source to the org.
-            for source in self.person.sources:
-                if 'detail' in source['note']:
-                    org.add_source(**source)
 
         return created, org
-
-    @try_jxn_delegation
-    def should_drop_organization(self, data):
-        '''If this function is overridden and returns true, matching orgs
-        won't be emitted by the OrgsAdapter. Introduced specifically to
-        handle the Philadelphia situation, where roles and potentially
-        other weird data is listed on the jxn's org search page.
-        '''
-        return False
 
     def create_membership(self, data):
         '''Retrieves the matching committee and adds this person
@@ -118,9 +115,11 @@ class MembershipConverter(Converter):
         if 'person_id' not in data:
             data['person_id'] = self.person._id
 
+        # Also drop memberships in dropped orgs.
         if hasattr(self.cfg, 'should_drop_organization'):
-            if self.cfg.should_drop_organization(dict(name=data['org'])):
-                return
+            if 'org' in data:
+                if self.cfg.should_drop_organization(dict(name=data['org'])):
+                    return
 
         # Get the committee.
         if 'organization_id' not in data:
