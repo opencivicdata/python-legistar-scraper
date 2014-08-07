@@ -205,6 +205,11 @@ class BillsAdapter(Adapter):
         '''
         data = self.get_instance_data()
         data_copy = dict(data)
+
+        # Allow jxns to define what bills get dropped.
+        if self.should_drop_bill(data_copy):
+            return
+
         bill = pupa.scrape.Bill(
             identifier=data['identifier'],
             legislative_session=data['legislative_session'],
