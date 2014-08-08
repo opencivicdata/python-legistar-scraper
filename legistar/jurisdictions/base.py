@@ -619,8 +619,9 @@ class Config(Base, metaclass=ConfigMeta):
         session = self.kwargs.get('session')
         if session is None:
             session = self.SESSION_CLASS()
-            if self.FASTMODE:
-                session.cache_write_only = False
+        if self.FASTMODE:
+            session.cache_write_only = False
+            session.requests_per_minute = 0
         return session
 
     def get_client(self):
