@@ -2,6 +2,7 @@ import re
 import itertools
 
 import lxml.html
+from selenium.common.exceptions import NoSuchElementException
 
 from legistar.base import Base
 from legistar.jurisdictions.utils import try_jxn_delegation
@@ -93,3 +94,50 @@ class Form(Base):
         while True:
             self.submit_next_page()
             yield from self.make_child(Table, view=self.view)
+
+
+class FirefoxForm(Form):
+
+    def gen_docs_from_lxmldoc(self):
+        Table = self.view.viewtype_meta.Table
+        doc = self.lxmlize()
+        doc.make_links_absolute(self.url)
+        self.doc = doc
+        table = self.make_child(Table, view=self.view)
+        yield from table
+
+    def lxmlize(self):
+        html = self.firefox.page_source
+        doc = lxml.html.fromstring(html)
+        return doc
+
+    def set_dropdown(self, id, text):
+        script = '''
+            $find('{id}').findItemByText('{val}').select();
+        '''.format(id=id, val=text)
+        self.firefox.execute_script(script.strip())
+
+    def fill_out_form(self):
+        pass
+
+    def gen_documents(self):
+        self.firefox.get(self.url)
+
+        self.fill_out_form()
+
+        submit_name = self.get_config_value('submit_button_name')
+        button = self.firefox.find_element_by_name(submit_name)
+        button.click()
+
+        # Yield docs on the first page.
+        yield from self.gen_docs_from_lxmldoc()
+
+        # Then subsequent pages.
+        while True:
+            xpath = '//*[@class="rgCurrentPage"]/following-sibling::a'
+            try:
+                next_page = self.firefox.find_element_by_xpath(xpath)
+            except NoSuchElementException:
+                return
+            next_page.click()
+            yield from self.gen_docs_from_lxmldoc()

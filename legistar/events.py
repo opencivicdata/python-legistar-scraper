@@ -3,7 +3,7 @@ import json
 import collections
 from datetime import datetime
 
-from legistar.forms import Form
+from legistar.forms import Form, FirefoxForm
 from legistar.tables import Table, TableRow
 from legistar.views import SearchView, DetailView
 from legistar.fields import FieldAggregator, make_item, gen_items
@@ -14,7 +14,10 @@ class EventsFields(FieldAggregator):
 
     @make_item('location')
     def get_location(self):
-        return self.get_field_text('location')
+        location = self.get_field_text('location') or 'City Hall'
+        # I understand that this makes me a bad person
+        location = location[:200].strip(' \n"')
+        return location
 
     @make_item('name')
     def get_name(self):
@@ -147,25 +150,13 @@ class EventsSearchTable(Table):
     sources_note = 'events search table'
 
 
-class EventsSearchForm(Form):
+class EventsSearchForm(FirefoxForm):
     '''Model the legistar "Calendar" search form.
     '''
     sources_note = 'events search table'
 
-    def get_query(self, time_period=None, bodies=None):
-        configval = self.get_config_value
-        time_period = time_period or configval('time_period')
-        bodies = bodies or configval('bodies')
-        clientstate = json.dumps({'value': time_period})
-
-        query = {
-            configval('bodies_el_name'): bodies,
-            configval('time_period_el_name'): time_period,
-            configval('clientstate_el_name'): clientstate,
-            }
-        self.debug('Query is %r' % query)
-        query = dict(self.client.state, **query)
-        return query
+    def fill_out_form(self):
+        self.set_dropdown('ctl00_ContentPlaceHolder1_lstYears', 'This Year')
 
 
 class EventsDetailView(DetailView, EventsFields):
@@ -267,12 +258,9 @@ class EventsDetailTableRow(TableRow):
                 continue
 
             media = dict(
-                name=field.get_text(),
-                links=[
-                    dict(
-                        url=field.get_media_url(),
-                        media_type=field.get_media_type())
-                ])
+                note=field.get_text(),
+                url=field.get_media_url(),
+                media_type=field.get_media_type())
             yield media
 
 

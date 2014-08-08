@@ -6,10 +6,8 @@ from datetime import datetime
 from urllib.parse import urlparse, parse_qsl
 
 import lxml.html
-from selenium.common.exceptions import NoSuchElementException
 
-from legistar.bill_search import gen_responses
-from legistar.forms import Form
+from legistar.forms import Form, FirefoxForm
 from legistar.tables import Table, TableRow
 from legistar.views import SearchView, DetailView
 from legistar.fields import FieldAggregator, make_item, gen_items
@@ -68,20 +66,10 @@ class BillsSearchTable(Table):
     sources_note = 'bills search table'
 
 
-class BillsSearchForm(Form):
+class BillsSearchForm(FirefoxForm):
     '''Model the legistar "Legislation" search form.
     '''
     sources_note = 'bill search table'
-
-    def gen_docs_from_lxmldoc(self):
-        Table = self.view.viewtype_meta.Table
-        doc = self.lxmlize()
-        doc.make_links_absolute(self.url)
-        self.doc = doc
-        table = self.make_child(Table, view=self.view)
-        yield from table
-        # table = iter(table)
-        # yield next(table)
 
     def is_advanced_search(self):
         switch_el_id = self.cfg.BILL_SEARCH_SWITCH_EL_ID
@@ -96,45 +84,15 @@ class BillsSearchForm(Form):
         switch_el = self.firefox.find_element_by_id(switch_el_id)
         switch_el.click()
 
-    def lxmlize(self):
-        # html = bytes(self.firefox.page_source, 'utf8')
-        html = self.firefox.page_source
-        doc = lxml.html.fromstring(html)
-        return doc
-
-    def set_dropdown(self, id, text):
-        script = '''
-            $find('{id}').findItemByText('{val}').select();
-        '''.format(id=id, val=text)
-        self.firefox.execute_script(script.strip())
-
-    def gen_documents(self):
-        self.firefox.get(self.url)
+    def fill_out_form(self):
         if not self.is_advanced_search():
             self.switch_to_advanced_search()
 
-        # Now visit each of the remaining pages of results.
         max_results_id = "ctl00_ContentPlaceHolder1_lstMax"
         self.set_dropdown(max_results_id, 'All')
 
         years_id = "ctl00_ContentPlaceHolder1_lstYearsAdvanced"
         self.set_dropdown(years_id, 'This Year')
-
-        submit_name = 'ctl00$ContentPlaceHolder1$btnSearch2'
-        button = self.firefox.find_element_by_name(submit_name)
-        button.click()
-
-        # Yield bills on the first page.
-        yield from self.gen_docs_from_lxmldoc()
-
-        while True:
-            xpath = '//*[@class="rgCurrentPage"]/following-sibling::a'
-            try:
-                next_page = self.firefox.find_element_by_xpath(xpath)
-            except NoSuchElementException:
-                return
-            next_page.click()
-            yield from self.gen_docs_from_lxmldoc()
 
 
 class BillsDetailView(DetailView, BillsFields):
