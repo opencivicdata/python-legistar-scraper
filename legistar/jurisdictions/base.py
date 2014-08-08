@@ -227,6 +227,7 @@ class Config(Base, metaclass=ConfigMeta):
     # ------------------------------------------------------------------------
     # Events general config.
     # ------------------------------------------------------------------------
+    EVT_SEARCH_SUBMIT_BUTTON_NAME = 'ctl00$ContentPlaceHolder1$btnSearch'
     EVT_SEARCH_VIEW_CLASS = 'legistar.events.EventsSearchView'
     EVT_DETAIL_VIEW_CLASS = 'legistar.events.EventsDetailView'
     EVT_SEARCH_TABLE_CLASS = 'legistar.events.EventsSearchTable'
@@ -242,7 +243,7 @@ class Config(Base, metaclass=ConfigMeta):
     # Events search table config.
 
     # Search params.
-    EVT_SEARCH_TIME_PERIOD = 'This Month'
+    EVT_SEARCH_TIME_PERIOD = 'This Year'
     EVT_SEARCH_BODIES = 'All Committees'
     EVT_SEARCH_BODIES_EL_NAME = 'ctl00$ContentPlaceHolder1$lstBodies'
     EVT_SEARCH_TIME_PERIOD_EL_NAME = 'ctl00$ContentPlaceHolder1$lstYears'
@@ -429,6 +430,7 @@ class Config(Base, metaclass=ConfigMeta):
     # Bill search config.
     # ------------------------------------------------------------------------
     # The element name of the link to switch btw simple, advanced search.
+    BILL_SEARCH_SUBMIT_BUTTON_NAME = 'ctl00$ContentPlaceHolder1$btnSearch2'
     BILL_SEARCH_SWITCH_EL_ID = 'ctl00_ContentPlaceHolder1_btnSwitch'
     # The button text to switch to simple search, normalized to lower case.
     BILL_SEARCH_SWITCH_SIMPLE = 'simple search'
