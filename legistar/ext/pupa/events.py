@@ -97,7 +97,33 @@ class EventsAdapter(Adapter):
             agenda_item = instance.add_agenda_item(description)
             self.add_agenda_data(agenda_item, agenda_data)
 
-        return instance
+        key = self.get_cache_key(instance)
+        if key in self.cfg.event_cache:
+            event1 = self.cfg.event_cache[key]
+            event2 = instance
+            return self.merge_events(event1, event2)
+        else:
+            self.cfg.event_cache[key] = instance
+            return instance
+
+    def get_cache_key(self, instance):
+        '''Events with the same time, place, and name
+        are considered a single event.
+        '''
+        return (
+            instance.name,
+            instance.start_time,
+            instance.end_time,
+            frozenset(instance.location.items())
+            )
+
+    def merge_events(self, event1, event2):
+        event1.media.extend(event2.media)
+        event1.documents.extend(event2.documents)
+        event1.sources.extend(event2.sources)
+        event1.participants.extend(event2.participants)
+        event1.agenda.extend(event2.agenda)
+        return event1
 
 
 class EventsConverter(Converter):

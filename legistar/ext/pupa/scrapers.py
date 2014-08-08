@@ -25,7 +25,11 @@ class PupaGenerator(PupaExtBase):
     # __init__ arg.
     pupatypes = ()
 
-    def __init__(self, *pupatypes):
+    def __init__(self, *pupatypes, accumulate=False):
+        # If this is true, the emitted objects all get held
+        # in a list and yielded at the end, to give deduping a
+        # chance to mutate them before the JSON gets get written out.
+        self._accumulate = accumulate
         self._pupatypes = pupatypes
 
     def get_pupatypes(self):
@@ -53,8 +57,8 @@ class PupaGenerator(PupaExtBase):
 
     def gen_pupatype_data(self):
         scraper = self.get_legistar_scraper()
-        self.orgs = {}
 
+        cache = {}
         for pupatype in self.get_pupatypes():
             # Get the corresponding converter type.
             converter_type = self.converter_types[pupatype]
@@ -63,10 +67,15 @@ class PupaGenerator(PupaExtBase):
                 # chainmap.
                 converter = self.make_child(converter_type, data)
                 # And get the converted pupa instance.
-                yield from converter
+                if self._accumulate:
+                    for obj in converter:
+                        if id(obj) not in cache:
+                            cache[id(obj)] = obj
+                else:
+                    yield from converter
 
-        # Yield out any accumulated objects.
-        yield from self.orgs.values()
+        if self._accumulate and cache:
+            yield from cache.values()
 
     def get_jurisdiction(self):
         '''Return the jursdiction object. Overridden by LegistarOrgsGetter.
@@ -116,7 +125,7 @@ class LegistarOrgsScraper(pupa.scrape.Scraper):
 
 
 class LegistarEventsScraper(pupa.scrape.Scraper):
-    scrape = PupaGenerator('events')
+    scrape = PupaGenerator('events', accumulate=True)
 
 
 class LegistarBillsScraper(pupa.scrape.Scraper):
