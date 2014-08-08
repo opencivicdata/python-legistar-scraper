@@ -691,6 +691,10 @@ class Config(Base, metaclass=ConfigMeta):
     def org_cache(self):
         return {}
 
+    @CachedAttr
+    def event_cache(self):
+        return {}
+
     # -----------------------------------------------------------------------
     # Stuff related to testing.
     # -----------------------------------------------------------------------
