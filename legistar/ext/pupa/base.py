@@ -125,7 +125,3 @@ class Converter(PupaExtBase):
 
     def get_adapter(self, data=None):
         return self.make_child(self.adapter, data or self.data)
-
-    def get_instance(self, data=None):
-        return self.get_adapter(data).get_instance()
-

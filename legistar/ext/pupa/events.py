@@ -63,7 +63,7 @@ class EventsAdapter(Adapter):
         for media in media:
             agenda_item.add_media_link(**media)
         for entity in entities:
-            agenda_item.add_entity(**media)
+            agenda_item.add_entity(**entity)
         for subject in subjects:
             agenda_item.add_subject(subject)
 
