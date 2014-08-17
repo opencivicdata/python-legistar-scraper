@@ -1,6 +1,6 @@
 '''This module exposes metadata about pupa types.
 '''
-from legistar.utils.handythings import CachedAttr
+from hercules import CachedAttr
 
 
 PUPATYPES = VALID_PUPATYPES = ('events', 'orgs', 'people', 'bills')

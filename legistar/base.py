@@ -6,7 +6,7 @@ import pytz
 import lxml.html
 
 from legistar.pupatypes import PupatypeMixin
-from legistar.utils.handythings import (
+from hercules import (
     CachedAttr, CachedClassAttr, DictSetDefault, NoClobberDict)
 
 
