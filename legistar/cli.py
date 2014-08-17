@@ -23,4 +23,3 @@ def run():
         scraper = get_scraper(key)
     for data in scraper.gen_pupatype_data(args.pupatype):
         pprint.pprint(data)
-        import pdb; pdb.set_trace()

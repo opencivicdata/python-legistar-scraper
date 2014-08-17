@@ -154,7 +154,6 @@ class Philadelphia(Config):
     @make_item('person.name')
     def person_name(self):
         rgx = '(%s)' % '|'.join(self.person_titles)
-        import pdb; pdb.set_trace()
         return re.sub(rgx, '', )
 
     @overrides('OrgsAdapter.should_drop_organization')
@@ -309,13 +308,6 @@ class Maricopa(Config):
     nicknames = ['maricopa']
     root_url = 'http://maricopa.legistar.com/'
     PPL_SEARCH_TABLE_DETAIL_AVAILABLE = False
-
-    # @overrides('BillsSearchForm.get_extra_query')
-    # def bills_get_extra_query(self):
-    #     import pdb; pdb.set_trace()
-    #     return {
-    #         'ctl00_tabTop_ClientState': '{"selectedIndexes":["0"],"logEntries":[],"scrollState":{}}'
-    #     }
 
 
 class Mesa(Config):

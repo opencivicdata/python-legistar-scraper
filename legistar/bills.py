@@ -200,7 +200,6 @@ class BillsDetailView(DetailView, BillsFields):
             return str(max(dates).year)
 
         self.critical('Need session date.')
-        import pdb; pdb.set_trace()
 
 class BillsDetailTable(Table):
     sources_note = 'bill detail table'

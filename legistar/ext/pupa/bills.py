@@ -60,7 +60,6 @@ class VoteAdapter(Adapter):
                 continue
             return '%s-vote%d' % (source['identifier'], i)
 
-        import pdb; pdb.set_trace()
 
     @make_item('start_date')
     def get_date(self):
@@ -246,12 +245,7 @@ class BillsAdapter(Adapter):
 
         for vote in data.pop('votes'):
             vote.set_bill(bill)
-            if not vote.identifier:
-                import pdb; pdb.set_trace()
-            elif vote.identifier in self.vote_cache:
-                import pdb; pdb.set_trace()
-            else:
-                self.vote_cache[vote.identifier] = vote
+            self.vote_cache[vote.identifier] = vote
             yield vote
 
     @CachedAttr

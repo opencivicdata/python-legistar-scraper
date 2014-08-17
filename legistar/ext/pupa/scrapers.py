@@ -142,4 +142,3 @@ if __name__ == '__main__':
 
     for token in Scraper(Dummy(), '.cache').scrape():
         pprint.pprint(token)
-        import pdb; pdb.set_trace()

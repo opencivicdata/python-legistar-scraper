@@ -92,7 +92,6 @@ class OrgsDetailTableRow(TableRow):
 
     @make_item('org')
     def get_org(self):
-        import pdb; pdb.set_trace()
         return self.get_field_text('org')
 
 
