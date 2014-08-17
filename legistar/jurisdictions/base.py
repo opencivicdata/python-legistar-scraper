@@ -12,7 +12,7 @@ import requests
 
 import legistar
 from legistar.client import Client
-from legistar.base import Base, CachedAttr, NoClobberDict
+from legistar.base import Base, CachedAttr
 from legistar.jurisdictions.utils import Tabs, Mediatypes, Views
 from legistar.utils.itemgenerator import make_item
 

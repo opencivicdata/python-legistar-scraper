@@ -6,10 +6,9 @@ import json
 import pupa
 import pupa.scrape
 from pupa.utils import make_psuedo_id
-from hercules import CachedAttr
 
 from legistar.utils.itemgenerator import make_item
-from legistar.ext.pupa.base import Adapter, Converter, SetDefault
+from legistar.ext.pupa.base import Adapter, Converter
 
 
 class MembershipAdapter(Adapter):

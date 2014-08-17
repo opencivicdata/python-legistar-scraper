@@ -6,8 +6,7 @@ import pytz
 import lxml.html
 
 from legistar.pupatypes import PupatypeMixin
-from hercules import (
-    CachedAttr, CachedClassAttr, DictSetDefault, NoClobberDict)
+from hercules import DictSetDefault
 
 
 class ChainedLookup:

@@ -7,7 +7,7 @@ from legistar.forms import Form, FirefoxForm
 from legistar.tables import Table, TableRow
 from legistar.views import SearchView, DetailView
 from legistar.fields import FieldAggregator, make_item, gen_items
-from legistar.base import DictSetDefault, NoClobberDict
+from legistar.base import DictSetDefault
 
 
 class EventsFields(FieldAggregator):

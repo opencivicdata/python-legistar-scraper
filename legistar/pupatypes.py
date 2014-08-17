@@ -1,8 +1,5 @@
 '''This module exposes metadata about pupa types.
 '''
-from hercules import CachedAttr
-
-
 PUPATYPES = VALID_PUPATYPES = ('events', 'orgs', 'people', 'bills')
 VALID_VIEWTYPES = ('search', 'detail')
 VALID_COMPONENT_TYPES = ('table',)

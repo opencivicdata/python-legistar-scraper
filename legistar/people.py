@@ -8,7 +8,6 @@ from legistar.forms import Form
 from legistar.tables import Table, TableRow
 from legistar.views import SearchView, DetailView
 from legistar.fields import FieldAggregator, make_item, gen_items
-from legistar.base import CachedAttr, DictSetDefault, NoClobberDict
 
 
 class PeopleFields(FieldAggregator):
