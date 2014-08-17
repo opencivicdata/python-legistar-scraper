@@ -7,7 +7,7 @@ from opencivicdata import common as ocd_common
 from hercules import CachedAttr
 
 from legistar.utils.itemgenerator import make_item
-from legistar.ext.pupa.base import Adapter, Converter
+from legistar.pupa.base import Adapter, Converter
 
 
 def _get_date(date):

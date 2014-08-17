@@ -8,7 +8,7 @@ import pupa.scrape
 from pupa.utils import make_psuedo_id
 
 from legistar.utils.itemgenerator import make_item
-from legistar.ext.pupa.base import Adapter, Converter
+from legistar.pupa.base import Adapter, Converter
 
 
 class MembershipAdapter(Adapter):

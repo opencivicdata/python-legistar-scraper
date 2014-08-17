@@ -2,7 +2,7 @@
 callable on pupa jurisdictions.
 '''
 import pupa.scrape
-from legistar.ext.pupa.scrapers import PupaGenerator
+from legistar.pupa.scrapers import PupaGenerator
 
 
 def generate_orgs(pupa_jurisdiction):

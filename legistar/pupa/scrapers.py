@@ -1,11 +1,11 @@
 import pupa
 
 from legistar.views import LegistarScraper
-from legistar.ext.pupa.base import PupaExtBase
-from legistar.ext.pupa.bills import BillsConverter
-from legistar.ext.pupa.people import PeopleConverter
-from legistar.ext.pupa.events import EventsConverter
-from legistar.ext.pupa.orgs import OrgsConverter
+from legistar.pupa.base import PupaExtBase
+from legistar.pupa.bills import BillsConverter
+from legistar.pupa.people import PeopleConverter
+from legistar.pupa.events import EventsConverter
+from legistar.pupa.orgs import OrgsConverter
 
 
 class PupaGenerator(PupaExtBase):

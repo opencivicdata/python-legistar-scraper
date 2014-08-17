@@ -1,7 +1,7 @@
 import pupa.scrape
 
 from legistar.utils.itemgenerator import make_item
-from legistar.ext.pupa.base import Adapter, Converter
+from legistar.pupa.base import Adapter, Converter
 
 
 class OrgsAdapter(Adapter):
