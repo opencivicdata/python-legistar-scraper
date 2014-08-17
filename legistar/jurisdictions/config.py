@@ -11,7 +11,6 @@ class NYC(Config):
     '''
     TIMEZONE = 'America/New_York'
 
-    nicknames = ['nyc']
     root_url = 'http://legistar.council.nyc.gov/'
     classification = 'government'
     division_id = 'ocd-division/country:us/state:ny/place:new_york'
@@ -36,10 +35,6 @@ class NYC(Config):
         'Town Hall Meeting': 'commission',
     }
 
-    # ------------------------------------------------------------------------
-    # Methods to add specific fields onto person data.
-    # ------------------------------------------------------------------------
-    @make_item('person.district')
     def person_district(self, data):
         '''This corresponds to the label field on organizations posts.
         '''
@@ -58,7 +53,6 @@ class NYC(Config):
         if dist:
             return dist.pop()
 
-    @make_item('person.party')
     def person_party(self, data):
         party = re.findall(r'Democrat|Republican', data['notes'], re.I)
         if party:
@@ -98,7 +92,6 @@ class NYC(Config):
 
 
 class SanFrancisco(Config):
-    nicknames = ['sf', 'frisco', 'thoms-home-town-sortof']
     root_url = 'https://sfgov.legistar.com'
     classification = 'government'
     division_id = 'ocd-division/country:us/state:ca/place:san_francisco'
@@ -112,7 +105,6 @@ class SanFrancisco(Config):
     BILL_SEARCH_TABLE_TEXT_INTRO_DATE = 'Introduced'
     GET_ORGS_FROM = 'people'
 
-    @make_item('person.district')
     def get_district(self, data):
         return self.DEFAULT_AT_LARGE_STRING
 
@@ -124,7 +116,6 @@ class Philadelphia(Config):
     get are org names, requiring a separate org scrape.
     '''
     TIMEZONE = 'America/New_York'
-    nicknames = ['philly', 'pa']
     root_url = 'https://phila.legistar.com'
     division_id = 'ocd-division/country:us/state:pa/place:philadelphia'
     classification = 'government'
@@ -145,13 +136,11 @@ class Philadelphia(Config):
         'CITY COUNCIL': 'legislature',
     }
 
-    @make_item('person.district')
     def get_district(self, data):
         return self.DEFAULT_AT_LARGE_STRING
 
     person_titles = ('Council President', 'Councilmember')
 
-    @make_item('person.name')
     def person_name(self):
         rgx = '(%s)' % '|'.join(self.person_titles)
         return re.sub(rgx, '', )
@@ -169,7 +158,6 @@ class Philadelphia(Config):
 
 class Chicago(Config):
     division_id = 'ocd-division/country:us/state:il/place:chicago'
-    nicknames = ['chicago', 'windy']
     root_url = 'https://chicago.legistar.com'
     classification = 'government'
     TIMEZONE = 'America/Chicago'
@@ -223,7 +211,6 @@ class Madison(Config):
     '''
     root_url = 'http://madison.legistar.com/'
     division_id = 'ocd-division/country:us/state:wi/place:madison'
-    nicknames = ['madison']
     classification = 'government'
     TIMEZONE = 'America/Chicago'
 
@@ -241,7 +228,7 @@ class Madison(Config):
         'MADISON HOUSING AUTHORITY': 'commission',
         'PARKING COUNCIL FOR PEOPLE WITH DISABILITIES': 'commission',
     }
-    @make_item('person.district')
+
     def person_district(self, data):
         '''This corresponds to the label field on organizations posts.
         '''
@@ -269,7 +256,6 @@ class JonesBoro(Config):
     '''XXX: on this one, top level org is not listed on people detail
     tables, so have to create it specially.
     '''
-    nicknames = ['jonesboro']
     division_id = 'ocd-division/country:us/state:ar/place:jonesboro'
     root_url = 'http://jonesboro.legistar.com/'
 
@@ -277,35 +263,30 @@ class JonesBoro(Config):
 class SolanoCounty(Config):
     '''Works with the defaults!
     '''
-    nicknames = ['solano']
     root_url = 'https://solano.legistar.com'
 
 
 
 class MWRD(Config):
     division_id = 'ocd-division/country:us/state:il/sewer:mwrd'
-    nicknames = ['mwrd']
     root_url = 'https://mwrd.legistar.com'
 
 
 class BoroughofSitka(Config):
     '''Works with the defaults!
     '''
-    nicknames = ['sitka']
     root_url = 'http://sitka.legistar.com/'
 
 
 class Foley(Config):
     '''Works with the defaults!
     '''
-    nicknames = ['foley']
     root_url = 'http://cityoffoley.legistar.com/'
 
 
 class Maricopa(Config):
     '''XXX: Bill search Form doesn't work for Maricopa, for some reason.
     '''
-    nicknames = ['maricopa']
     root_url = 'http://maricopa.legistar.com/'
     PPL_SEARCH_TABLE_DETAIL_AVAILABLE = False
 
@@ -313,19 +294,16 @@ class Maricopa(Config):
 class Mesa(Config):
     '''Works with the defaults!
     '''
-    nicknames = ['mesa']
     root_url = 'http://mesa.legistar.com/'
 
 
 class Rialto(Config):
-    nicknames = ['rialto']
     root_url = 'http://rialto.legistar.com/'
     division_id = 'ocd-jurisdiction/country:us/state:az/place:rialto'
     PPL_SEARCH_TABLE_DETAIL_AVAILABLE = False
 
 
 class Barrie(Config):
-    nicknames = ['barrie']
     root_url = 'http://barrie.legistar.com/'
     division_id = 'ocd-division/country:ca/csd:3510045/place:barrie'
     PPL_SEARCH_TABLE_DETAIL_AVAILABLE = False
@@ -337,7 +315,6 @@ class Barrie(Config):
 class LassenCounty(Config):
     '''Works with the defaults!
     '''
-    nicknames = ['lassen']
     root_url = 'http://lassen.legistar.com/'
     division_id = 'ocd-division/country:us/state:ca/county:lassen'
     classification = 'government'
@@ -348,13 +325,11 @@ class LassenCounty(Config):
 
 
 class LongBeach(Config):
-    nicknames = ['longbeach']
     root_url = 'http://longbeach.legistar.com/'
 
 
 class MontereyCounty(Config):
     verbose_name = "County of Monterey"
-    nicknames = ['monterey']
     division_id = 'ocd-division/country:us/state:ca/county:monterey'
     root_url = 'http://monterey.legistar.com/'
     PPL_SEARCH_TABLE_DETAIL_AVAILABLE = False
@@ -364,7 +339,6 @@ class Oakland(Config):
     '''Has two org classifications that I can't figure out how
     to map to pupa org classifications: "Special Meeting" and "Requestor"
     '''
-    nicknames = ['oakland']
     root_url = 'http://oakland.legistar.com/'
     division_id = 'ocd-division/country:us/state:ca/place:oakland'
     PPL_SEARCH_TABLE_DETAIL_AVAILABLE = False
@@ -372,257 +346,211 @@ class Oakland(Config):
 
 class SanLeandro(Config):
     verbose_name = 'City of San Leoandro'
-    nicknames = ['sl']
     root_url = 'http://sanleandro.legistar.com/'
     division_id = 'ocd-division/country:us/state:ca/place:san_leandro'
     PPL_SEARCH_TABLE_DETAIL_AVAILABLE = False
 
 
 class SantaBarbaraCounty(Config):
-    nicknames = ['sb']
     root_url = 'http://santabarbara.legistar.com/'
     division_id = 'ocd-division/country:us/state:ca/county:santa_barbara'
 
 
 class CommerceCity(Config):
-    nicknames = ['commerce']
     root_url = 'http://commerce.legistar.com/'
 
 
 class CoralGables(Config):
-    nicknames = []
     root_url = 'http://coralgables.legistar.com/'
     division_id = 'ocd-division/country:us/state:fl/place:coral_gables'
 
 
 class Eustis(Config):
-    nicknames = ['eustis']
     root_url = 'http://eustis.legistar.com/'
 
 
 class FortLauderdale(Config):
-    nicknames = ['fortl']
     root_url = 'http://fortlauderdale.legistar.com/'
     division_id = "ocd-division/country:us/state:fl/place:fort_lauderdale"
 
 
 class KeyWest(Config):
-    nicknames = ['keywest']
     root_url = 'http://keywest.legistar.com/'
     division_id = 'ocd-division/country:us/state:fl/place:key_west'
 
 
 class SeminoleCounty(Config):
-    nicknames = ['seminole']
     root_url = 'http://seminolecounty.legistar.com/'
     division_id = 'ocd-division/country:us/state:fl/county:seminole'
 
 
 class PembrokePines(Config):
-    nicknames = ['pp']
     root_url = 'http://ppines.legistar.com/'
     division_id = 'ocd-division/country:us/state:fl/place:pembroke_pines'
     PPL_SEARCH_TABLE_DETAIL_AVAILABLE = False
 
 
 class Gainesville(Config):
-    nicknames = ['gainesville']
     root_url = 'http://gainesville.legistar.com/'
     division_id = 'ocd-division/country:us/state:fl/place:gainesville'
 
 
 class Canton(Config):
-    nicknames = ['canton']
     root_url = 'http://canton.legistar.com/'
     division_id = 'ocd-division/country:us/state:ga/place:canton'
 
 
 class Carrollton(Config):
-    nicknames = ['carrolton']
     root_url = 'http://carrolltontx.legistar.com/'
     division_id = 'ocd-division/country:us/state:tx/place:carrollton'
     PPL_SEARCH_TABLE_DETAIL_AVAILABLE = False
 
 
 class PowderSprings(Config):
-    nicknames = ['powpow']
     root_url = 'http://powd.legistar.com/'
     division_id = 'ocd-division/country:us/state:ga/place:powder_springs'
 
 
 class Lombard(Config):
-    nicknames = ['lombard']
     root_url = 'http://lombard.legistar.com/'
     division_id = 'ocd-division/country:us/state:il/place:lombard'
 
 
 class SedgwickCounty(Config):
-    nicknames = ['sedgwick']
     root_url = 'http://sedgwickcounty.legistar.com/'
     PPL_SEARCH_TABLE_DETAIL_AVAILABLE = False
 
 
 class RochesterHills(Config):
-    nicknames = ['rhills']
     root_url = 'http://roch.legistar.com/'
 
 
 class AnnArbor(Config):
-    nicknames = ['annarbor']
     root_url = 'http://a2gov.legistar.com/'
 
 
 class GrandRapids(Config):
-    nicknames = ['grrr']
     root_url = 'http://grandrapids.legistar.com/'
 
 
 class SaintPaul(Config):
-    nicknames = ['saintpaul']
     root_url = 'http://stpaul.legistar.com/'
     PPL_SEARCH_TABLE_DETAIL_AVAILABLE = False
 
 
 class Gulfport(Config):
-    nicknames = ['gulf']
     root_url = 'http://gulfport.legistar.com/'
 
 
 class Hattiesburg(Config):
-    nicknames = ['hat']
     root_url = 'http://hattiesburg.legistar.com/'
 
 
 class MecklenburgCounty(Config):
-    nicknames = ['meck']
     root_url = 'http://mecklenburg.legistar.com/'
 
 
 class Wilmington(Config):
-    nicknames = ['wilm']
     root_url = 'http://wilmington.legistar.com/'
 
 
 class HighPoint(Config):
-    nicknames = ['hp']
     root_url = 'http://highpoint.legistar.com/'
     PPL_SEARCH_TABLE_DETAIL_AVAILABLE = False
 
 
 class Newwark(Config):
-    nicknames = ['newark']
     root_url = 'http://newark.legistar.com/'
 
 
 class Albuquerque(Config):
-    nicknames = ['albu']
     root_url = 'http://cabq.legistar.com/'
     PPL_SEARCH_TABLE_DETAIL_AVAILABLE = False
 
 
 class LosAlamos(Config):
-    nicknames = ['losalamos']
     root_url = 'http://losalamos.legistar.com/'
     PPL_SEARCH_TABLE_DETAIL_AVAILABLE = False
 
 
 class Roswell(Config):
-    nicknames = ['roswell']
     root_url = 'http://roswell.legistar.com/'
     PPL_SEARCH_TABLE_DETAIL_AVAILABLE = False
 
 
 class Columbus(Config):
-    nicknames = ['columbus']
     root_url = 'http://columbus.legistar.com/'
     PPL_SEARCH_TABLE_DETAIL_AVAILABLE = False
 
 
 class Groveport(Config):
-    nicknames = ['grove']
     root_url = 'http://groveport.legistar.com/'
     PPL_SEARCH_TABLE_DETAIL_AVAILABLE = False
 
 
 class Milwaukee(Config):
-    nicknames = ['mil']
     root_url = 'http://milwaukee.legistar.com/'
 
 
 class MilwaukeeCounty(Config):
-    nicknames = ['mil-co']
     root_url = 'http://milwaukeecounty.legistar.com/'
 
 
 class Gahanna(Config):
-    nicknames = ['gahanna']
     root_url = 'http://gahanna.legistar.com/'
 
 
 class Norman(Config):
-    nicknames = ['norman']
     root_url = 'http://norman.legistar.com/'
 
 
 class Pittsburgh(Config):
-    nicknames = ['pitt']
     root_url = 'http://pittsburgh.legistar.com/'
     PPL_SEARCH_TABLE_DETAIL_AVAILABLE = False
 
 
 class RockHill(Config):
-    nicknames = ['rock']
     root_url = 'http://rockhill.legistar.com/'
 
 
 class Crossville(Config):
-    nicknames = ['cross']
     root_url = 'http://crossvilletn.legistar.com/'
     PPL_SEARCH_TABLE_DETAIL_AVAILABLE = False
 
 
 class Coppell(Config):
-    nicknames = ['cop']
     root_url = 'http://coppell.legistar.com/'
 
 
 class CorpusChristi(Config):
-    nicknames = ['cc']
     root_url = 'http://corpuschristi.legistar.com/'
     PPL_SEARCH_TABLE_DETAIL_AVAILABLE = False
 
 
 class LeagueCity(Config):
-    nicknames = ['lc']
     root_url = 'http://leaguecity.legistar.com/'
 
 
 class Mansfield(Config):
-    nicknames = ['mans']
     root_url = 'http://mansfield.legistar.com/'
 
 
 class McKinney(Config):
-    nicknames = ['mckinney']
     root_url = 'http://mckinney.legistar.com/'
 
 
 class Pflugerville(Config):
-    nicknames = ['pf']
     root_url = 'http://pflugerville.legistar.com/'
 
 
 class Alexandria(Config):
-    nicknames = ['alex']
     root_url = 'http://alexandria.legistar.com/'
     PPL_SEARCH_TABLE_DETAIL_AVAILABLE = False
 
 
 class Longview(Config):
-    nicknames = ['longview']
     root_url = 'http://longview.legistar.com/'
 
 
 class Olympia(Config):
-    nicknames = ['olympia']
     root_url = 'http://olympia.legistar.com/'
