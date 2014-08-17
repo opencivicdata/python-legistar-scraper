@@ -12,27 +12,21 @@ from legistar.fields import FieldAggregator, make_item, gen_items
 
 class OrgsFields(FieldAggregator):
 
-    @make_item('name')
     def get_name(self):
         return self.get_field_text('name')
 
-    @make_item('type')
     def get_type(self):
         return self.get_field_text('type')
 
-    @make_item('meeting_location')
     def get_meeting_location(self):
         return self.get_field_text('meeting_location')
 
-    @make_item('num_vacancies')
     def get_num_vacancies(self):
         return self.get_field_text('num_vacancies')
 
-    @make_item('num_members')
     def get_num_members(self):
         return self.get_field_text('num_members')
 
-    @make_item('sources', wrapwith=list)
     def gen_sources(self):
         grouped = collections.defaultdict(set)
         for note, url in self.chainmap['sources'].items():
@@ -40,7 +34,7 @@ class OrgsFields(FieldAggregator):
         for url, notes in grouped.items():
             yield dict(url=url, note=', '.join(sorted(notes)))
 
-    @make_item('identifiers', wrapwith=list)
+    #make_item('identifiers', wrapwith=list)
     def gen_identifiers(self):
         '''Yield out the internal legistar organization id and guid found
         in the detail page url.
@@ -78,8 +72,7 @@ class OrgsSearchForm(Form):
 class OrgsDetailView(DetailView, OrgsFields):
     sources_note = 'organization detail'
 
-    @make_item('notes')
-    def get_district(self):
+    def get_notes(self):
         return self.get_field_text('notes')
 
 
@@ -89,7 +82,6 @@ class OrgsDetailTable(Table):
 
 class OrgsDetailTableRow(TableRow):
 
-    @make_item('org')
     def get_org(self):
         return self.get_field_text('org')
 

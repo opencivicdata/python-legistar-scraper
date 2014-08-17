@@ -6,7 +6,6 @@ import pupa.scrape
 from opencivicdata import common as ocd_common
 from hercules import CachedAttr
 
-from legistar.utils.itemgenerator import make_item
 from legistar.pupa.base import Adapter, Converter
 
 
@@ -21,7 +20,7 @@ class ActionAdapter(Adapter):
     extras_keys = ['version', 'media', 'result']
     drop_keys = ['sources', 'journal_page']
 
-    @make_item('date')
+    #make_item('date')
     def get_date(self):
         return _get_date(self.data['date'])
 
@@ -35,7 +34,7 @@ class VoteAdapter(Adapter):
     drop_keys = ['date']
     extras_keys = ['version', 'media', 'journal_page']
 
-    @make_item('identifier')
+    #make_item('identifier')
     def get_identifier(self):
         '''The internal legistar bill id and guid found
         in the detail page url.
@@ -60,18 +59,18 @@ class VoteAdapter(Adapter):
             return '%s-vote%d' % (source['identifier'], i)
 
 
-    @make_item('start_date')
+    #make_item('start_date')
     def get_date(self):
         return _get_date(self.data.get('date'))
 
-    @make_item('result')
+    #make_item('result')
     def get_result(self):
         if not self.data['result']:
             raise self.SkipItem()
         result = self.get_vote_result(self.data['result'])
         return result
 
-    @make_item('votes', wrapwith=list)
+    #make_item('votes', wrapwith=list)
     def gen_votes(self):
         for data in self.data['votes']:
             if not data:
@@ -160,11 +159,11 @@ class BillsAdapter(Adapter):
     extras_keys = [
         'law_number', 'status']
 
-    @make_item('classification')
+    #make_item('classification')
     def get_classn(self):
         return self.get_bill_classification(self.data.pop('type'))
 
-    @make_item('actions', wrapwith=list)
+    #make_item('actions', wrapwith=list)
     def gen_actions(self):
         for data in self.data.get('actions'):
             data = dict(data)
@@ -174,11 +173,11 @@ class BillsAdapter(Adapter):
                 action['description'] = ''
             yield action
 
-    @make_item('sponsorships')
+    #make_item('sponsorships')
     def get_sponsorships(self):
         return self.data.get('sponsors', [])
 
-    @make_item('votes', wrapwith=list)
+    #make_item('votes', wrapwith=list)
     def gen_votes(self):
         for i, data in enumerate(self.data.get('actions')):
             data['i'] = i
@@ -190,7 +189,7 @@ class BillsAdapter(Adapter):
             if vote is not None and vote.votes:
                 yield vote
 
-    @make_item('subject')
+    #make_item('subject')
     def _gen_subjects(self, wrapwith=list):
         yield from self.gen_subjects()
 

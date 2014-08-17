@@ -10,7 +10,6 @@ import lxml.html
 from legistar.forms import Form, FirefoxForm
 from legistar.tables import Table, TableRow
 from legistar.views import SearchView, DetailView
-from legistar.fields import FieldAggregator, make_item, gen_items
 from legistar.fields import ElementAccessor
 from legistar.jurisdictions.utils import resolve_name
 # https://github.com/guelo/legistar-scrape/compare/fgregg:master...master
@@ -35,15 +34,12 @@ class BillsFields(FieldAggregator, DateGetter):
         'law_number', 'type', 'status',
         'name', 'version', 'sponsor_office')
 
-    @make_item('intro_date')
     def get_intro_data(self):
         return self._get_date('intro_date')
 
-    @make_item('file_created')
     def get_file_created(self):
         return self._get_date('file_created')
 
-    @make_item('sources', wrapwith=list)
     def gen_sources(self):
         grouped = collections.defaultdict(set)
         for note, url in self.chainmap['sources'].items():
@@ -98,20 +94,9 @@ class BillsDetailView(DetailView, BillsFields):
     sources_note = 'bill detail'
     text_fields = ('version', 'name')
 
-    @make_item('file_number')
     def get_file_number(self):
-        try:
-            return self.get_field_text('file_number')
-        except:
-            msg = (
-                'Bill appears to have no file number (bill_id). '
-                'Skipping it. If this is wrong, double check the '
-                'jurisdiction\'s BILL_DETAIL_TEXT_FILE_NUMBER setting '
-                'and make sure it matches the site.')
-            self.warning(msg)
-            raise self.SkipDocument()
+        return self.get_field_text('file_number')
 
-    @make_item('title')
     def get_title(self):
         title = self.get_field_text('title')
         # If no title, re-use type (i.e., "Resolution")
@@ -119,19 +104,15 @@ class BillsDetailView(DetailView, BillsFields):
             title = self.get_field_text('type')
         return title
 
-    @make_item('agenda')
     def get_agenda_date(self):
         return self._get_date('agenda')
 
-    @make_item('enactment_date')
     def get_enactment_date(self):
         return self._get_date('enactment_date')
 
-    @make_item('final_action')
     def get_final_action(self):
         return self._get_date('final_action')
 
-    @make_item('sponsors', wrapwith=list)
     def gen_sponsors(self):
         sponsors = self.get_field_text('sponsors')
         for name in re.split(r',\s+', sponsors):
@@ -139,7 +120,6 @@ class BillsDetailView(DetailView, BillsFields):
             if name:
                 yield dict(name=name)
 
-    @make_item('documents', wrapwith=list)
     def gen_documents(self):
         for el in self.xpath('attachments', './/a'):
             data = ElementAccessor(el)
@@ -153,11 +133,9 @@ class BillsDetailView(DetailView, BillsFields):
                     url=data.get_url(),
                     media_type=media_type)])
 
-    @make_item('actions', wrapwith=list)
     def gen_action(self):
         yield from self.Form(self)
 
-    @make_item('identifiers', wrapwith=list)
     def gen_identifiers(self):
         '''Yield out the internal legistar bill id and guid found
         in the detail page url.
@@ -171,7 +149,6 @@ class BillsDetailView(DetailView, BillsFields):
                 scheme="legistar_" + idtype.lower(),
                 identifier=ident)
 
-    @make_item('legislative_session')
     def get_legislative_session(self):
         dates = []
         labels = ('agenda', 'created')
@@ -224,7 +201,6 @@ class BillsDetailTableRow(TableRow, FieldAggregator, DateGetter):
     def get_detail_url(self):
         return self.get_media_url('action_details')
 
-    @make_item('date')
     def get_date(self):
         return self._get_date('date')
 

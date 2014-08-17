@@ -7,7 +7,6 @@ import pupa
 import pupa.scrape
 from pupa.utils import make_psuedo_id
 
-from legistar.utils.itemgenerator import make_item
 from legistar.pupa.base import Adapter, Converter
 
 
@@ -28,19 +27,19 @@ class MembershipAdapter(Adapter):
         else:
             return dt.strftime('%Y-%m-%d')
 
-    @make_item('start_date')
+    #make_item('start_date')
     def get_start_date(self):
         return self.stringify_date(self.data.get('start_date'))
 
-    @make_item('end_date')
+    #make_item('end_date')
     def get_end_date(self):
         return self.stringify_date(self.data.get('end_date'))
 
-    @make_item('organization_id')
+    #make_item('organization_id')
     def get_org_id(self):
         return self.data['organization_id']
 
-    @make_item('role')
+    #make_item('role')
     def get_org_id(self):
         '''Role defaults to empty string.
         '''
@@ -160,7 +159,7 @@ class PeopleAdapter(Adapter):
     aliases = [('fullname', 'name'),]
     extras_keys = ['firstname', 'lastname', 'notes']
 
-    @make_item('links', wrapwith=list)
+    #make_item('links', wrapwith=list)
     def get_links(self):
         '''Move the website link into the pupa links attr,
         '''
@@ -168,7 +167,7 @@ class PeopleAdapter(Adapter):
         if website_url is not None:
             yield dict(note='website', url=website_url)
 
-    @make_item('contact_details', wrapwith=list)
+    #make_item('contact_details', wrapwith=list)
     def gen_contacts(self):
         '''Move legistar's top-level email into contacts dict.
         '''

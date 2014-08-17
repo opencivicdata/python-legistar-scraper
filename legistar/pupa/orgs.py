@@ -1,6 +1,5 @@
 import pupa.scrape
 
-from legistar.utils.itemgenerator import make_item
 from legistar.pupa.base import Adapter, Converter
 
 
@@ -14,7 +13,7 @@ class OrgsAdapter(Adapter):
     extras_keys = [
         'meeting_location', 'num_members', 'num_vacancies', 'type']
 
-    @make_item('classification')
+    #make_item('classification')
     def _get_classification(self):
         return self.get_classification()
 

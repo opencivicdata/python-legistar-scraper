@@ -5,7 +5,7 @@ import datetime
 
 from legistar.base import Base, ChainedLookup
 from legistar.views import LegistarScraper
-from legistar.utils.itemgenerator import ItemGenerator, make_item
+from legistar.utils.itemgenerator import ItemGenerator
 from hercules import DictSetDefault
 
 import pupa.scrape

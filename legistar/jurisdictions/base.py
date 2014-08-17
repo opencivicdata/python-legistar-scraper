@@ -14,7 +14,6 @@ import legistar
 from legistar.client import Client
 from legistar.base import Base, CachedAttr
 from legistar.jurisdictions.utils import Tabs, Mediatypes, Views
-from legistar.utils.itemgenerator import make_item
 
 JXN_CONFIGS = {}
 
@@ -40,10 +39,6 @@ class ConfigMeta(type):
         classification = attrs.get('classification')
         if classification is not None:
             JXN_CONFIGS[(division_id, classification)] = cls
-
-        # Also nicknames.
-        for name in attrs.get('nicknames', []):
-            JXN_CONFIGS[name] = cls
 
         meta.collect_itemfuncs(attrs, cls)
 

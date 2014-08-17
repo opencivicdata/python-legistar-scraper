@@ -4,7 +4,7 @@ from datetime import datetime
 from urllib.parse import urlparse, urljoin
 
 from legistar.base import Base, CachedAttr, NoClobberDict
-from legistar.utils.itemgenerator import make_item, gen_items, ItemGenerator
+from legistar.utils.itemgenerator import gen_items, ItemGenerator
 
 
 class FieldAccessor(Base):

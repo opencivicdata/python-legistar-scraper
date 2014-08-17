@@ -2,7 +2,6 @@ import datetime
 
 import pupa.scrape
 
-from legistar.utils.itemgenerator import make_item
 from legistar.pupa.base import Adapter, Converter
 
 
@@ -13,7 +12,7 @@ class AgendaItemAdapter(Adapter):
         'version', 'type', 'result']
     drop_keys = ['date']
 
-    @make_item('related_entities', wrapwith=list)
+    #make_item('related_entities', wrapwith=list)
     def gen_related_entities(self):
         url = self.data.get('url')
         if url is None:
@@ -36,12 +35,12 @@ class EventsAdapter(Adapter):
     aliases = []
     extras_keys = []
 
-    @make_item('agenda', wrapwith=list)
+    #make_item('agenda', wrapwith=list)
     def gen_agenda(self):
         for data in self.data.get('agenda', []):
             yield AgendaItemAdapter(data).get_instance_data()
 
-    @make_item('all_day')
+    #make_item('all_day')
     def get_all_day(self):
         length = self.data['end_time'] - self.data['start_time']
         zero = datetime.timedelta()
@@ -51,7 +50,7 @@ class EventsAdapter(Adapter):
         else:
             return True
 
-    @make_item('timezone')
+    #make_item('timezone')
     def get_timezone(self):
         return self.cfg.TIMEZONE
 
