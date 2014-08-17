@@ -4,7 +4,6 @@ from datetime import datetime
 from urllib.parse import urlparse, urljoin
 
 from legistar.base import Base, CachedAttr, NoClobberDict
-from legistar.utils.itemgenerator import gen_items, ItemGenerator
 
 
 class FieldAccessor(Base):
@@ -51,7 +50,7 @@ class FieldAccessor(Base):
         raise NotImplementedError()
 
 
-class FieldAggregator(Base, ItemGenerator):
+class FieldAggregator(Base):
     '''This class provides some plumbing for accessing the appropriate
     config values. It's __iter__ method generates a list of 2-tuples,
     so to convert it to a dict, it's just dict(instance).

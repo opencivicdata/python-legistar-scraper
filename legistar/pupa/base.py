@@ -5,7 +5,6 @@ import datetime
 
 from legistar.base import Base, ChainedLookup
 from legistar.views import LegistarScraper
-from legistar.utils.itemgenerator import ItemGenerator
 from hercules import DictSetDefault
 
 import pupa.scrape
@@ -39,7 +38,7 @@ class PupaExtBase(Base):
     district = ChainedLookup('district')
 
 
-class Adapter(PupaExtBase, ItemGenerator):
+class Adapter(PupaExtBase):
     '''Base class responsible for mutating legistar dict
     into dict suitable for invoking pupa models.
     '''
