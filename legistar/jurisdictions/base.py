@@ -669,11 +669,6 @@ class Config(Base, metaclass=ConfigMeta):
                 'datefmt': '%H:%M:%S'
             }
         },
-        'handlers': {
-            'default': {'level': 'DEBUG',
-                        'class': 'legistar.utils.ansistrm.ColorizingStreamHandler',
-                        'formatter': 'standard'},
-        },
         'loggers': {
             'legistar': {
                 'handlers': ['default'], 'level': 'DEBUG', 'propagate': False
