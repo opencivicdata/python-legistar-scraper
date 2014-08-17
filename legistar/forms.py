@@ -5,7 +5,6 @@ import lxml.html
 from selenium.common.exceptions import NoSuchElementException
 
 from legistar.base import Base
-from legistar.jurisdictions.utils import try_jxn_delegation
 
 
 class Form(Base):
@@ -25,13 +24,11 @@ class Form(Base):
     def formdata(self):
         return dict(self.doc.forms[0].fields)
 
-    @try_jxn_delegation
     def before_first_submit(self):
         '''This function runs before the first submit.
         '''
         pass
 
-    @try_jxn_delegation
     def submit(self, formdata=None, extra_headers=None):
         # Call the pre-submit hook.
         if not self._submitted_first:
@@ -51,7 +48,6 @@ class Form(Base):
         '''
         raise NotImplementedError()
 
-    @try_jxn_delegation
     def submit_next_page(self):
         '''Submits the next page in the search results.
         '''
@@ -80,7 +76,6 @@ class Form(Base):
         extra_headers = dict(referer=self.url)
         self.submit(formdata, extra_headers)
 
-    @try_jxn_delegation
     def __iter__(self):
         yield from self.gen_documents()
 

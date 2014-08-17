@@ -7,7 +7,6 @@ from opencivicdata import common as ocd_common
 from hercules import CachedAttr
 
 from legistar.utils.itemgenerator import make_item
-from legistar.jurisdictions.utils import try_jxn_delegation
 from legistar.ext.pupa.base import Adapter, Converter
 
 
@@ -124,7 +123,6 @@ class VoteAdapter(Adapter):
     # ------------------------------------------------------------------------
     # Overridables
     # ------------------------------------------------------------------------
-    @try_jxn_delegation
     def get_vote_result(self, result):
         '''Noramalizes the vote result value using the default values on
         Config base, possibly overridded by jxn.BILL_VOTE_RESULT_MAP.
@@ -133,7 +131,6 @@ class VoteAdapter(Adapter):
         result = self.cfg._BILL_VOTE_RESULT_MAP[result]
         return result
 
-    @try_jxn_delegation
     def get_vote_option(self, option_text):
         '''Noramalizes the vote option value using the default values on
         Config base, possibly overridded by jxn.BILL_VOTE_OPTION_MAP.
@@ -141,7 +138,6 @@ class VoteAdapter(Adapter):
         option_text = option_text.replace('-', ' ').lower()
         return self.cfg._BILL_VOTE_OPTION_MAP[option_text]
 
-    @try_jxn_delegation
     def should_drop_organization(self, data):
         '''If this function returns True, the org is dropped from the vote obj.
 
@@ -149,7 +145,6 @@ class VoteAdapter(Adapter):
         '''
         return True
 
-    @try_jxn_delegation
     def classify_motion_text(self, motion_text):
         '''Jurisdiction configs can override this to determine how
         vote motions will be classified.
@@ -257,26 +252,22 @@ class BillsAdapter(Adapter):
     # ------------------------------------------------------------------------
     # Overridables: sponsorships
     # ------------------------------------------------------------------------
-    @try_jxn_delegation
     def should_drop_sponsor(self, data):
         '''If this function retruns True, the sponsor is dropped.
         '''
         return False
 
-    @try_jxn_delegation
     def get_sponsor_classification(self, data):
         '''Return the sponsor's pupa classification. Legistar generally
         doesn't provide any info like this, so we just return "".
         '''
         return 'sponsor'
 
-    @try_jxn_delegation
     def get_sponsor_entity_type(self, data):
         '''Return the sponsor's pupa entity type.
         '''
         return 'person'
 
-    @try_jxn_delegation
     def get_sponsor_primary(self, data):
         '''Return whether the sponsor is primary. Legistar generally doesn't
         provide this.
@@ -286,7 +277,6 @@ class BillsAdapter(Adapter):
     # ------------------------------------------------------------------------
     # Overridables: actions
     # ------------------------------------------------------------------------
-    @try_jxn_delegation
     def drop_action_organization(self, data):
         '''
         XXX: This temporarily drops the action['organization'] from all
@@ -300,19 +290,16 @@ class BillsAdapter(Adapter):
     # ------------------------------------------------------------------------
     # Overridables: miscellaneous
     # ------------------------------------------------------------------------
-    @try_jxn_delegation
     def should_drop_bill(self, bill):
         '''If this function retruns True, the bill is dropped.
         '''
         return False
 
-    @try_jxn_delegation
     def gen_subjects(self, data):
         '''Get whatever data from the scraped data represents subjects.
         '''
         raise StopIteration()
 
-    @try_jxn_delegation
     def get_bill_classification(self, billtype):
         '''Convert the legistar bill `type` column into
         a pupa classification array.

@@ -10,7 +10,6 @@ from hercules import CachedAttr
 
 from legistar.utils.itemgenerator import make_item
 from legistar.ext.pupa.base import Adapter, Converter, SetDefault
-from legistar.jurisdictions.utils import try_jxn_delegation
 
 
 class MembershipAdapter(Adapter):
@@ -231,7 +230,6 @@ class PeopleAdapter(Adapter):
         instance.extras.update(instance_data['extras'])
         return instance
 
-    @try_jxn_delegation
     def should_drop_person(self, data):
         return False
 

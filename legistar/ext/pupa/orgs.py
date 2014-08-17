@@ -2,7 +2,6 @@ import pupa.scrape
 
 from legistar.utils.itemgenerator import make_item
 from legistar.ext.pupa.base import Adapter, Converter
-from legistar.jurisdictions.utils import try_jxn_delegation
 
 
 class OrgsAdapter(Adapter):
@@ -19,12 +18,10 @@ class OrgsAdapter(Adapter):
     def _get_classification(self):
         return self.get_classification()
 
-    @try_jxn_delegation
     def get_classification(self):
         legistar_type = self.data.pop('type')
         return self.config.get_org_classification(legistar_type)
 
-    @try_jxn_delegation
     def should_drop_organization(self, data):
         '''If this function is overridden and returns true, matching orgs
         won't be emitted by the OrgsAdapter. Introduced specifically to

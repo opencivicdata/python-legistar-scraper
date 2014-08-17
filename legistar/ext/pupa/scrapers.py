@@ -130,15 +130,3 @@ class LegistarEventsScraper(pupa.scrape.Scraper):
 
 class LegistarBillsScraper(pupa.scrape.Scraper):
     scrape = PupaGenerator('bills')
-
-
-if __name__ == '__main__':
-    import sys
-    import pprint
-    class Dummy:
-        division_id = 'nyc'
-    class Scraper(LegistarBillsScraper):
-        pass
-
-    for token in Scraper(Dummy(), '.cache').scrape():
-        pprint.pprint(token)

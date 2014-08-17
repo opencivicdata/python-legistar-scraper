@@ -13,7 +13,7 @@ from legistar.views import SearchView, DetailView
 from legistar.fields import FieldAggregator, make_item, gen_items
 from legistar.fields import ElementAccessor
 from legistar.base import DictSetDefault, NoClobberDict
-from legistar.jurisdictions.utils import resolve_name, try_jxn_delegation
+from legistar.jurisdictions.utils import resolve_name
 # https://github.com/guelo/legistar-scrape/compare/fgregg:master...master
 
 

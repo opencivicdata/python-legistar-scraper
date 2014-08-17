@@ -1,7 +1,7 @@
 import re
 import json
 
-from legistar.jurisdictions.base import Config, make_item, overrides
+from legistar.jurisdictions.base import Config, make_item
 
 
 class NYC(Config):
@@ -74,20 +74,20 @@ class NYC(Config):
         '(in conjunction with the Mayor)'
         )
 
-    @overrides('BillsAdapter.should_drop_sponsor')
+    #overrides('BillsAdapter.should_drop_sponsor')
     def should_drop_sponsor(self, data):
         '''If this function retruns True, the sponsor obj is exluded from the
         sponsors list.
         '''
         return data['name'] in self.cfg.SPONSORSHIP_JUNK
 
-    @overrides('BillsAdapter.gen_subjects')
+    #overrides('BillsAdapter.gen_subjects')
     def gen_subjects(self):
         name = self.data['name'].strip()
         if name:
             yield name
 
-    @overrides('VoteAdapter.classify_motion_text')
+    #overrides('VoteAdapter.classify_motion_text')
     def classify_motion_text(self, motion_text):
         motion_text = motion_text.lower()
         if 'amended by' in motion_text:
@@ -156,12 +156,12 @@ class Philadelphia(Config):
         rgx = '(%s)' % '|'.join(self.person_titles)
         return re.sub(rgx, '', )
 
-    @overrides('OrgsAdapter.should_drop_organization')
+    #overrides('OrgsAdapter.should_drop_organization')
     def should_drop_organization(self, data):
         allowed_orgs = ('committee', 'department', 'city council')
         return data['type'].lower() not in allowed_orgs
 
-    @overrides('MembershipConverter.should_create_legislature_membership')
+    #overrides('MembershipConverter.should_create_legislature_membership')
     def should_create_legislature_membership(self):
         if 'council' not in self.person.name:
             return True
@@ -185,16 +185,16 @@ class Chicago(Config):
     BILL_SEARCH_TABLE_TEXT_FILE_NUMBER = 'Record #'
     BILL_DETAIL_TEXT_COMMITTEE = 'Current Controlling Legislative Body'
 
-    @overrides('OrgsAdapter.get_classification')
+    #overrides('OrgsAdapter.get_classification')
     def orgs_get_classn(self):
         return self.cfg.get_org_classification(self.data['name'])
 
-    @overrides('OrgsAdapter.should_drop_organization')
+    #overrides('OrgsAdapter.should_drop_organization')
     def should_drop_organization(self, data):
         # Skip phone orgs like "Office of the Mayor"
         return data['name'].lower().startswith('office of')
 
-    @overrides('BillsAdapter.should_drop_bill')
+    #overrides('BillsAdapter.should_drop_bill')
     def should_drop_bill(self, data):
         '''The chicago legistar site has type error where two bills in the
         same session have the same id. One is just to approve a handicapped
@@ -210,7 +210,7 @@ class Chicago(Config):
 
         return False
 
-    @overrides('PeopleAdapter.should_drop_person')
+    #overrides('PeopleAdapter.should_drop_person')
     def should_drop_bill(self, data):
         if data['name'] in ('Emanuel, Rahm', 'Mendoza, Susana A.'):
             return True
@@ -260,7 +260,7 @@ class Madison(Config):
         if dist:
             return dist.pop()
 
-    @overrides('OrgsAdapter.get_classification')
+    #overrides('OrgsAdapter.get_classification')
     def orgs_get_classn(self):
         return self.cfg.get_org_classification(self.data['name'])
 
