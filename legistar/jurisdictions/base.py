@@ -583,28 +583,14 @@ class Config(Base, metaclass=ConfigMeta):
     # Requests client config.
     # ------------------------------------------------------------------------
 
-    # Client sleeping is disabled by default, because the main use of this
-    # library is with http://github.com/opencivicdata/pupa, which delegates
-    # requests-per-minute, retries, and backoffs with
-    # http://github.com/sunlightlabs/scrapelib
-    DO_CLIENT_SLEEP = True
-    SLEEP_RANGE = (5, 20)
-
     REQUEST_HEADERS = {
         'User-Agent': (
             'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-GB; rv:1.8.1.6) '
             'Gecko/20070725 Firefox/2.0.0.6')
         }
 
-    # Route the requests through mitmproxy. http://mitmproxy.org/
-    # ENABLE_PROXIES = True
-    ENABLE_PROXIES = False
-    proxies = dict.fromkeys(['http', 'https'], 'http://localhost:8080')
     requests_kwargs = dict(
         headers=REQUEST_HEADERS)
-
-    if ENABLE_PROXIES:
-        requests_kwargs['proxies'] = proxies
 
     @classmethod
     def get_host(cls):

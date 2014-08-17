@@ -26,15 +26,6 @@ class Client(Base):
             '__EVENTARGUMENT',
             ))
 
-    def sleep(self):
-        '''Disabled by default, because the main use of this scraper
-        is with pupa, which defines it's own session object that transparently
-        handles throttling, retires, etc.
-        '''
-        if self.cfg.DO_CLIENT_SLEEP:
-            sleeptime = random.randint(*self.cfg.SLEEP_RANGE) / 100.0
-            time.sleep(sleeptime)
-
     def check_resp(self, resp):
         '''Complain/log if response is anything other than OK.
         '''
@@ -78,17 +69,6 @@ class Client(Base):
         resp = self.retry(self.session.get, url, **_kwargs)
         self.check_resp(resp)
         self.update_state(resp)
-        self.sleep()
-        return resp
-
-    def head(self, url, **kwargs):
-        '''Send a HEAD request. For getting mimetypes of documents.
-        '''
-        _kwargs = dict(self.cfg.requests_kwargs)
-        _kwargs.update(kwargs)
-        resp = self.retry(self.session.head, url, **_kwargs)
-        self.check_resp(resp)
-        self.sleep()
         return resp
 
     def post(self, url, data=None, extra_headers=None, **kwargs):
@@ -108,5 +88,4 @@ class Client(Base):
         resp = self.retry(self.session.post, url, _data, **_kwargs)
         self.check_resp(resp)
         self.update_state(resp)
-        self.sleep()
         return resp
