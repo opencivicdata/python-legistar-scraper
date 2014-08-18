@@ -10,7 +10,6 @@ from legistar.forms import Form
 from legistar.tables import Table, TableRow
 from legistar.views import SearchView, DetailView
 from legistar.fields import FieldAggregator, make_item, gen_items
-from legistar.scrapers import PupaGenerator
 from legistar.base import Adapter
 
 
@@ -33,7 +32,7 @@ class OrgsFields(FieldAggregator):
 
     def gen_sources(self):
         grouped = collections.defaultdict(set)
-        for note, url in self.chainmap['sources'].items():
+        for note, url in self.sources.items():
             grouped[url].add(note)
         for url, notes in grouped.items():
             yield dict(url=url, note=', '.join(sorted(notes)))

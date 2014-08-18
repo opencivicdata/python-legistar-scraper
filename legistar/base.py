@@ -14,39 +14,8 @@ from hercules import DictSetDefault
 import pupa.scrape
 
 
-class ChainedLookup:
-    '''Wrapped values get lookup in the ancestor ChainMap objects. Setting
-    this attributes sets the value in the instance's own ChainMap.
-    '''
-    def __init__(self, key):
-        self.key = key
-
-    def __get__(self, inst, owner=None):
-        self.on_get(inst, owner)
-        val = inst.chainmap.get(self.key)
-        if val is None and hasattr(self, 'get_value'):
-            val = self.get_value(inst, owner)
-            inst.chainmap[self.key] = val
-        return val
-
-    def __set__(self, inst, value):
-        self.on_set(inst, value)
-        inst.chainmap[self.key] = value
-
-    def on_get(self, inst, owner):
-        '''Gets called before value is returned.
-        '''
-        pass
-
-    def on_set(self, inst, value):
-        '''Gets called before value is set.
-        '''
-        pass
-
-
 class DocLookup(ChainedLookup):
-    '''This one's expensive, so fetch it lazily and cache it.
-    '''
+    '''This one's expensive, so fetch it lazily and cache it. '''
     def get_value(self, inst, owner):
         # Blab.
         msg_args = (inst, inst.url)
@@ -66,9 +35,6 @@ class DocLookup(ChainedLookup):
         '''
         with DictSetDefault(inst.chainmap, 'sources', {}) as sources:
             sources[inst.sources_note] = inst.url
-
-    # Add the url to sources when this doc gets used.
-    on_get = on_set = add_to_sources
 
 
 class ClientLookup(ChainedLookup):
@@ -205,34 +171,10 @@ class Base:
     client = ClientLookup('client')
     session = SessionLookup('session')
 
-    # Logging methods.
-    info = ChainedLookup('info')
-    debug = ChainedLookup('debug')
-    warn = warning = ChainedLookup('warning')
-    critical = ChainedLookup('critical')
-    error = ChainedLookup('error')
-    exception = ChainedLookup('exception')
-
     @property
     def firefox(self):
         from legistar import selenium_client
         return selenium_client.browser
-
-    @property
-    def chainmap(self):
-        '''This property manages the instance's ChainMap objects.
-        '''
-        chainmap = getattr(self, '_chainmap', None)
-        if chainmap is not None:
-            return chainmap
-        else:
-            chainmap = ChainMap()
-            self._chainmap = chainmap
-            return chainmap
-
-    @chainmap.setter
-    def chainmap(self, chainmap):
-        self._chainmap = chainmap
 
     def set_parent_chainmap(self, chainmap):
         '''Set `chainmap` as the parent of self.chainmap.

@@ -21,7 +21,7 @@ class View(Base):
 
     def __init__(self, url=None, doc=None, **kwargs):
         # Setting doc to None forces the view to fetch the page.
-        self.chainmap['doc'] = doc
+        self.doc = doc
         # Allow the url to fall back to the parent chainmap url.
         if url is not None:
             self.chainmap['url'] = url
@@ -62,15 +62,6 @@ class View(Base):
         return self.viewtype_meta.Form
 
 
-class SearchView(View):
-
-    def __iter__(self):
-        '''Iterating over a search view generates tables of paginated search
-        results.
-        '''
-        yield from self.Form(self)
-
-
 class DetailView(View, FieldAggregator):
 
     @CachedAttr
@@ -89,18 +80,6 @@ class LegistarScraper(View):
 
     _config_cache = {}
 
-    def gen_events(self):
-        yield from self.gen_pupatype_objects('events')
-
-    def gen_bills(self):
-        yield from self.gen_pupatype_objects('bills')
-
-    def gen_people(self):
-        yield from self.gen_pupatype_objects('people')
-
-    def gen_orgs(self):
-        yield from self.gen_pupatype_objects('orgs')
-
     events = meetings = get_events = gen_events
     bills = legislation = get_bills = gen_bills
     people = members = get_people = gen_people
@@ -118,12 +97,6 @@ class LegistarScraper(View):
         view = view_meta.search.View(url=url, **kwargs)
         view.inherit_chainmap_from(self.cfg)
         return view
-
-    def gen_pupatype_data(self, pupatype):
-        '''Given a pupa type, page through the search results and
-        yield each object.
-        '''
-        yield from self.get_pupatype_searchview(pupatype)
 
     # ------------------------------------------------------------------------
     # These stricter scraper-getter functions are for pupa.
@@ -154,7 +127,3 @@ class LegistarScraper(View):
         scraper = cls(**kwargs)
         scraper.set_parent_chainmap(config_obj.chainmap)
         return scraper
-
-
-class ScraperNotFound(Exception):
-    pass

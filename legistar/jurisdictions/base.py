@@ -505,54 +505,6 @@ class Config(Base, metaclass=ConfigMeta):
         client = self.chainmap['client'] = self.make_child(Client)
         return client
 
-    def get_logger(self):
-        '''Get a configured logger.
-        '''
-        logging.config.dictConfig(self.LOGGING_CONFIG)
-        logger = logging.getLogger('legistar')
-        if 'loglevel' in self.kwargs:
-            logger.setLevel(self.kwargs['loglevel'])
-        return logger
-
-    @CachedAttr
-    def chainmap(self):
-        '''An inheritable/overridable dict for this config's helper
-        views to access. Make it initially point back to this config object.
-
-        Other objects that inherit this chainmap can access self.info, etc.
-        '''
-        logger = self.get_logger()
-        chainmap = ChainMap()
-        chainmap.update(
-            config=self,
-            url=self.root_url,
-            info=logger.info,
-            error=logger.error,
-            debug=logger.debug,
-            warning=logger.warning,
-            critical=logger.critical,
-            exception=logger.exception)
-        return chainmap
-
-    LOGGING_CONFIG = {
-        'version': 1,
-        'disable_existing_loggers': False,
-        'formatters': {
-            'standard': {
-                'format': "%(asctime)s %(levelname)s %(name)s: %(message)s",
-                'datefmt': '%H:%M:%S'
-            }
-        },
-        'loggers': {
-            'legistar': {
-                'handlers': ['default'], 'level': 'DEBUG', 'propagate': False
-            },
-            # 'requests': {
-            #     'handlers': ['default'], 'level': 'DEBUG', 'propagate': False
-            # },
-        },
-    }
-
     # -----------------------------------------------------------------------
     # Jxn-level org caching, for pupa.
     # -----------------------------------------------------------------------
