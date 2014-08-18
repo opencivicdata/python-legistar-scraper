@@ -1,4 +1,12 @@
+import urllib
+
+import pytz
+
 class Config:
+    """ a config class by which all the variable parts of the scrapers can be implemented """
+
+    ## unprocessed ##
+
     _utc = pytz.timezone('UTC')
 
     def datetime_add_tz(self, dt):
@@ -11,8 +19,6 @@ class Config:
     MEDIATYPE_EXT_DOC = ('doc', 'application/vnd.msword')
     MEDIATYPE_EXT_DOCX = ('docx', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document')
 
-    TABS = {'events': 'Calendar.aspx', 'orgs': 'Departments.aspx',
-            'bills': 'Legislation.aspx', 'people': 'People.aspx'}
 
     # Pagination xpaths.
     PGN_CURRENT_PAGE_TMPL = '//*[contains(@class, "%s")]'
@@ -21,13 +27,6 @@ class Config:
     PGN_NEXT_PAGE_TMPL = '%s/following-sibling::a[1]'
     PGN_NEXT_PAGE_XPATH = 'string(%s/following-sibling::a[1]/@href)' % PGN_CURRENT_PAGE_XPATH
 
-    views = Views()
-
-    NO_RECORDS_FOUND_TEXT = ['No records were found', 'No records to display.']
-    # This text is shown if something is wrong with the query.
-    # Bad request, basically. Means the code needs edits.
-    BAD_QUERY_TEXT = ['Please enter your search criteria.']
-    RESULTS_TABLE_XPATH = '//table[contains(@class, "rgMaster")]'
 
     # ------------------------------------------------------------------------
     # Orgs general config.
@@ -46,7 +45,7 @@ class Config:
     ORG_SEARCH_TABLE_TEXT_NUM_VACANCIES = 'Vacancies'
     ORG_SEARCH_TABLE_TEXT_NUM_MEMBERS = 'Members'
 
-    ORG_DEFAULT_CLASSIFICATIONS = ChainMap({
+    ORG_DEFAULT_CLASSIFICATIONS = {
         'Department': 'commission',
         'Clerk': 'commission',
         'Executive Office': 'commission',
@@ -57,7 +56,7 @@ class Config:
         'Board of Supervisors': 'legislature',
         'Agency': 'commission',
         'Task Force': 'commission',
-        })
+    }
 
     @property
     def _ORG_CLASSIFICATIONS(self):
@@ -364,7 +363,7 @@ class Config:
     BILL_ACTION_TEXT_PERSON = 'Person Name'
     BILL_ACTION_TEXT_VOTE = 'Vote'
 
-    BILL_DEFAULT_VOTE_OPTION_MAP =  ChainMap({
+    BILL_DEFAULT_VOTE_OPTION_MAP =  {
         'yes': 'yes',
         'aye': 'yes',
         'yea': 'yes',
@@ -380,27 +379,26 @@ class Config:
         'conflict': 'abstain',
         'maternity': 'excused',
         'recused': 'excused',
-        })
+    }
 
     @property
     def _BILL_VOTE_OPTION_MAP(self):
         options = getattr(self, 'BILL_VOTE_OPTION_MAP', {})
         return self.BILL_DEFAULT_VOTE_OPTION_MAP.new_child(options)
 
-    BILL_DEFAULT_VOTE_RESULT_MAP =  ChainMap({
+    BILL_DEFAULT_VOTE_RESULT_MAP =  {
         'pass': 'pass',
         'passed': 'pass',
         'fail': 'fail',
         'failed': 'fail',
-        })
+        }
 
     @property
     def _BILL_VOTE_RESULT_MAP(self):
         options = getattr(self, 'BILL_VOTE_RESULT_MAP', {})
         return self.BILL_DEFAULT_VOTE_RESULT_MAP.new_child(options)
 
-    BILL_DEFAULT_CLASSIFICATIONS = ChainMap({
-        })
+    BILL_DEFAULT_CLASSIFICATIONS = { }
 
     @property
     def _BILL_CLASSIFICATIONS(self):
@@ -414,31 +412,7 @@ class Config:
     # ------------------------------------------------------------------------
 
     REQUEST_HEADERS = {
-        'User-Agent': (
-            'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-GB; rv:1.8.1.6) '
-            'Gecko/20070725 Firefox/2.0.0.6')
-        }
-
+        'User-Agent': ('Mozilla/5.0 (Windows; U; Windows NT 5.1; en-GB; rv:1.8.1.6) '
+                       'Gecko/20070725 Firefox/2.0.0.6')
+    }
     requests_kwargs = dict(headers=REQUEST_HEADERS)
-
-    @classmethod
-    def get_host(cls):
-        '''Returns just the host from the url.
-        '''
-        return urlparse(cls.root_url).netloc
-
-    def get_session(self):
-        '''Return a requests.Session subtype, or something that provides
-        the same interface.
-        '''
-        session = self.kwargs.get('session')
-        if session is None:
-            session = self.SESSION_CLASS()
-        return session
-
-    def get_client(self):
-        '''The requests.Session-like object used to make web requests;
-        usually a scrapelib.Scraper.
-        '''
-        client = self.chainmap['client'] = self.make_child(Client)
-        return client

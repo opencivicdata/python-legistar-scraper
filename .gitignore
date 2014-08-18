@@ -40,3 +40,4 @@ settings_local.py
 stuff/*
 htmlcov/
 _cache/*
+_data/*
