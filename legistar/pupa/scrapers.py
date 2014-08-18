@@ -112,9 +112,6 @@ class PupaGenerator(PupaExtBase):
         return scraper
 
 
-# ----------------------------------------------------------------------------
-# Importables
-# ----------------------------------------------------------------------------
 class LegistarPeopleScraper(pupa.scrape.Scraper):
     # This also scrapes orgs.
     scrape = PupaGenerator('people')
