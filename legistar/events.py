@@ -17,8 +17,7 @@ class EventsFields(FieldAggregator):
 
     def get_location(self):
         location = self.get_field_text('location') or 'City Hall'
-        # I understand that this makes me a bad person
-        location = location[:200].strip(' \n"')
+        location = location.strip(' \n"')
         return location
 
     def get_name(self):
