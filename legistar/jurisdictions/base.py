@@ -442,14 +442,3 @@ class Config:
         '''
         client = self.chainmap['client'] = self.make_child(Client)
         return client
-
-    # -----------------------------------------------------------------------
-    # Jxn-level org caching, for pupa.
-    # -----------------------------------------------------------------------
-    @CachedAttr
-    def org_cache(self):
-        return {}
-
-    @CachedAttr
-    def event_cache(self):
-        return {}
