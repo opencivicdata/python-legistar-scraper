@@ -5,23 +5,14 @@ class Config:
         '''Add fully qualified timezone to dt. '''
         return pytz.timezone(self.TIMEZONE).localize(dt).astimezone(self._utc)
 
-    mediatypes = Mediatypes()
     MEDIATYPE_GIF_PDF = ('/images/pdf.gif', 'application/pdf')
-    MEDIATYPE_EXT_PDF = ('pdf', 'application/pdf')
     MEDIATYPE_GIF_VIDEO = ('/images/video.gif', 'application/x-shockwave-flash')
+    MEDIATYPE_EXT_PDF = ('pdf', 'application/pdf')
     MEDIATYPE_EXT_DOC = ('doc', 'application/vnd.msword')
     MEDIATYPE_EXT_DOCX = ('docx', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document')
 
-    TAB_TEXT_ID = 'ctl00_tabTop'
-    TAB_TEXT_XPATH_TMPL = 'string(//div[@id="%s"]//a[contains(@class, "rtsSelected")])'
-    TAB_TEXT_XPATH = TAB_TEXT_XPATH_TMPL % TAB_TEXT_ID
-
-    # These are config options that can be overridden.
-    tabs = Tabs()
-    EVT_TAB_META = ('Calendar.aspx', 'events')
-    ORG_TAB_META = ('Departments.aspx', 'orgs')
-    BILL_TAB_META = ('Legislation.aspx', 'bills')
-    PPL_TAB_META = ('People.aspx', 'people')
+    TABS = {'events': 'Calendar.aspx', 'orgs': 'Departments.aspx',
+            'bills': 'Legislation.aspx', 'people': 'People.aspx'}
 
     # Pagination xpaths.
     PGN_CURRENT_PAGE_TMPL = '//*[contains(@class, "%s")]'
