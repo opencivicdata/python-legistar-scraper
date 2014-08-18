@@ -295,10 +295,6 @@ class EventsAdapter(Adapter):
         else:
             return True
 
-    #make_item('timezone')
-    def get_timezone(self):
-        return self.cfg.TIMEZONE
-
     def add_agenda_data(self, agenda_item, data):
         media = data.pop('media', [])
         entities = data.pop('entities', [])

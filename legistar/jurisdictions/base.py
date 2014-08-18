@@ -1,59 +1,9 @@
-import os
-import json
-import logging
-import logging.config
-import importlib.machinery
-from urllib.parse import urlparse
-from collections import ChainMap, defaultdict
-from os.path import dirname, abspath, join
-
-import pytz
-import requests
-
-import legistar
-from legistar.client import Client
-from legistar.base import Base, CachedAttr
-from legistar.jurisdictions.utils import Tabs, Mediatypes, Views
-
-JXN_CONFIGS = {}
-
-
-class ConfigError(Exception):
-    '''For complaining about config issues.
-    '''
-
-class Config(Base, metaclass=ConfigMeta):
-    '''The base configuration for a Legistar instance. Various parts can be
-    overridden.
-    '''
-    def __init__(self, **kwargs):
-        '''Thinking it'd be helpful to store get_scraper kwargs here,
-        in case the Config subtype is the most convenient place to put
-        a helper function.
-        '''
-        self.kwargs = kwargs
-
-    FASTMODE = True
-    SESSION_CLASS = requests.Session
-
-    # UTC timezone for creating fully tz qualified datetimes.
+class Config:
     _utc = pytz.timezone('UTC')
 
-    @CachedAttr
-    def timezone(self):
-        '''Returns pytz.timezone instance for the jxn's TIMEZONE setting.
-        '''
-        try:
-            tz = self.TIMEZONE
-        except AttributeError as e:
-            msg = 'Please set TIMEZONE on %r' % self
-            raise ConfigError(msg) from e
-        return pytz.timezone(tz)
-
     def datetime_add_tz(self, dt):
-        '''Add fully qualified timezone to dt.
-        '''
-        return self.timezone.localize(dt).astimezone(self._utc)
+        '''Add fully qualified timezone to dt. '''
+        return pytz.timezone(self.TIMEZONE).localize(dt).astimezone(self._utc)
 
     mediatypes = Mediatypes()
     MEDIATYPE_GIF_PDF = ('/images/pdf.gif', 'application/pdf')
@@ -493,9 +443,6 @@ class Config(Base, metaclass=ConfigMeta):
         session = self.kwargs.get('session')
         if session is None:
             session = self.SESSION_CLASS()
-        if self.FASTMODE:
-            session.cache_write_only = False
-            session.requests_per_minute = 0
         return session
 
     def get_client(self):
@@ -515,38 +462,3 @@ class Config(Base, metaclass=ConfigMeta):
     @CachedAttr
     def event_cache(self):
         return {}
-
-    # -----------------------------------------------------------------------
-    # Stuff related to testing.
-    # -----------------------------------------------------------------------
-    def get_assertions_dir(self, year):
-        '''Return the fully qualified path to this jxn's folder
-        containing output uni assertions (see http://github.com/twneale/uni).
-        '''
-        legistar_root = abspath(join(dirname(legistar.__file__), '..'))
-        assertions = join(legistar_root, 'assertions')
-        _, relpath = self.division_id.split('/', 1)
-        fullpath = join(assertions, relpath, year)
-        return fullpath
-
-    def ensure_assertions_dir(self, year):
-        '''Verify the asserts dir exists, otherwise create and return it.
-        '''
-        assertions_dir = self.get_assertions_dir(year)
-        if not os.path.isdir(assertions_dir):
-            os.makedirs(assertions_dir)
-        return assertions_dir
-
-    def gen_assertions(self, year, pupatype):
-        '''Yield each assertions contained in the asserts module for
-        `year` and `pupatype`.
-        '''
-        assertions_dir = self.ensure_assertions_dir(year)
-        filename = join(assertions_dir, '%s.py' % pupatype)
-        loader = importlib.machinery.SourceFileLoader(pupatype, filename)
-        mod = loader.load_module()
-        if not hasattr(mod, 'assertions'):
-            msg = ('The file %r must define a module-level sequence '
-                   '`assertions` containing the assertion data.')
-            raise Exception(msg % filename)
-        yield from iter(mod.assertions)
