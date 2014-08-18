@@ -2,10 +2,6 @@ import pupa
 
 from legistar.views import LegistarScraper
 from legistar.base import PupaExtBase
-from legistar.bills import BillsConverter
-from legistar.people import PeopleConverter
-from legistar.events import EventsConverter
-from legistar.orgs import OrgsConverter
 
 
 class PupaGenerator(PupaExtBase):
@@ -15,12 +11,6 @@ class PupaGenerator(PupaExtBase):
     field names over to valid pupa field names, then adds sources,
     links. etc.
     '''
-    converter_types = dict(
-        people=PeopleConverter,
-        orgs=OrgsConverter,
-        events=EventsConverter,
-        bills=BillsConverter)
-
     # Subclasses can set this attr, or callers can pass it in as an
     # __init__ arg.
     pupatypes = ()
@@ -54,28 +44,6 @@ class PupaGenerator(PupaExtBase):
 
     def __iter__(self):
         yield from self.gen_pupatype_data()
-
-    def gen_pupatype_data(self):
-        scraper = self.get_legistar_scraper()
-
-        cache = {}
-        for pupatype in self.get_pupatypes():
-            # Get the corresponding converter type.
-            converter_type = self.converter_types[pupatype]
-            for data in scraper.gen_pupatype_data(pupatype):
-                # For each type, create a converter that inherits self's
-                # chainmap.
-                converter = self.make_child(converter_type, data)
-                # And get the converted pupa instance.
-                if self._accumulate:
-                    for obj in converter:
-                        if id(obj) not in cache:
-                            cache[id(obj)] = obj
-                else:
-                    yield from converter
-
-        if self._accumulate and cache:
-            yield from cache.values()
 
     def get_jurisdiction(self):
         '''Return the jursdiction object. Overridden by LegistarOrgsGetter.

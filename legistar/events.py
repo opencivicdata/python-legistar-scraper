@@ -6,7 +6,7 @@ from datetime import datetime
 from legistar.forms import Form, FirefoxForm
 from legistar.tables import Table, TableRow
 from legistar.views import SearchView, DetailView
-from legistar.base import DictSetDefault, Adapter, Converter
+from legistar.base import DictSetDefault, Adapter
 
 import pupa.scrape
 
@@ -368,7 +368,3 @@ class EventsAdapter(Adapter):
         event1.participants.extend(event2.participants)
         event1.agenda.extend(event2.agenda)
         return event1
-
-
-class EventsConverter(Converter):
-    adapter = EventsAdapter

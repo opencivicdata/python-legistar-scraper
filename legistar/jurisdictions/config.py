@@ -1,96 +1,3 @@
-import re
-import json
-
-from legistar.jurisdictions.base import Config, make_item
-
-
-class NYC(Config):
-    '''Legistar config for New York City. Note that district, party,
-    and bio are all combined into a `notes` field on legislator detail
-    pages, so the custom functions below are necessary to extract those.
-    '''
-    TIMEZONE = 'America/New_York'
-
-    root_url = 'http://legistar.council.nyc.gov/'
-    classification = 'government'
-    division_id = 'ocd-division/country:us/state:ny/place:new_york'
-
-    GET_ORGS_FROM = 'people'
-    EXCLUDE_TOPLEVEL_ORG_MEMBERSHIPS = True
-
-    EVT_SEARCH_TABLE_TEXT_VIDEO = 'Multimedia'
-    EVT_DETAIL_TEXT_VIDEO = 'Multimedia'
-    EVT_DETAIL_TABLE_TEXT_VIDEO = 'Multimedia'
-
-    BILL_CLASSIFICATIONS = {
-        'Introduction': 'bill',
-        'Local Law': 'bill',
-        'Resolution': 'resolution',
-        }
-
-    ORG_CLASSIFICATIONS = {
-        'Land Use': 'committee',
-        'Subcommittee': 'committee',
-        'Task Force': 'commission',
-        'Town Hall Meeting': 'commission',
-    }
-
-    def person_district(self, data):
-        '''This corresponds to the label field on organizations posts.
-        '''
-        # First try to get it from bio.
-        dist = re.findall(r'District\s+\d+', data['notes'])
-        if dist:
-            return dist.pop()
-
-        # Then try website.
-        dist = re.findall(r'/d(\d+)/', data['website'])
-        if dist:
-            return dist.pop()
-
-        # Then email.
-        dist = re.findall(r'd(\d+)', data['email'])
-        if dist:
-            return dist.pop()
-
-    def person_party(self, data):
-        party = re.findall(r'Democrat|Republican', data['notes'], re.I)
-        if party:
-            party = party.pop()
-            if party.startswith('Democrat'):
-                party = 'Democratic'
-            return party
-
-    # ------------------------------------------------------------------------
-    # Methods for customizing the pupa conversion process
-    # ------------------------------------------------------------------------
-    SPONSORSHIP_JUNK = (
-        '(in conjunction with the Mayor)'
-        )
-
-    #overrides('BillsAdapter.should_drop_sponsor')
-    def should_drop_sponsor(self, data):
-        '''If this function retruns True, the sponsor obj is exluded from the
-        sponsors list.
-        '''
-        return data['name'] in self.cfg.SPONSORSHIP_JUNK
-
-    #overrides('BillsAdapter.gen_subjects')
-    def gen_subjects(self):
-        name = self.data['name'].strip()
-        if name:
-            yield name
-
-    #overrides('VoteAdapter.classify_motion_text')
-    def classify_motion_text(self, motion_text):
-        motion_text = motion_text.lower()
-        if 'amended by' in motion_text:
-            return ['amendment-passage']
-        elif 'approved by council' in motion_text:
-            return ['bill-passage']
-        return []
-
-
 class SanFrancisco(Config):
     root_url = 'https://sfgov.legistar.com'
     classification = 'government'
@@ -103,7 +10,6 @@ class SanFrancisco(Config):
     EVT_SEARCH_TABLE_TEXT_AUDIO = 'Audio'  # sfgov has this
     EVT_SEARCH_TIME_PERIOD = 'This Year'
     BILL_SEARCH_TABLE_TEXT_INTRO_DATE = 'Introduced'
-    GET_ORGS_FROM = 'people'
 
     def get_district(self, data):
         return self.DEFAULT_AT_LARGE_STRING
@@ -162,7 +68,6 @@ class Chicago(Config):
     classification = 'government'
     TIMEZONE = 'America/Chicago'
 
-    GET_ORGS_FROM = 'people'
     EXCLUDE_TOPLEVEL_ORG_MEMBERSHIPS = True
 
     PPL_DETAIL_TABLE_TEXT_ORG = 'Legislative Body'
@@ -321,7 +226,6 @@ class LassenCounty(Config):
     TIMEZONE = 'America/Los_Angeles'
 
     BILL_DETAIL_TEXT_AGENDA = 'OnAgenda2'
-    GET_ORGS_FROM = 'people'
 
 
 class LongBeach(Config):

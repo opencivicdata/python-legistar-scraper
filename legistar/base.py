@@ -416,29 +416,3 @@ class Adapter(PupaExtBase):
         python package, so subclasses must define this method.
         '''
         raise NotImplementedError()
-
-
-class Converter(PupaExtBase):
-    '''Base class responsible for adding relations onto
-    converted pupa instances using raw data obtained from
-    a PupaAdapter instance. I fully realize/appreciate that
-    all these classes are badly named.
-    '''
-    def __init__(self, legistar_data):
-        self.data = legistar_data
-
-    def __iter__(self):
-        data = self.get_adapter().get_instance()
-
-        # This allows adapters to return None from get_instance
-        # as a way of dropping data that shoulnd't make it into pupa.
-        if not data:
-            return
-
-        if isinstance(data, types.GeneratorType):
-            yield from data
-        else:
-            yield data
-
-    def get_adapter(self, data=None):
-        return self.make_child(self.adapter, data or self.data)

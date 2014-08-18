@@ -8,7 +8,7 @@ from urllib.parse import urlparse, parse_qsl
 from legistar.forms import Form
 from legistar.tables import Table, TableRow
 from legistar.views import SearchView, DetailView
-from legistar.base import Adapter, Converter
+from legistar.base import Adapter
 
 
 class PeopleFields(FieldAggregator):

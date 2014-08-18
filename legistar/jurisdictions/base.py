@@ -93,7 +93,6 @@ class Config(Base, metaclass=ConfigMeta):
     # ------------------------------------------------------------------------
     # Which pupatype legistar scraper should be used to generate the list of
     # orgs at the beginning of a pupa scrape.
-    GET_ORGS_FROM = 'orgs'
     EXCLUDE_TOPLEVEL_ORG_MEMBERSHIPS = True
 
     # Scrapers will be getting this from people pages.

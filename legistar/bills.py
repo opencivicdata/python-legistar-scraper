@@ -14,7 +14,7 @@ from legistar.tables import Table, TableRow
 from legistar.views import SearchView, DetailView
 from legistar.fields import ElementAccessor
 from legistar.jurisdictions.utils import resolve_name
-from legistar.base import Adapter, Converter
+from legistar.base import Adapter
 
 from opencivicdata.common import BILL_CLASSIFICATION_CHOICES
 
@@ -587,7 +587,3 @@ class BillsAdapter(Adapter):
 
         # None found; return emtpy array.
         return []
-
-
-class BillsConverter(Converter):
-    adapter = BillsAdapter
