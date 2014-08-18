@@ -18,48 +18,9 @@ from legistar.jurisdictions.utils import Tabs, Mediatypes, Views
 JXN_CONFIGS = {}
 
 
-class ConfigMeta(type):
-    '''Metaclass that aggregates jurisdiction config types by root_url
-    and division_id.
-    '''
-    def __new__(meta, name, bases, attrs):
-        cls = type.__new__(meta, name, bases, attrs)
-
-        # Track by domain.
-        root_url = attrs.get('root_url')
-        if root_url is not None:
-            JXN_CONFIGS[cls.get_host()] = cls
-
-        # Also OCD id.
-        division_id = attrs.get('division_id')
-        if division_id is not None:
-            JXN_CONFIGS[division_id] = cls
-
-        # Add (div_id, classn) for strict use with pupa.
-        classification = attrs.get('classification')
-        if classification is not None:
-            JXN_CONFIGS[(division_id, classification)] = cls
-
-        meta.collect_itemfuncs(attrs, cls)
-
-        return cls
-
-    @classmethod
-    def collect_itemfuncs(meta, attrs, cls):
-        '''Aggregates special item functions marked on each
-        config subtype.
-        '''
-        registry = defaultdict(list)
-        for name, member in attrs.items():
-            if getattr(member, '_is_aggregator_func', False):
-                registry[member._pupatype].append(member)
-        cls.aggregator_funcs = dict(registry)
-
-
 class ConfigError(Exception):
     '''For complaining about config issues.
     '''
-
 
 class Config(Base, metaclass=ConfigMeta):
     '''The base configuration for a Legistar instance. Various parts can be
@@ -135,17 +96,6 @@ class Config(Base, metaclass=ConfigMeta):
     GET_ORGS_FROM = 'orgs'
     EXCLUDE_TOPLEVEL_ORG_MEMBERSHIPS = True
 
-    ORG_SEARCH_VIEW_CLASS = 'legistar.orgs.OrgsSearchView'
-    ORG_DETAIL_VIEW_CLASS = 'legistar.orgs.OrgsDetailView'
-    ORG_SEARCH_TABLE_CLASS = 'legistar.orgs.OrgsSearchTable'
-    ORG_SEARCH_TABLEROW_CLASS = 'legistar.orgs.OrgsSearchTableRow'
-    ORG_SEARCH_TABLECELL_CLASS = 'legistar.fields.ElementAccessor'
-    ORG_SEARCH_FORM_CLASS = 'legistar.orgs.OrgsSearchForm'
-    ORG_DETAIL_TABLE_CLASS = 'legistar.orgs.OrgsDetailTable'
-    ORG_DETAIL_TABLEROW_CLASS = 'legistar.orgs.OrgsDetailTableRow'
-    ORG_DETAIL_TABLECELL_CLASS = 'legistar.fields.ElementAccessor'
-    ORG_DETAIL_FORM_CLASS = 'legistar.orgs.OrgsDetailForm'
-
     # Scrapers will be getting this from people pages.
     ORG_SEARCH_TABLE_DETAIL_AVAILABLE = False
     ORG_DETAIL_TABLE_DETAIL_AVAILABLE = False
@@ -208,16 +158,6 @@ class Config(Base, metaclass=ConfigMeta):
     # Events general config.
     # ------------------------------------------------------------------------
     EVT_SEARCH_SUBMIT_BUTTON_NAME = 'ctl00$ContentPlaceHolder1$btnSearch'
-    EVT_SEARCH_VIEW_CLASS = 'legistar.events.EventsSearchView'
-    EVT_DETAIL_VIEW_CLASS = 'legistar.events.EventsDetailView'
-    EVT_SEARCH_TABLE_CLASS = 'legistar.events.EventsSearchTable'
-    EVT_SEARCH_TABLEROW_CLASS = 'legistar.events.EventsSearchTableRow'
-    EVT_SEARCH_TABLECELL_CLASS = 'legistar.fields.ElementAccessor'
-    EVT_SEARCH_FORM_CLASS = 'legistar.events.EventsSearchForm'
-    EVT_DETAIL_TABLE_CLASS = 'legistar.events.EventsDetailTable'
-    EVT_DETAIL_TABLEROW_CLASS = 'legistar.events.EventsDetailTableRow'
-    EVT_DETAIL_TABLECELL_CLASS = 'legistar.fields.ElementAccessor'
-    EVT_DETAIL_FORM_CLASS = 'legistar.events.EventsDetailForm'
 
     # ------------------------------------------------------------------------
     # Events search table config.
@@ -330,18 +270,6 @@ class Config(Base, metaclass=ConfigMeta):
     CREATE_LEGISLATURE_MEMBERSHIP = False
     PPL_PARTY_REQUIRED = True
 
-    # View class config.
-    PPL_SEARCH_VIEW_CLASS = 'legistar.people.PeopleSearchView'
-    PPL_DETAIL_VIEW_CLASS = 'legistar.people.PeopleDetailView'
-    PPL_SEARCH_TABLE_CLASS = 'legistar.people.PeopleSearchTable'
-    PPL_SEARCH_TABLEROW_CLASS = 'legistar.people.PeopleSearchTableRow'
-    PPL_SEARCH_TABLECELL_CLASS = 'legistar.fields.ElementAccessor'
-    PPL_SEARCH_FORM_CLASS = 'legistar.people.PeopleSearchForm'
-    PPL_DETAIL_TABLE_CLASS = 'legistar.people.PeopleDetailTable'
-    PPL_DETAIL_TABLEROW_CLASS = 'legistar.people.PeopleDetailTableRow'
-    PPL_DETAIL_TABLECELL_CLASS = 'legistar.fields.ElementAccessor'
-    PPL_DETAIL_FORM_CLASS = 'legistar.people.PeopleDetailForm'
-
     # People search config.
     PPL_SEARCH_TABLE_TEXT_FULLNAME = 'Person Name'
     PPL_SEARCH_TABLE_TEXT_WEBSITE =  'Web Site'
@@ -387,24 +315,6 @@ class Config(Base, metaclass=ConfigMeta):
     PPL_DETAIL_TABLE_TEXT_START_DATE = 'Start Date'
     PPL_DETAIL_TABLE_TEXT_END_DATE = 'End Date'
     PPL_DETAIL_TABLE_TEXT_APPOINTED_BY = 'Appointed By'
-
-    # ------------------------------------------------------------------------
-    # Bill search classes.
-    # ------------------------------------------------------------------------
-    BILL_SEARCH_VIEW_CLASS = 'legistar.bills.BillsSearchView'
-    BILL_DETAIL_VIEW_CLASS = 'legistar.bills.BillsDetailView'
-    BILL_SEARCH_TABLE_CLASS = 'legistar.bills.BillsSearchTable'
-    BILL_SEARCH_TABLEROW_CLASS = 'legistar.bills.BillsSearchTableRow'
-    BILL_SEARCH_TABLECELL_CLASS = 'legistar.fields.ElementAccessor'
-    BILL_SEARCH_FORM_CLASS = 'legistar.bills.BillsSearchForm'
-    BILL_DETAIL_TABLE_CLASS = 'legistar.bills.BillsDetailTable'
-    BILL_DETAIL_TABLEROW_CLASS = 'legistar.bills.BillsDetailTableRow'
-    BILL_DETAIL_TABLECELL_CLASS = 'legistar.fields.ElementAccessor'
-    BILL_DETAIL_FORM_CLASS = 'legistar.bills.BillsDetailForm'
-    BILL_ACTION_VIEW_CLASS = 'legistar.bills.BillsDetailAction'
-    BILL_ACTION_TABLE_CLASS = 'legistar.bills.BillsDetailActionTable'
-    BILL_ACTION_TABLEROW_CLASS = 'legistar.bills.BillsDetailActionTableRow'
-    BILL_ACTION_TABLECELL_CLASS = 'legistar.fields.ElementAccessor'
 
     # ------------------------------------------------------------------------
     # Bill search config.
@@ -569,8 +479,7 @@ class Config(Base, metaclass=ConfigMeta):
             'Gecko/20070725 Firefox/2.0.0.6')
         }
 
-    requests_kwargs = dict(
-        headers=REQUEST_HEADERS)
+    requests_kwargs = dict(headers=REQUEST_HEADERS)
 
     @classmethod
     def get_host(cls):
