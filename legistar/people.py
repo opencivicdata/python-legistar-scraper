@@ -1,3 +1,4 @@
+import re
 import urllib
 
 import lxml.html
@@ -7,29 +8,33 @@ from pupa.scrape import Scraper, Person
 
 class LegistarScraper(Scraper):
 
-    def __init__(self, *args, **kwargs):
-        super(LegistarScraper, self).__init__(*args, **kwargs)
-        self._search_doc = None
-
-    @property
-    def search_doc(self):
-        if not self._search_doc:
-            url = urllib.parse.urljoin(self.jurisdiction.LEGISTAR_ROOT_URL, self.SEARCH_PAGE)
-            self._search_doc = self.lxmlopen(url)
-        return self._search_doc
-
-    def lxmlopen(self, url):
-        page = self.get(url)
+    def lxmlopen(self, url, payload=None):
+        if payload:
+            page = self.post(url, data=payload)
+        else:
+            page = self.get(url)
         doc = lxml.html.fromstring(page.text)
         doc.make_links_absolute(url)
         return doc
 
-    def parse_search_page(self):
+    def get_next_page(self, doc):
+        payload = {}
+        payload['__EVENTARGUMENT'] = ''
+        payload['__VIEWSTATE'] = doc.xpath("//input[@name='__VIEWSTATE']/@value")[0]
+        payload['__EVENTVALIDATION'] = doc.xpath("//input[@name='__EVENTVALIDATION']/@value")[0]
+        pagejs = doc.xpath("//a[@class='rgCurrentPage']/following-sibling::a[1]/@href")
+        if pagejs:
+            payload['__EVENTTARGET'] = re.match(r'javascript:__doPostBack\(\'([\w\d\$]+)\',\'\'\)',
+                                                pagejs[0]).groups()[0]
+            url = urllib.parse.urljoin(self.jurisdiction.LEGISTAR_ROOT_URL, self.SEARCH_PAGE)
+            return self.lxmlopen(url, payload)
+
+    def parse_search_page(self, doc):
         RESULTS_TABLE_XPATH = '//table[contains(@class, "rgMaster")]'
         NO_RECORDS_FOUND_TEXT = ['No records were found', 'No records to display.']
         BAD_QUERY_TEXT = ['Please enter your search criteria.']
 
-        tbl = self.search_doc.xpath(RESULTS_TABLE_XPATH)[0]
+        tbl = doc.xpath(RESULTS_TABLE_XPATH)[0]
 
         headers = [th.text_content().replace('\xa0', ' ').strip()
                    for th in tbl.xpath('.//th[contains(@class, "rgHeader")]')]
@@ -64,6 +69,11 @@ class LegistarScraper(Scraper):
 
             yield list(zip(headers, cells))
 
+        next_page = self.get_next_page(doc)
+        if next_page:
+            yield from self.parse_search_page(next_page)
+
+
     def parse_search_row(self, row):
         result = {}
         for name, td in row:
@@ -94,11 +104,19 @@ class LegistarScraper(Scraper):
     def obj_from_dict(self, item):
         raise NotImplementedError('obj_from_dict needs to be implemented in a subclass')
 
+    def skip_item(self, item):
+        return False
+
     def scrape(self):
-        for row in self.parse_search_page():
+        self.user_agent = 'Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.9.0.1) Gecko/2008071615 Fedora/3.0.1-1.fc9 Firefox/3.0.1'
+        
+        url = urllib.parse.urljoin(self.jurisdiction.LEGISTAR_ROOT_URL, self.SEARCH_PAGE)
+        doc = self.lxmlopen(url)
+        for row in self.parse_search_page(doc):
             item = self.parse_search_row(row)
-            detail_url = self.get_detail_url(row)
-            yield self.parse_detail_page(detail_url, item)
+            if not self.skip_item(item):
+                detail_url = self.get_detail_url(row)
+                yield self.parse_detail_page(detail_url, item)
 
 
 class LegistarPersonScraper(LegistarScraper):
@@ -106,6 +124,7 @@ class LegistarPersonScraper(LegistarScraper):
     SEARCH_PAGE = 'People.aspx'
     SEARCH_ROW_MAPPING = {
         'Person Name': 'name',
+        'Name': 'name',
         'Web Site': 'url',
         'Ward/Office': 'district',
         'E-mail': 'email',
@@ -138,8 +157,12 @@ class LegistarPersonScraper(LegistarScraper):
     }
 
     def obj_from_dict(self, item):
+        district = item.pop('district', None)
+        if district:
+            district = district.lstrip('0')
+
         p = Person(name=item.pop('name'),
-                   district=item.pop('district').lstrip('0'),
+                   district=district,
                    primary_org=item.pop('primary_org', 'legislature'),
                    party=item.pop('party', None),
                    image=item.pop('image', ''),
@@ -165,26 +188,7 @@ class LegistarPersonScraper(LegistarScraper):
     CREATE_LEGISLATURE_MEMBERSHIP = False
     PPL_PARTY_REQUIRED = True
 
-    # People search config.
-    PPL_SEARCH_TABLE_TEXT_FAX = 'Fax'
-    PPL_SEARCH_TABLE_TEXT_DISTRICT_PHONE = 'Ward Office Phone'
-    PPL_SEARCH_TABLE_TEXT_DISTRICT_ADDRESS = 'Ward Office Address'
-    PPL_SEARCH_TABLE_TEXT_DISTRICT_ADDRESS_STATE = ('State', 0)
-    PPL_SEARCH_TABLE_TEXT_DISTRICT_ADDRESS_CITY = ('City', 0)
-    PPL_SEARCH_TABLE_TEXT_DISTRICT_ADDRESS_ZIP = ('Zip', 0)
-    PPL_SEARCH_TABLE_TEXT_CITYHALL_PHONE = 'City Hall Phone'
-    PPL_SEARCH_TABLE_TEXT_CITYHALL_ADDRESS = 'City Hall Address'
-    PPL_SEARCH_TABLE_TEXT_CITYHALL_ADDRESS_STATE = ('State', 1)
-    PPL_SEARCH_TABLE_TEXT_CITYHALL_ADDRESS_CITY = ('City', 1)
-    PPL_SEARCH_TABLE_TEXT_CITYHALL_ADDRESS_ZIP = ('Zip', 1)
-
     PPL_DETAIL_TEXT_PHOTO = 'Photo'
-
-    # The string indicating person's membership in the council, for example.
-    # This is usually the first row in the person detail chamber.
-    # It's the string value of the first PPL_MEMB_TABLE_TEXT_ROLE
-    TOPLEVEL_ORG_MEMBERSHIP_TITLE = 'Council Member'
-    TOPLEVEL_ORG_MEMBERSHIP_NAME = 'City Council'
 
     PPL_DETAIL_TABLE_TEXT_ORG = 'Department Name'
     PPL_DETAIL_TABLE_TEXT_ROLE = 'Title'

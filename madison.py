@@ -1,0 +1,63 @@
+from pupa.scrape import Jurisdiction, Organization
+from legistar.people import LegistarPersonScraper
+from legistar.config import Config
+
+
+class MadisonPersonScraper(LegistarPersonScraper):
+
+    def skip_item(self, item):
+        return item['name'] in ('VACANCIES', 'Al Matano')
+
+
+class Madison(Jurisdiction):
+    division_id = 'ocd-division/country:us/state:wi/place:madison'
+    classification = 'government'
+    timezone = 'America/Chicago'
+    name = 'Madison'
+    url = 'http://www.cityofmadison.com/'
+
+    scrapers = {'people': MadisonPersonScraper}
+    LEGISTAR_ROOT_URL = 'https://madison.legistar.com/'
+
+    def get_organizations(self):
+        council = Organization('City of Madison Common Council', classification='legislature')
+        for x in range(1,21):
+            council.add_post(str(x), role='Alder')
+        yield council
+
+    #TODO: Something horribly wrong with people paginated results.  Keep getting page 1 back.
+        #ORG_SEARCH_TABLE_TEXT_NAME = 'Boards, Commissions and Committees'
+        #ORG_CLASSIFICATIONS = {
+        #    'ALLIED AREA TASK FORCE': 'commission',
+        #    'TRANSPORT 2020 IMPLEMENTATION TASK FORCE': 'commission',
+        #    'COMMON COUNCIL': 'legislature',
+        #    'COMMON COUNCIL - DISCUSSION': 'commission',
+        #    'COMMUNITY ACTION COALITION FOR SOUTH CENTRAL WISCONSIN INC': 'commission',
+        #    'COMMUNITY DEVELOPMENT AUTHORITY': 'commission',
+        #    'MADISON COMMUNITY FOUNDATION': 'commission',
+        #    'MADISON FOOD POLICY COUNCIL': 'commission',
+        #    'MADISON HOUSING AUTHORITY': 'commission',
+        #    'PARKING COUNCIL FOR PEOPLE WITH DISABILITIES': 'commission',
+        #}
+
+        #def person_district(self, data):
+        #    '''This corresponds to the label field on organizations posts.
+        #    '''
+        #    # First try to get it from bio.
+        #    dist = re.findall(r'District\s+\d+', data['notes'])
+        #    if dist:
+        #        return dist.pop()
+
+        #    # Then try website.
+        #    dist = re.findall(r'/district(\d+)/', data['website'])
+        #    if dist:
+        #        return dist.pop()
+
+        #    # Then email.
+        #    dist = re.findall(r'district(\d+)', data['email'])
+        #    if dist:
+        #        return dist.pop()
+
+        ##overrides('OrgsAdapter.get_classification')
+        #def orgs_get_classn(self):
+        #    return self.cfg.get_org_classification(self.data['name'])

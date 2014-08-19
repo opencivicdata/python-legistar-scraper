@@ -4,14 +4,10 @@ from legistar.config import Config
 
 
 class ChicagoPersonScraper(LegistarPersonScraper):
-
     def obj_from_dict(self, item):
         if item['district'] == 'Mayor':
             item['primary_org'] = 'executive'
-
         return super(ChicagoPersonScraper, self).obj_from_dict(item)
-
-
 
 
 class Chicago(Jurisdiction):
@@ -64,5 +60,4 @@ class Chicago(Jurisdiction):
     #            if identifier['scheme'] == 'legistar_guid':
     #                if identifier['identifier'] in drop_guids:
     #                    return True
-
     #        return False
