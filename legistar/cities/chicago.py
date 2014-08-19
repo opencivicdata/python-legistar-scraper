@@ -5,12 +5,25 @@ from legistar.people import LegistarPersonScraper
 class ChicagoPersonScraper(LegistarPersonScraper):
     DEFAULT_PRIMARY_ORG = 'legislature'
 
+    orgs_by_name = {}
+
     def skip_item(self, item):
         return item['district'] == ''
 
     def modify_object_args(self, kwargs, item):
         if kwargs['district'] == 'Mayor':
             kwargs['primary_org'] = 'executive'
+
+    def get_organization(self, item):
+        try:
+            org = self.orgs_by_name[item['name']]
+        except KeyError:
+            org = Organization(item['name'], classification='committee')
+            self.extra_items.append(org)
+            self.orgs_by_name[item['name']] = org
+
+        org.add_source(item['source'])
+        return org
 
 
 class Chicago(Jurisdiction):
@@ -41,10 +54,6 @@ class Chicago(Jurisdiction):
 
     #BILL_SEARCH_TABLE_TEXT_FILE_NUMBER = 'Record #'
     #BILL_DETAIL_TEXT_COMMITTEE = 'Current Controlling Legislative Body'
-
-    #def should_drop_organization(self, data):
-    #    # Skip phone orgs like "Office of the Mayor"
-    #    return data['name'].lower().startswith('office of')
 
     #def should_drop_bill(self, data):
     #    '''The chicago legistar site has type error where two bills in the

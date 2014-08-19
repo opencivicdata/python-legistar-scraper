@@ -40,6 +40,10 @@ class LegistarPersonScraper(LegistarScraper):
         'City, State Zip': None,
         '': None,
     }
+    DETAIL_ROW_MAPPING = {
+        'Legislative Body': 'name',
+        'Title': 'role',
+    }
     REQUIRED_FIELDS = ('name',)
     OPTIONAL_FIELDS = ('birth_date', 'death_date', 'biography', 'summary', 'image',
                        'gender', 'national_identity', 'start_date', 'end_date', 'party')
@@ -56,6 +60,13 @@ class LegistarPersonScraper(LegistarScraper):
         # TODO: does this actually work?
         if 'last_name' in item:
             obj.sort_name = item.pop('last_name')
+
+    def _attach_detail_row(self, obj, item, tr):
+        # these are memberships
+        org = self.get_organization(item)
+        obj.add_membership(org, role=item.get('role', 'member'),
+                           start_date=item.get('start_date', ''),
+                           end_date=item.get('end_date', ''))
 
     # unused
     PPL_DETAIL_TABLE_TEXT_ORG = 'Department Name'

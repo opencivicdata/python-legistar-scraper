@@ -32,7 +32,7 @@ class LegistarScraper(Scraper):
             url = urllib.parse.urljoin(self.jurisdiction.LEGISTAR_ROOT_URL, self.SEARCH_PAGE)
             return self._lxmlopen(url, payload)
 
-    def _parse_search_page(self, doc):
+    def _parse_search_page(self, doc, mapping):
         """
             get all result rows from search and yield them out as lists of tuples
             [(header, value), (header2, value2), etc.]
@@ -68,12 +68,15 @@ class LegistarScraper(Scraper):
             # get cells & wrap them up with the headers
             cells = tr.xpath('.//td')
             assert len(cells) == len(headers)
-            yield list(zip(headers, cells))
+            result = {}
+            for name, td in zip(headers, cells):
+                self.extract_content_to_item(result, name, td, mapping)
+            yield result, tr
 
         # after rows are depleted, check if there is another page and recurse
         next_page = self._get_next_page(doc)
         if next_page:
-            yield from self._parse_search_page(next_page)
+            yield from self._parse_search_page(next_page, mapping)
 
     def extract_content_to_item(self, item, name, element, mapping):
         """
@@ -85,24 +88,13 @@ class LegistarScraper(Scraper):
         if mapval is not None:
             item[mapval] = element.text_content().replace('\xa0', ' ').strip()
 
-    def _parse_search_row(self, row):
-        """
-            use self.SEARCH_ROW_MAPPING to convert <th> text to expected variable names
 
-            instead of overriding this function you can modify SEARCH_ROW_MAPPING
-        """
-        result = {}
-        for name, td in row:
-            self.extract_content_to_item(result, name, td, self.SEARCH_ROW_MAPPING)
-        return result
-
-    def _parse_detail_page(self, url, item):
+    def _parse_detail_page(self, doc, item):
         """
             pull the rows out of the tblMain detail page
 
             instead of overriding this function you can modify DETAIL_PAGE_MAPPING
         """
-        doc = self._lxmlopen(url)
         tbl = doc.xpath('//table[@id="ctl00_ContentPlaceHolder1_tblMain"]')[0]
         for tr in tbl.xpath('.//tr'):
             tds = tr.xpath('td')
@@ -162,29 +154,48 @@ class LegistarScraper(Scraper):
         assert not item, item
         return obj
 
+    def _attach_detail_rows(self, obj, detail_rows, detail_url):
+        for item, tr in detail_rows:
+            item['source'] = detail_url
+            self._attach_detail_row(obj, item, tr)
+
     def scrape(self):
         # seems to help w/ aspx stuff?
         self.user_agent = ('Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.9.0.1) Gecko/2008071615 '
                            'Fedora/3.0.1-1.fc9 Firefox/3.0.1')
+        self.extra_items = []
+
         # get first page
         url = urllib.parse.urljoin(self.jurisdiction.LEGISTAR_ROOT_URL, self.SEARCH_PAGE)
         doc = self._lxmlopen(url)
 
-        for row in self._parse_search_page(doc):
-            item = self._parse_search_row(row)
+        for item, tr in self._parse_search_page(doc, self.SEARCH_ROW_MAPPING):
             item['sources'] = [url]
             if not self.skip_item(item):
-                detail_url = self.get_detail_url(row)
+                detail_url = self.get_detail_url(tr)
                 item['sources'].append(detail_url)
-                yield self._parse_detail_page(detail_url, item)
+                detail_doc = self._lxmlopen(detail_url)
+                obj = self._parse_detail_page(detail_doc, item)
+                detail_rows = self._parse_search_page(detail_doc, self.DETAIL_ROW_MAPPING)
+                self._attach_detail_rows(obj, detail_rows, detail_url)
+                yield obj
             else:
                 self.warning('skipping {}'.format(item))
+
+        for item in self.extra_items:
+            yield item
 
     def _modify_object_args(self, kwargs, item):
         """ non-overriden modify_object_args, overriden by subclass """
 
     def _modify_created_object(self, kwargs, item):
         """ non-overriden modify_created_object, overriden by subclass """
+
+    def _attach_detail_row(self, obj, item, tr):
+        """
+            given an instantiated object and a detail row, add the row to the obj.
+            overriden by subclass
+        """
 
     # these are all to be overriden by subclasses
     REQUIRED_FIELDS = ()
@@ -197,7 +208,7 @@ class LegistarScraper(Scraper):
             get the URL to the row's detail page
             (overriding is recommended if the usual pattern doesn't hold)
         """
-        return row[0][1].xpath('.//a/@href')[0]
+        return row.xpath('.//a/@href')[0]
 
     def skip_item(self, item):
         """ can be overridden with custom logic to skip unruly items """
