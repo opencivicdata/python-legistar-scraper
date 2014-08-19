@@ -177,6 +177,8 @@ class LegistarScraper(Scraper):
                 detail_url = self.get_detail_url(row)
                 item['sources'].append(detail_url)
                 yield self._parse_detail_page(detail_url, item)
+            else:
+                self.warning('skipping {}'.format(item))
 
     def _modify_object_args(self, kwargs, item):
         """ non-overriden modify_object_args, overriden by subclass """
