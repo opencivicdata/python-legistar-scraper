@@ -1,25 +1,3 @@
-import re
-import json
-import time
-import datetime
-import collections
-from datetime import datetime
-from urllib.parse import urlparse, parse_qsl
-
-import lxml.html
-from hercules import CachedAttr
-
-from legistar.forms import Form, FirefoxForm
-from legistar.tables import Table, TableRow
-from legistar.views import SearchView, DetailView
-from legistar.fields import ElementAccessor
-from legistar.jurisdictions.utils import resolve_name
-from legistar.base import Adapter
-
-from opencivicdata.common import BILL_CLASSIFICATION_CHOICES
-
-
-
 class DateGetter:
     '''Parse a date using the datetime format string defined in
     the current jxn's config.
@@ -51,19 +29,6 @@ class BillsFields(FieldAggregator, DateGetter):
             grouped[url].add(note)
         for url, notes in grouped.items():
             yield dict(url=url, note=', '.join(sorted(notes)))
-
-
-class BillsSearchView(SearchView):
-    sources_note = 'bills search'
-
-
-class BillsSearchTableRow(TableRow, BillsFields):
-    def get_detail_url(self):
-        return self.get_field_url('file_number')
-
-
-class BillsSearchTable(Table):
-    sources_note = 'bills search table'
 
 
 class BillsSearchForm(FirefoxForm):
@@ -180,14 +145,6 @@ class BillsDetailView(DetailView, BillsFields):
 
         self.critical('Need session date.')
 
-class BillsDetailTable(Table):
-    sources_note = 'bill detail table'
-
-
-class BillsDetailForm(Form):
-    skip_first_submit = True
-    sources_note = 'bill detail'
-
 
 class BillsDetailTableRow(TableRow, FieldAggregator, DateGetter):
     sources_node = 'bill action table'
@@ -232,15 +189,6 @@ class BillsDetailTableRow(TableRow, FieldAggregator, DateGetter):
                 yield self._get_media(label)
             except self.SkipItem:
                 continue
-
-
-class ActionBase(FieldAggregator):
-    disable_aggregator_funcs = True
-
-    def get_prefix(self):
-        '''The settings prefix for this view.
-        '''
-        return 'BILL_ACTION'
 
 
 class BillsDetailAction(DetailView, ActionBase):
@@ -559,16 +507,6 @@ class BillsAdapter(Adapter):
     # ------------------------------------------------------------------------
     # Overridables: miscellaneous
     # ------------------------------------------------------------------------
-    def should_drop_bill(self, bill):
-        '''If this function retruns True, the bill is dropped.
-        '''
-        return False
-
-    def gen_subjects(self, data):
-        '''Get whatever data from the scraped data represents subjects.
-        '''
-        raise StopIteration()
-
     def get_bill_classification(self, billtype):
         '''Convert the legistar bill `type` column into
         a pupa classification array.

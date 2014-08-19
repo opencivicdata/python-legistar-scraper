@@ -1,18 +1,3 @@
-import re
-import json
-import collections
-from datetime import datetime
-
-from legistar.forms import Form, FirefoxForm
-from legistar.tables import Table, TableRow
-from legistar.views import SearchView, DetailView
-from legistar.base import DictSetDefault, Adapter
-
-import pupa.scrape
-
-
-
-
 class EventsFields(FieldAggregator):
 
     def get_location(self):
@@ -89,9 +74,6 @@ class EventsFields(FieldAggregator):
             yield dict(url=url, note=', '.join(sorted(notes)))
 
 
-class EventsSearchView(SearchView):
-    sources_note = 'events search'
-
 
 class EventsSearchTableRow(TableRow, EventsFields):
 
@@ -136,32 +118,6 @@ class EventsSearchTableRow(TableRow, EventsFields):
         dt = datetime.strptime(end_time, r'%Y%m%dT%H%M%S')
         dt = self.cfg.datetime_add_tz(dt)
         return dt
-
-
-class EventsSearchTable(Table):
-    sources_note = 'events search table'
-
-
-class EventsSearchForm(FirefoxForm):
-    '''Model the legistar "Calendar" search form.
-    '''
-    sources_note = 'events search table'
-
-    def fill_out_form(self):
-        self.set_dropdown('ctl00_ContentPlaceHolder1_lstYears', 'This Year')
-
-
-class EventsDetailView(DetailView, EventsFields):
-    sources_note = 'event detail'
-
-
-    def gen_agenda(self):
-        yield from self.Form(self)
-
-
-class EventsDetailTable(Table):
-    sources_note = 'event detail table'
-
 
 class EventsDetailTableRow(TableRow):
 
@@ -240,14 +196,6 @@ class EventsDetailTableRow(TableRow):
                 url=field.get_media_url(),
                 media_type=field.get_media_type())
             yield media
-
-
-class EventsDetailForm(Form):
-    skip_first_submit = True
-    sources_note = 'event detail'
-
-    def get_query(self, **kwargs):
-        return kwargs
 
 
 class AgendaItemAdapter(Adapter):
