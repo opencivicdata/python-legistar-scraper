@@ -5,6 +5,7 @@ from legistar.people import LegistarPersonScraper
 class MadisonPersonScraper(LegistarPersonScraper):
 
     EXTRA_FIELDS = ('notes',)
+    DATE_FORMATS = ('%m/%d/%Y', '%m/%d/%Y*',)
 
     def skip_item(self, item):
         return item['name'] in ('VACANCIES', 'Al Matano')
@@ -27,7 +28,6 @@ class Madison(Jurisdiction):
             council.add_post(str(x), role='Alder')
         yield council
 
-        #ORG_SEARCH_TABLE_TEXT_NAME = 'Boards, Commissions and Committees'
         #ORG_CLASSIFICATIONS = {
         #    'ALLIED AREA TASK FORCE': 'commission',
         #    'TRANSPORT 2020 IMPLEMENTATION TASK FORCE': 'commission',
@@ -58,7 +58,3 @@ class Madison(Jurisdiction):
         #    dist = re.findall(r'district(\d+)', data['email'])
         #    if dist:
         #        return dist.pop()
-
-        ##overrides('OrgsAdapter.get_classification')
-        #def orgs_get_classn(self):
-        #    return self.cfg.get_org_classification(self.data['name'])

@@ -9,6 +9,7 @@ class LegistarScraper(Scraper):
     RESULTS_TABLE_XPATH = '//table[contains(@class, "rgMaster")]'
     NO_RECORDS_FOUND_TEXT = ['No records were found', 'No records to display.']
     BAD_QUERY_TEXT = ['Please enter your search criteria.']
+    DATE_FORMATS = ('%m/%d/%Y',)
 
     def _lxmlopen(self, url, payload=None):
         """ use scrapelib to open a file and get a normalized lxml.html doc from it """
@@ -97,7 +98,8 @@ class LegistarScraper(Scraper):
         """
         mapval = mapping[name]
         if mapval is not None:
-            item[mapval] = element.text_content().replace('\xa0', ' ').strip()
+            text = ' '.join([chunk.replace('\xa0', ' ').strip() for chunk in element.itertext()])
+            item[mapval] = text.strip()
 
 
     def _parse_detail_page(self, doc, item):

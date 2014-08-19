@@ -43,14 +43,19 @@ class LegistarPersonScraper(LegistarScraper):
     DETAIL_ROW_MAPPING = {
         'Legislative Body': 'name',
         'Department Name': 'name',
+        'Boards, Commissions and Committees': 'name',
+        'Details': 'note',
         'Title': 'role',
         'Start Date': 'start_date',
         'End Date': 'end_date',
+        'Appointed By': 'appointed_by',
     }
     REQUIRED_FIELDS = ('name',)
     OPTIONAL_FIELDS = ('birth_date', 'death_date', 'biography', 'summary', 'image',
                        'gender', 'national_identity', 'start_date', 'end_date', 'party')
     PUPA_TYPE = Person
+
+    _orgs_by_name = {}
 
     def _modify_object_args(self, kwargs, item):
         # district & primary org are special cases
@@ -64,22 +69,36 @@ class LegistarPersonScraper(LegistarScraper):
         if 'last_name' in item:
             obj.sort_name = item.pop('last_name')
 
-    def _attach_detail_row(self, obj, item, tr):
-        # these are memberships
+    def modify_detail_row(self, obj, item, tr):
+        """ override to edit fields in the detail row """
+        pass
+
+    def _get_org_cached(self, item):
         try:
-            org = self.orgs_by_name[item['name']]
+            org = self._orgs_by_name[item['name']]
         except KeyError:
-            org = Organization(item['name'], classification='committee')
+            org = self.get_organization(item)
             self.extra_items.append(org)
-            self.orgs_by_name[item['name']] = org
+            self._orgs_by_name[item['name']] = org
 
         org.add_source(item['source'])
-        obj.add_membership(org, role=item.get('role', 'member'),
-                           start_date=self._convert_date(item.get('start_date', '')),
-                           end_date=self._convert_date(item.get('end_date', ''))
-                          )
+        return org
 
-    orgs_by_name = {}
+    def _attach_detail_row(self, obj, item, tr):
+        kwargs = {
+            'organization': self._get_org_cached(item),
+            'role': item.pop('role', 'member'),
+            'start_date': self._convert_date(item.get('start_date', '')),
+            'end_date': self._convert_date(item.get('end_date', '')),
+        }
+        if kwargs['end_date'].startswith('2111'):
+            self.warning('bad end date: ' + item['name'])
+        else:
+            self.modify_membership_args(kwargs, item)
+            obj.add_membership(**kwargs)
+
+    def modify_membership_args(self, kwargs, item):
+        pass
 
     def get_organization(self, item):
         return Organization(item['name'], classification='committee')

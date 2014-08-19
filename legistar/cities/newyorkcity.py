@@ -7,7 +7,6 @@ class NYCPersonScraper(LegistarPersonScraper):
 
     EXTRA_FIELDS = ('notes',)
     DEFAULT_PRIMARY_ORG = 'legislature'
-    DATE_FORMATS = ('%m/%d/%Y',)
 
     def modify_object_args(self, kwargs, item):
         notes = item.pop('notes')

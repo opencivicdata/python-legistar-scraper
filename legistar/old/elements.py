@@ -1,11 +1,3 @@
-def get_text(self):
-    ''' This is necessary to prevent idiocy of el.text_content()
-    which sometimes doesn't add spaces.  '''
-    text = ' '.join([chunk.strip() for chunk in self.el.itertext()])
-    text = text.strip()
-    if not self._is_blank(text):
-        return text
-
 def get_media_type(self):
     gif_url = None
     for xpath in ('string(.//img/@src)', 'string(..//img/@src)'):
