@@ -83,7 +83,7 @@ class LegistarScraper(Scraper):
         """
         mapval = mapping[name]
         if mapval is not None:
-            item[mapval] = element.text_content().strip()
+            item[mapval] = element.text_content().replace('\xa0', ' ').strip()
 
     def _parse_search_row(self, row):
         """
