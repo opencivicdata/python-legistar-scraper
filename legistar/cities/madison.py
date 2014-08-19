@@ -8,7 +8,10 @@ class MadisonPersonScraper(LegistarPersonScraper):
     DATE_FORMATS = ('%m/%d/%Y', '%m/%d/%Y*',)
 
     def skip_item(self, item):
-        return item['name'] in ('VACANCIES', 'Al Matano')
+        #return item['name'] in ('VACANCIES', 'Al Matano')
+        # TODO: this skips all non-city councilors, check to make sure it doesn't skip other
+        # interesting people?
+        return 'district' not in item['url']
 
 
 class Madison(Jurisdiction):
