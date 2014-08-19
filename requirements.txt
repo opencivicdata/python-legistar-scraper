@@ -1,10 +1,6 @@
 lxml
 mock
 pytest
-requests
 uni
-visitors
 pytz
-selenium
-pyvirtualdisplay
--e git+https://github.com/opencivicdata/python-opencivicdata.git#egg=opencivicdata
+pupa
