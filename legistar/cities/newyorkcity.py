@@ -2,7 +2,11 @@ from pupa.scrape import Jurisdiction, Organization
 from legistar.people import LegistarPersonScraper
 import re
 
+
 class NYCPersonScraper(LegistarPersonScraper):
+
+    EXTRA_FIELDS = ('notes',)
+    DEFAULT_PRIMARY_ORG = 'legislature'
 
     def obj_from_dict(self, item):
         notes = item.pop('notes')
@@ -51,8 +55,6 @@ class NYC(Jurisdiction):
         yield council
 
     LEGISTAR_ROOT_URL = 'http://legistar.council.nyc.gov/'
-
-    #    EXCLUDE_TOPLEVEL_ORG_MEMBERSHIPS = True
 
     #    EVT_SEARCH_TABLE_TEXT_VIDEO = 'Multimedia'
     #    EVT_DETAIL_TEXT_VIDEO = 'Multimedia'
