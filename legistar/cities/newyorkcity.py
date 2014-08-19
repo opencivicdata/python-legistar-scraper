@@ -8,7 +8,7 @@ class NYCPersonScraper(LegistarPersonScraper):
     EXTRA_FIELDS = ('notes',)
     DEFAULT_PRIMARY_ORG = 'legislature'
 
-    def obj_from_dict(self, item):
+    def modify_object_args(self, kwargs, item):
         notes = item.pop('notes')
         try:
             district, party, notes = re.match(
@@ -23,16 +23,14 @@ class NYCPersonScraper(LegistarPersonScraper):
                 print('could not parse: {}'.format(notes))
                 raise
 
-        if not party and item['name'] == 'Vanessa L. Gibson':
+        if not party and kwargs['name'] == 'Vanessa L. Gibson':
             party = 'Democratic'
         elif party.startswith('Democrat'):
             party = 'Democratic'
 
-        item['district'] = district
-        item['party'] = party
+        kwargs['district'] = district
+        kwargs['party'] = party
         item['notes'] = notes.strip()
-
-        return super(NYCPersonScraper, self).obj_from_dict(item)
 
 
 class NYC(Jurisdiction):

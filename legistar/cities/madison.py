@@ -4,6 +4,8 @@ from legistar.people import LegistarPersonScraper
 
 class MadisonPersonScraper(LegistarPersonScraper):
 
+    EXTRA_FIELDS = ('notes',)
+
     def skip_item(self, item):
         return item['name'] in ('VACANCIES', 'Al Matano')
 

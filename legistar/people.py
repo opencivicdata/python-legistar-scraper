@@ -40,54 +40,24 @@ class LegistarPersonScraper(LegistarScraper):
         'City, State Zip': None,
         '': None,
     }
+    REQUIRED_FIELDS = ('name',)
+    OPTIONAL_FIELDS = ('birth_date', 'death_date', 'biography', 'summary', 'image',
+                       'gender', 'national_identity', 'start_date', 'end_date', 'party')
+    PUPA_TYPE = Person
 
-    def obj_from_dict(self, item):
+    def _modify_object_args(self, kwargs, item):
+        # district & primary org are special cases
         district = item.pop('district', None)
         if district:
-            district = district.lstrip('0')
+            kwargs['district'] = district.lstrip('0')
+        kwargs['primary_org'] = item.pop('primary_org', self.DEFAULT_PRIMARY_ORG)
 
-        p = Person(name=item.pop('name'),
-                   district=district,
-                   primary_org=item.pop('primary_org', self.DEFAULT_PRIMARY_ORG),
-                   party=item.pop('party', None),
-                   image=item.pop('image', ''),
-                  )
-
-        for key, val in list(item.items()):
-            for ctype in ('email', 'voice', 'address', 'fax'):
-                if key.startswith(ctype):
-                    item.pop(key)
-                    if val:
-                        pieces = key.split('-', 1)
-                        ctype = pieces[0]
-                        note = pieces[1] if len(pieces) == 2 else ''
-                        p.add_contact_detail(type=ctype, value=val, note=note)
-
-        url = item.pop('url')
-        if url:
-           p.add_link(url)
-
+    def _modify_created_object(self, obj, item):
+        # TODO: does this actually work?
         if 'last_name' in item:
-            p.sort_name = item.pop('last_name')
-
-        for source in item.pop('sources'):
-            p.add_source(source)
-
-        for field in self.EXTRA_FIELDS:
-            val = item.pop(field)
-            if val:
-                p.extras[field] = val
-
-        assert not item, list(item.keys())
-
-        return p
+            obj.sort_name = item.pop('last_name')
 
     # unused
-    CREATE_LEGISLATURE_MEMBERSHIP = False
-    PPL_PARTY_REQUIRED = True
-
-    PPL_DETAIL_TEXT_PHOTO = 'Photo'
-
     PPL_DETAIL_TABLE_TEXT_ORG = 'Department Name'
     PPL_DETAIL_TABLE_TEXT_ROLE = 'Title'
     PPL_DETAIL_TABLE_TEXT_START_DATE = 'Start Date'
