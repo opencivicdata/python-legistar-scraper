@@ -1,6 +1,5 @@
 from pupa.scrape import Jurisdiction, Organization
 from legistar.people import LegistarPersonScraper
-from legistar.config import Config
 
 
 class MadisonPersonScraper(LegistarPersonScraper):

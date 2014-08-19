@@ -1,6 +1,5 @@
 from pupa.scrape import Jurisdiction, Organization
 from legistar.people import LegistarPersonScraper
-from legistar.config import Config
 import re
 
 class NYCPersonScraper(LegistarPersonScraper):
@@ -53,7 +52,6 @@ class NYC(Jurisdiction):
 
     LEGISTAR_ROOT_URL = 'http://legistar.council.nyc.gov/'
 
-    #class Config(Config):
     #    EXCLUDE_TOPLEVEL_ORG_MEMBERSHIPS = True
 
     #    EVT_SEARCH_TABLE_TEXT_VIDEO = 'Multimedia'

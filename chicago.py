@@ -1,6 +1,5 @@
 from pupa.scrape import Jurisdiction, Organization
 from legistar.people import LegistarPersonScraper
-from legistar.config import Config
 
 
 class ChicagoPersonScraper(LegistarPersonScraper):
@@ -36,7 +35,6 @@ class Chicago(Jurisdiction):
         executive.add_post('Mayor', role='Mayor')
         yield executive
 
-    #class Config(Config):
     #    ORG_SEARCH_TABLE_TEXT_NAME = 'Legislative Body'
     #    BILL_SEARCH_TABLE_TEXT_FILE_NUMBER = 'Record #'
     #    BILL_DETAIL_TEXT_COMMITTEE = 'Current Controlling Legislative Body'
