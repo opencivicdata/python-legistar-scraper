@@ -80,6 +80,9 @@ class LegistarScraper(Scraper):
         for tr in tbl.xpath('.//tr'):
             tds = tr.xpath('td')
             label = tds[0].text_content().strip().strip(':')
+            if len(tds) == 1:
+                self.warning('only one <td> for ' + label)
+                continue
             content = tds[1].text_content().strip()
             # TODO: make sure mapping is complete
             item[self.DETAIL_PAGE_MAPPING[label]] = content
@@ -103,28 +106,49 @@ class LegistarPersonScraper(LegistarScraper):
     SEARCH_PAGE = 'People.aspx'
     SEARCH_ROW_MAPPING = {
         'Person Name': 'name',
-        'Web Site': 'url'
+        'Web Site': 'url',
+        'Ward/Office': 'district',
+        'E-mail': 'email',
+        'Website': 'url',
+        'Ward Office Phone': 'district_phone',
+        'Ward Office Address': 'district_address',
+        'City Hall Phone': 'city_hall_phone',
+        'City Hall Address': 'city_hall_phone',
+        'Fax': 'fax',
+        'City': None,
+        'State': None,
+        'Zip': None,
     }
     DETAIL_PAGE_MAPPING = {
         'First name': 'first_name',
         'Last name': 'last_name',
         'E-mail': 'email',
         'Web site': 'url',
+        'Website': 'url',
         'Notes': 'notes',
+        'Ward Office Phone': 'district_phone',
+        'Ward Office Fax': 'district_fax',
+        'Ward Office Address': 'district_address',
+        'City Hall Phone': 'city_hall_phone',
+        'City Hall Fax': 'city_hall_fax',
+        'City Hall Address': 'city_hall_phone',
+        'City, state zip': None,
+        'City, State Zip': None,
+        '': None,
     }
 
     def obj_from_dict(self, item):
         p = Person(name=item.pop('name'),
-                   district=item.pop('district'),
-                   party=item.pop('party'),
-                   primary_org='legislature',
+                   district=item.pop('district').lstrip('0'),
+                   primary_org=item.pop('primary_org', 'legislature'),
+                   party=item.pop('party', None),
                    image=item.pop('image', ''),
                   )
         for contact in ('email', 'phone', 'address', 'fax'):
             if item.get('contact'):
                 p.add_contact_detail(type=contact, value=item.pop(contact))
 
-        if 'url' in item:
+        if item.get('url'):
            p.add_link(item.pop('url'))
 
         if 'last_name' in item:
@@ -133,7 +157,7 @@ class LegistarPersonScraper(LegistarScraper):
         for source in item.pop('sources'):
             p.add_source(source)
 
-        # extras
+        # TODO: extras
 
         return p
 
@@ -142,9 +166,7 @@ class LegistarPersonScraper(LegistarScraper):
     PPL_PARTY_REQUIRED = True
 
     # People search config.
-    PPL_SEARCH_TABLE_TEXT_EMAIL =  'E-mail'
     PPL_SEARCH_TABLE_TEXT_FAX = 'Fax'
-    PPL_SEARCH_TABLE_TEXT_DISTRICT = 'Ward/Office'
     PPL_SEARCH_TABLE_TEXT_DISTRICT_PHONE = 'Ward Office Phone'
     PPL_SEARCH_TABLE_TEXT_DISTRICT_ADDRESS = 'Ward Office Address'
     PPL_SEARCH_TABLE_TEXT_DISTRICT_ADDRESS_STATE = ('State', 0)

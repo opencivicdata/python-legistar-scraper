@@ -31,9 +31,10 @@ class NYCPersonScraper(LegistarPersonScraper):
 
         return super(NYCPersonScraper, self).obj_from_dict(item)
 
+
 class NYC(Jurisdiction):
-    division_id = 'ocd-division/country:us/state:ny/place:new_york'
     classification = 'government'
+    division_id = 'ocd-division/country:us/state:ny/place:new_york'
     name = 'New York City'
     timezone = 'America/New_York'
     url = 'http://nyc.gov'
@@ -52,44 +53,44 @@ class NYC(Jurisdiction):
 
     LEGISTAR_ROOT_URL = 'http://legistar.council.nyc.gov/'
 
-    class Config(Config):
-        EXCLUDE_TOPLEVEL_ORG_MEMBERSHIPS = True
+    #class Config(Config):
+    #    EXCLUDE_TOPLEVEL_ORG_MEMBERSHIPS = True
 
-        EVT_SEARCH_TABLE_TEXT_VIDEO = 'Multimedia'
-        EVT_DETAIL_TEXT_VIDEO = 'Multimedia'
-        EVT_DETAIL_TABLE_TEXT_VIDEO = 'Multimedia'
+    #    EVT_SEARCH_TABLE_TEXT_VIDEO = 'Multimedia'
+    #    EVT_DETAIL_TEXT_VIDEO = 'Multimedia'
+    #    EVT_DETAIL_TABLE_TEXT_VIDEO = 'Multimedia'
 
-        BILL_CLASSIFICATIONS = {
-            'Introduction': 'bill',
-            'Local Law': 'bill',
-            'Resolution': 'resolution',
-            }
+    #    BILL_CLASSIFICATIONS = {
+    #        'Introduction': 'bill',
+    #        'Local Law': 'bill',
+    #        'Resolution': 'resolution',
+    #        }
 
-        ORG_CLASSIFICATIONS = {
-            'Land Use': 'committee',
-            'Subcommittee': 'committee',
-            'Task Force': 'commission',
-            'Town Hall Meeting': 'commission',
-        }
+    #    ORG_CLASSIFICATIONS = {
+    #        'Land Use': 'committee',
+    #        'Subcommittee': 'committee',
+    #        'Task Force': 'commission',
+    #        'Town Hall Meeting': 'commission',
+    #    }
 
-    #overrides('BillsAdapter.should_drop_sponsor')
-    def should_drop_sponsor(self, data):
-        '''If this function retruns True, the sponsor obj is exluded from the
-        sponsors list.
-        '''
-        return data['name'] in '(in conjunction with the Mayor)'
+    ##overrides('BillsAdapter.should_drop_sponsor')
+    #def should_drop_sponsor(self, data):
+    #    '''If this function retruns True, the sponsor obj is exluded from the
+    #    sponsors list.
+    #    '''
+    #    return data['name'] in '(in conjunction with the Mayor)'
 
-    #overrides('BillsAdapter.gen_subjects')
-    def gen_subjects(self):
-        name = self.data['name'].strip()
-        if name:
-            yield name
+    ##overrides('BillsAdapter.gen_subjects')
+    #def gen_subjects(self):
+    #    name = self.data['name'].strip()
+    #    if name:
+    #        yield name
 
-    #overrides('VoteAdapter.classify_motion_text')
-    def classify_motion_text(self, motion_text):
-        motion_text = motion_text.lower()
-        if 'amended by' in motion_text:
-            return ['amendment-passage']
-        elif 'approved by council' in motion_text:
-            return ['bill-passage']
-        return []
+    ##overrides('VoteAdapter.classify_motion_text')
+    #def classify_motion_text(self, motion_text):
+    #    motion_text = motion_text.lower()
+    #    if 'amended by' in motion_text:
+    #        return ['amendment-passage']
+    #    elif 'approved by council' in motion_text:
+    #        return ['bill-passage']
+    #    return []
