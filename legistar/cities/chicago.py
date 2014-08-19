@@ -14,17 +14,6 @@ class ChicagoPersonScraper(LegistarPersonScraper):
         if kwargs['district'] == 'Mayor':
             kwargs['primary_org'] = 'executive'
 
-    def get_organization(self, item):
-        try:
-            org = self.orgs_by_name[item['name']]
-        except KeyError:
-            org = Organization(item['name'], classification='committee')
-            self.extra_items.append(org)
-            self.orgs_by_name[item['name']] = org
-
-        org.add_source(item['source'])
-        return org
-
 
 class Chicago(Jurisdiction):
     classification = 'government'

@@ -1,5 +1,6 @@
 import re
 import urllib
+import datetime
 import lxml.html
 from pupa.scrape import Scraper
 
@@ -18,6 +19,16 @@ class LegistarScraper(Scraper):
         doc = lxml.html.fromstring(page.text)
         doc.make_links_absolute(url)
         return doc
+
+    def _convert_date(self, date):
+        if not date:
+            return date
+        for fmt in self.DATE_FORMATS:
+            try:
+                return datetime.datetime.strptime(date, fmt).strftime('%Y-%m-%d')
+            except ValueError:
+                pass
+        raise ValueError(date + ' did not match any of the provided date formats')
 
     def _get_next_page(self, doc):
         """ mimic the __doPostBack js """
