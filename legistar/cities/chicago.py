@@ -3,6 +3,8 @@ from legistar.people import LegistarPersonScraper
 
 
 class ChicagoPersonScraper(LegistarPersonScraper):
+    DEFAULT_PRIMARY_ORG = 'legislature'
+
     def obj_from_dict(self, item):
         if item['district'] == 'Mayor':
             item['primary_org'] = 'executive'

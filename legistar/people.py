@@ -14,10 +14,10 @@ class LegistarPersonScraper(LegistarScraper):
         'Ward/Office': 'district',
         'E-mail': 'email',
         'Website': 'url',
-        'Ward Office Phone': 'district_phone',
-        'Ward Office Address': 'district_address',
-        'City Hall Phone': 'city_hall_phone',
-        'City Hall Address': 'city_hall_phone',
+        'Ward Office Phone': 'voice-district',
+        'Ward Office Address': 'address-district',
+        'City Hall Phone': 'voice-city hall',
+        'City Hall Address': 'address-city hall',
         'Fax': 'fax',
         'City': None,
         'State': None,
@@ -30,12 +30,12 @@ class LegistarPersonScraper(LegistarScraper):
         'Web site': 'url',
         'Website': 'url',
         'Notes': 'notes',
-        'Ward Office Phone': 'district_phone',
-        'Ward Office Fax': 'district_fax',
-        'Ward Office Address': 'district_address',
-        'City Hall Phone': 'city_hall_phone',
-        'City Hall Fax': 'city_hall_fax',
-        'City Hall Address': 'city_hall_phone',
+        'Ward Office Phone': 'voice-district',
+        'Ward Office Fax': 'fax-district',
+        'Ward Office Address': 'address-district',
+        'City Hall Phone': 'voice-city hall',
+        'City Hall Fax': 'fax-city hall',
+        'City Hall Address': 'address-city hall',
         'City, state zip': None,
         'City, State Zip': None,
         '': None,
@@ -52,13 +52,20 @@ class LegistarPersonScraper(LegistarScraper):
                    party=item.pop('party', None),
                    image=item.pop('image', ''),
                   )
-        for ctype in ('email', 'phone', 'address', 'fax'):
-            value = item.pop(ctype, None)
-            if value:
-                p.add_contact_detail(type=ctype, value=value)
 
-        if item.get('url'):
-           p.add_link(item.pop('url'))
+        for key, val in list(item.items()):
+            for ctype in ('email', 'voice', 'address', 'fax'):
+                if key.startswith(ctype):
+                    item.pop(key)
+                    if val:
+                        pieces = key.split('-', 1)
+                        ctype = pieces[0]
+                        note = pieces[1] if len(pieces) == 2 else ''
+                        p.add_contact_detail(type=ctype, value=val, note=note)
+
+        url = item.pop('url')
+        if url:
+           p.add_link(url)
 
         if 'last_name' in item:
             p.sort_name = item.pop('last_name')
