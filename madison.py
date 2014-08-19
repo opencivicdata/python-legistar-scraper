@@ -17,6 +17,7 @@ class Madison(Jurisdiction):
     url = 'http://www.cityofmadison.com/'
 
     scrapers = {'people': MadisonPersonScraper}
+    # HTTPS is vital here, without it pagination doesn't work!
     LEGISTAR_ROOT_URL = 'https://madison.legistar.com/'
 
     def get_organizations(self):
@@ -25,7 +26,6 @@ class Madison(Jurisdiction):
             council.add_post(str(x), role='Alder')
         yield council
 
-    #TODO: Something horribly wrong with people paginated results.  Keep getting page 1 back.
         #ORG_SEARCH_TABLE_TEXT_NAME = 'Boards, Commissions and Committees'
         #ORG_CLASSIFICATIONS = {
         #    'ALLIED AREA TASK FORCE': 'commission',
