@@ -2,7 +2,7 @@ import urllib
 
 import lxml.html
 
-from pupa.scrape import Scraper
+from pupa.scrape import Scraper, Person
 
 
 class LegistarScraper(Scraper):
@@ -14,7 +14,7 @@ class LegistarScraper(Scraper):
     @property
     def search_doc(self):
         if not self._search_doc:
-            url = urllib.parse.urljoin(self.jurisdiction.Config.ROOT_URL, self.SEARCH_PAGE)
+            url = urllib.parse.urljoin(self.jurisdiction.LEGISTAR_ROOT_URL, self.SEARCH_PAGE)
             self._search_doc = self.lxmlopen(url)
         return self._search_doc
 
@@ -64,29 +64,78 @@ class LegistarScraper(Scraper):
 
             yield list(zip(headers, cells))
 
-    def convert_search_row(self, row):
+    def parse_search_row(self, row):
         result = {}
         for name, td in row:
-            result[self.SEARCH_ROW_MAPPING[name]] = td.text_content()
+            # TODO: make sure mapping is complete
+            result[self.SEARCH_ROW_MAPPING[name]] = td.text_content().strip()
+        return result
 
     def get_detail_url(self, row):
         return row[0][1].xpath('.//a/@href')[0]
 
-    def parse_detail_page(self, url, table_bits):
+    def parse_detail_page(self, url, item):
         doc = self.lxmlopen(url)
+        tbl = doc.xpath('//table[@id="ctl00_ContentPlaceHolder1_tblMain"]')[0]
+        for tr in tbl.xpath('.//tr'):
+            tds = tr.xpath('td')
+            label = tds[0].text_content().strip().strip(':')
+            content = tds[1].text_content().strip()
+            # TODO: make sure mapping is complete
+            item[self.DETAIL_PAGE_MAPPING[label]] = content
+
+        item['sources'] = [url]
+
+        return self.obj_from_dict(item)
+
+    def obj_from_dict(self, item):
+        raise NotImplementedError('obj_from_dict needs to be implemented in a subclass')
 
     def scrape(self):
         for row in self.parse_search_page():
-            table_bits = self.convert_search_row(row)
+            item = self.parse_search_row(row)
             detail_url = self.get_detail_url(row)
-            self.parse_detail_page(detail_url, table_bits)
+            yield self.parse_detail_page(detail_url, item)
 
 
 class LegistarPersonScraper(LegistarScraper):
 
     SEARCH_PAGE = 'People.aspx'
-    SEARCH_ROW_MAPPING = {'Person Name': 'name',
-                          'Web Site': 'url'}
+    SEARCH_ROW_MAPPING = {
+        'Person Name': 'name',
+        'Web Site': 'url'
+    }
+    DETAIL_PAGE_MAPPING = {
+        'First name': 'first_name',
+        'Last name': 'last_name',
+        'E-mail': 'email',
+        'Web site': 'url',
+        'Notes': 'notes',
+    }
+
+    def obj_from_dict(self, item):
+        p = Person(name=item.pop('name'),
+                   district=item.pop('district'),
+                   party=item.pop('party'),
+                   primary_org='legislature',
+                   image=item.pop('image', ''),
+                  )
+        for contact in ('email', 'phone', 'address', 'fax'):
+            if item.get('contact'):
+                p.add_contact_detail(type=contact, value=item.pop(contact))
+
+        if 'url' in item:
+           p.add_link(item.pop('url'))
+
+        if 'last_name' in item:
+            p.sort_name = item.pop('last_name')
+
+        for source in item.pop('sources'):
+            p.add_source(source)
+
+        # extras
+
+        return p
 
     # unused
     CREATE_LEGISLATURE_MEMBERSHIP = False
@@ -107,23 +156,8 @@ class LegistarPersonScraper(LegistarScraper):
     PPL_SEARCH_TABLE_TEXT_CITYHALL_ADDRESS_CITY = ('City', 1)
     PPL_SEARCH_TABLE_TEXT_CITYHALL_ADDRESS_ZIP = ('Zip', 1)
 
-    # Whether people detail pages are available.
-    PPL_SEARCH_TABLE_DETAIL_AVAILABLE = True
-    # Nonsense to prevent detail queries on detail pages.
-    PPL_DETAIL_TABLE_DETAIL_AVAILABLE = False
-
-    PPL_DETAIL_TEXT_FIRSTNAME = 'First name'
-    PPL_DETAIL_TEXT_LASTNAME = 'Last name'
-    PPL_DETAIL_TEXT_WEBSITE =  'Web site'
-    PPL_DETAIL_TEXT_EMAIL = 'E-mail'
-    PPL_DETAIL_TEXT_NOTES = 'Notes'
-
-    # This field actually has no label, but this pretends it does,
-    # so as to support the same interface.
     PPL_DETAIL_TEXT_PHOTO = 'Photo'
 
-    # The string to indicate that person's rep'n is "at-large".
-    DEFAULT_AT_LARGE_STRING = 'At-Large'
     # The string indicating person's membership in the council, for example.
     # This is usually the first row in the person detail chamber.
     # It's the string value of the first PPL_MEMB_TABLE_TEXT_ROLE
@@ -135,4 +169,5 @@ class LegistarPersonScraper(LegistarScraper):
     PPL_DETAIL_TABLE_TEXT_START_DATE = 'Start Date'
     PPL_DETAIL_TABLE_TEXT_END_DATE = 'End Date'
     PPL_DETAIL_TABLE_TEXT_APPOINTED_BY = 'Appointed By'
+
     #TABS = {'events': 'Calendar.aspx', 'orgs': 'Departments.aspx', 'bills': 'Legislation.aspx',}

@@ -1,7 +1,5 @@
 class MembershipAdapter(Adapter):
-    '''Convert a legistar scraper's membership into a pupa-compliant
-    membership.
-    '''
+    '''Convert a legistar scraper's membership into a pupa-compliant membership.  '''
     pupa_model = pupa.scrape.Membership
     extras_keys = ['appointed_by']
 

@@ -1,12 +1,3 @@
-import re
-from collections import defaultdict
-
-from visitors import Visitor
-
-from legistar.base import Base
-from legistar.fields import ElementAccessor
-
-
 class Visitor(Base, Visitor):
     '''Visits a detail page and collects all the displayed fields into a
     dictionary that maps label text to DOM nodes.
@@ -15,11 +6,6 @@ class Visitor(Base, Visitor):
     sluggy part of their verbose aspx id names. For example, the 'Txt' part
     of 'ctl00_contentPlaceholder_lblTxt'.
     '''
-    # ------------------------------------------------------------------------
-    # These methods customize the visitor.
-    # ------------------------------------------------------------------------
-    def __init__(self):
-        self.data = defaultdict(dict)
 
     def finalize(self):
         '''Reorganize the data so it's readable labels (viewable on the page)
