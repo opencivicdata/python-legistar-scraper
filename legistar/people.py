@@ -10,13 +10,12 @@ class LegistarPersonScraper(LegistarScraper):
 
             for councilman, headers, row in self.parseDataTable(table):
                 if follow_links and type(councilman['Person Name']) == dict:
-                    print(councilman)
+
                     detail_url = councilman['Person Name']['url']
                     councilman_details = self.lxmlize(detail_url)
                     detail_div = councilman_details.xpath(".//div[@id='ctl00_ContentPlaceHolder1_pageDetails']")[0]
 
                     councilman.update(self.parseDetails(detail_div))
-                    print(councilman)
 
                     img = councilman_details.xpath(
                         "//img[@id='ctl00_ContentPlaceHolder1_imgPhoto']")
