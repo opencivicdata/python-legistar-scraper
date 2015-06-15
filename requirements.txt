@@ -1,6 +1,2 @@
-lxml
 mock
 pytest
-uni
-pytz
-pupa
