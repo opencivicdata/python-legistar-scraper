@@ -159,7 +159,10 @@ class LegistarScraper(Scraper):
         payload = {}
         payload['__EVENTARGUMENT'] = None
         payload['__VIEWSTATE'] = page.xpath("//input[@name='__VIEWSTATE']/@value")[0]
-        payload['__EVENTVALIDATION'] = page.xpath("//input[@name='__EVENTVALIDATION']/@value")[0]
+        try :
+            payload['__EVENTVALIDATION'] = page.xpath("//input[@name='__EVENTVALIDATION']/@value")[0]
+        except IndexError :
+            pass
 
         return(payload)
 
