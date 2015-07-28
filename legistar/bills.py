@@ -1,6 +1,13 @@
 from .base import LegistarScraper
 
 class LegistarBillScraper(LegistarScraper):
+    def legislation(self, search_text='', created_after=None, 
+                    created_before=None, num_pages=None) :
+        for page in self.searchLegislation(search_text, created_after,
+                                           created_before, num_pages) :
+            for legislation_summary in self.parseSearchResults(page) :
+                yield legislation_summary
+
     def searchLegislation(self, search_text='', created_after=None,
                           created_before=None, num_pages = None):
         """
@@ -83,10 +90,12 @@ class LegistarBillScraper(LegistarScraper):
 
             return page
 
-            
-            
+    def details(self, detail_url) :
+        detail_page = self.lxmlize(detail_url)
+        detail_div = detail_page.xpath(".//div[@id='ctl00_ContentPlaceHolder1_pageDetails']")[0]
 
-#<input type="submit" name="ctl00$ContentPlaceHolder1$btnSwitch" value="<<< Simple search" id="ctl00_ContentPlaceHolder1_btnSwitch" class="searchButton" style="font-family: Tahoma; font-size: 10pt; color: #333333;">
+        return self.parseDetails(detail_div)
+        
 
 def dateWithin(created_after, created_before) :
     payload = dateBound(created_after)
