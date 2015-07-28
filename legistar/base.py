@@ -84,9 +84,13 @@ class LegistarScraper(Scraper):
         headers = table.xpath(".//th[starts-with(@class, 'rgHeader')]")
         rows = table.xpath(".//tr[@class='rgRow' or @class='rgAltRow']")
 
-
-        keys = [header.text_content().replace('&nbsp;', ' ').strip()
-                for header in headers]
+        keys = []
+        for header in headers :
+            text_content = header.text_content().replace('&nbsp;', ' ').strip()
+            if text_content :
+                keys.append(text_content)
+            else :
+                keys.append(header.xpath('.//input')[0].value)
 
         for row in rows:
             try:
@@ -121,21 +125,30 @@ class LegistarScraper(Scraper):
         if 'onclick' in link.attrib:
             onclick = link.attrib['onclick']
             if (onclick is not None 
-                and (onclick.startswith("radopen('")
-                    or onclick.startswith("window.open"))):
-                url = self.base_url + onclick.split("'")[1]
+                and onclick.startswith(("radopen('",
+                                        "window.open",
+                                        "OpenTelerikWindow"))):
+                url = self.BASEURL + onclick.split("'")[1]
         elif 'href' in link.attrib : 
             url = link.attrib['href']
 
         return url
 
     def _stringify(self, field) :
+        for br in field.xpath("*//br"):
+            br.tail = "\n" + br.tail if br.tail else "\n"
+        for em in field.xpath("*//em"):
+            if em.text :
+                em.text = "--em--" + em.text + "--em--"
         return field.text_content().replace('&nbsp;', ' ').strip()
 
     def toTime(self, text) :
         time = datetime.datetime.strptime(text, self.date_format)
-        time = time.replace(tzinfo=pytz.timezone(self.timezone))
+        time = time.replace(tzinfo=pytz.timezone(self.TIMEZONE))
         return time
+
+    def now(self) :
+        return datetime.datetime.utcnow().replace(tzinfo = pytz.utc)
 
     def mdY2Ymd(self, text) :
         month, day, year = text.split('/')
