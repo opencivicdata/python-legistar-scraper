@@ -128,7 +128,7 @@ class LegistarScraper(Scraper):
                 and onclick.startswith(("radopen('",
                                         "window.open",
                                         "OpenTelerikWindow"))):
-                url = self.BASEURL + onclick.split("'")[1]
+                url = self.BASE_URL + onclick.split("'")[1]
         elif 'href' in link.attrib : 
             url = link.attrib['href']
 
@@ -146,6 +146,9 @@ class LegistarScraper(Scraper):
         time = datetime.datetime.strptime(text, self.date_format)
         time = time.replace(tzinfo=pytz.timezone(self.TIMEZONE))
         return time
+
+    def toDate(self, text) :
+        return self.toTime(text).date().isoformat()
 
     def now(self) :
         return datetime.datetime.utcnow().replace(tzinfo = pytz.utc)

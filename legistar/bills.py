@@ -94,7 +94,41 @@ class LegistarBillScraper(LegistarScraper):
         detail_page = self.lxmlize(detail_url)
         detail_div = detail_page.xpath(".//div[@id='ctl00_ContentPlaceHolder1_pageDetails']")[0]
 
-        return self.parseDetails(detail_div)
+        legislation_detail = self.parseDetails(detail_div)
+
+        history = self.history(detail_page)
+
+        return detail_page, history
+
+    def history(self, detail_page) :
+
+        history_table = detail_page.xpath("//table[@id='ctl00_ContentPlaceHolder1_gridLegislation_ctl00']")[0]
+
+        history = self.parseDataTable(history_table)
+
+        for action, _, _ in history :
+            yield action
+        
+
+    def extractVotes(self, action_detail_url) :
+        action_detail_page = self.lxmlize(action_detail_url)
+        try:
+            vote_table = action_detail_page.xpath("//table[@id='ctl00_ContentPlaceHolder1_gridVote_ctl00']")[0]
+        except IndexError:
+            self.warning("No votes found in table")
+            return None, []
+        votes = list(self.parseDataTable(vote_table))
+        vote_list = []
+        for vote, _, _ in votes :
+            raw_option = vote['Vote'].lower()
+            vote_list.append((self.VOTE_OPTIONS.get(raw_option, raw_option), 
+                              vote['Person Name']['label']))
+
+        action_detail_div = action_detail_page.xpath(".//div[@id='ctl00_ContentPlaceHolder1_pageTop1']")[0]
+        action_details = self.parseDetails(action_detail_div)
+        result = action_details['Result'].lower()
+
+        return result, vote_list
         
 
 def dateWithin(created_after, created_before) :
