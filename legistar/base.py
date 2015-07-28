@@ -128,7 +128,7 @@ class LegistarScraper(Scraper):
                 and onclick.startswith(("radopen('",
                                         "window.open",
                                         "OpenTelerikWindow"))):
-                url = self.BASEURL + onclick.split("'")[1]
+                url = self.BASE_URL + onclick.split("'")[1]
         elif 'href' in link.attrib : 
             url = link.attrib['href']
 
@@ -147,6 +147,9 @@ class LegistarScraper(Scraper):
         time = time.replace(tzinfo=pytz.timezone(self.TIMEZONE))
         return time
 
+    def toDate(self, text) :
+        return self.toTime(text).date().isoformat()
+
     def now(self) :
         return datetime.datetime.utcnow().replace(tzinfo = pytz.utc)
 
@@ -159,7 +162,10 @@ class LegistarScraper(Scraper):
         payload = {}
         payload['__EVENTARGUMENT'] = None
         payload['__VIEWSTATE'] = page.xpath("//input[@name='__VIEWSTATE']/@value")[0]
-        payload['__EVENTVALIDATION'] = page.xpath("//input[@name='__EVENTVALIDATION']/@value")[0]
+        try :
+            payload['__EVENTVALIDATION'] = page.xpath("//input[@name='__EVENTVALIDATION']/@value")[0]
+        except IndexError :
+            pass
 
         return(payload)
 
