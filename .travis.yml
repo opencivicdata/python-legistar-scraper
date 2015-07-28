@@ -4,9 +4,6 @@ python:
     - "3.4"
 install:
     - pip install -r requirements.txt
-script: ./tests/run-tests.sh
-after_success:
-    - coveralls
 notifications:
     email:
         - twneale@gmail.com
