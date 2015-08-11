@@ -98,7 +98,7 @@ class LegistarBillScraper(LegistarScraper):
 
         history = self.history(detail_page)
 
-        return detail_page, history
+        return legislation_detail, history
 
     def history(self, detail_page) :
 
