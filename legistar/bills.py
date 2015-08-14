@@ -1,4 +1,5 @@
 from .base import LegistarScraper
+from lxml.etree import tostring
 
 class LegistarBillScraper(LegistarScraper):
     def legislation(self, search_text='', created_after=None, 
@@ -90,17 +91,23 @@ class LegistarBillScraper(LegistarScraper):
 
             return page
 
-    def details(self, detail_url) :
+    def details(self, detail_url, div_id) :
         detail_page = self.lxmlize(detail_url)
-        detail_div = detail_page.xpath(".//div[@id='ctl00_ContentPlaceHolder1_pageDetails']")[0]
+        
+        detail_div = detail_page.xpath(".//div[@id='%s']" % div_id)[0]
 
-        legislation_detail = self.parseDetails(detail_div)
+        return self.parseDetails(detail_div)
 
-        history = self.history(detail_page)
+    def legDetails(self, detail_url) :
+        div_id = 'ctl00_ContentPlaceHolder1_pageDetails'
+        return self.details(detail_url, div_id)
 
-        return legislation_detail, history
+    def actionDetails(self, detail_url) :
+        div_id = 'ctl00_ContentPlaceHolder1_pageTop1'
+        return self.details(detail_url, div_id)
 
-    def history(self, detail_page) :
+    def history(self, detail_url) :
+        detail_page = self.lxmlize(detail_url)
 
         history_table = detail_page.xpath("//table[@id='ctl00_ContentPlaceHolder1_gridLegislation_ctl00']")[0]
 
@@ -108,6 +115,7 @@ class LegistarBillScraper(LegistarScraper):
 
         for action, _, _ in history :
             yield action
+        
         
 
     def extractVotes(self, action_detail_url) :
