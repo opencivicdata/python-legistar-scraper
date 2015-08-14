@@ -56,7 +56,7 @@ class LegistarScraper(Scraper):
                        "     or starts-with(@id, 'ctl00_ContentPlaceHolder1_hyp')]"
         fields = detail_div.xpath(detail_query)
         details = {}
-        
+
         for field_key, field in itertools.groupby(fields, 
                                                   fieldKey) :
             field = list(field)
@@ -174,5 +174,5 @@ def fieldKey(x) :
     field_id = x.attrib['id']
     field = re.split(r'hyp|lbl', field_id)[-1]
     field = field.split('Prompt')[0]
-    field = field.rstrip('X2')
+    field = field.rstrip('X21')
     return field
