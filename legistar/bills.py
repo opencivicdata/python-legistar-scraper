@@ -115,6 +115,17 @@ class LegistarBillScraper(LegistarScraper):
 
         for action, _, _ in history :
             yield action
+
+    def text(self, detail_url) :
+        detail_page = self.lxmlize(detail_url)
+
+        text_div = detail_page.xpath("//div[@id='ctl00_ContentPlaceHolder1_divText']/div/div")
+
+        if len(text_div) :
+            return tostring(text_div[0], pretty_print=True).decode()
+        else :
+            return None
+
         
         
 
