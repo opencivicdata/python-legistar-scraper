@@ -76,7 +76,7 @@ class LegistarBillScraper(LegistarScraper):
     def _advancedSearch(self, page) :
         search_switcher = page.xpath("//input[@id='ctl00_ContentPlaceHolder1_btnSwitch']")[0]
 
-        if 'Simple search' in search_switcher.value :
+        if 'simple search' in search_switcher.value.lower() :
             return page
         else :
             payload = {}
