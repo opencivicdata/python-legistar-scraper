@@ -42,8 +42,8 @@ class LegistarBillScraper(LegistarScraper):
 
         # Return up to one million search results
         payload['ctl00_ContentPlaceHolder1_lstMax_ClientState'] = '{"value":"1000000"}'
+        payload['ctl00_ContentPlaceHolder1_lstYearsAdvanced_ClientState'] = '{"value":"All"}'
         payload['ctl00$ContentPlaceHolder1$btnSearch'] = 'Search Legislation'
-        payload['ctl00$ContentPlaceHolder1$lstYearsAdvanced'] = 'All Years'
 
 
         payload.update(self.sessionSecrets(page))
@@ -79,14 +79,12 @@ class LegistarBillScraper(LegistarScraper):
         if 'simple search' in search_switcher.value.lower() :
             return page
         else :
-            payload = {}
+            payload = self.sessionSecrets(page)
             payload[search_switcher.name] = search_switcher.value
-            payload.update(self.sessionSecrets(page))
 
             page = self.lxmlize(self.LEGISLATION_URL, payload)
 
-            print(page.xpath("//input[@id='ctl00_ContentPlaceHolder1_btnSwitch']")[0].attrib)
-            if 'Simple search' not in page.xpath("//input[@id='ctl00_ContentPlaceHolder1_btnSwitch']")[0].value :
+            if 'simple search' not in page.xpath("//input[@id='ctl00_ContentPlaceHolder1_btnSwitch']")[0].value.lower() :
                 raise ValueError('Not on the advanced search page')
 
             return page
