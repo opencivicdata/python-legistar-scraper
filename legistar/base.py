@@ -67,6 +67,9 @@ class LegistarScraper(Scraper):
                 for link in field_2.xpath('.//a') :
                     value.append({'label' : link.text_content().strip(),
                                   'url' : self._get_link_address(link)})
+            elif 'href' in field_2.attrib :
+                value = {'label' : field_2.text_content().strip(),
+                         'url' : self._get_link_address(field_2)}
             else :
                 value = field_2.text_content().strip()
 
