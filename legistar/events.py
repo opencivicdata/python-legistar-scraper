@@ -24,8 +24,8 @@ class LegistarEventsScraper(LegistarScraper):
         for page in self.eventPages() :
             events_table = page.xpath("//table[@class='rgMasterTable']")[0]
             for events, headers, rows in self.parseDataTable(events_table) :
-                if follow_links and type(events["Meeting\xa0Details"]) == dict :
-                    detail_url = events["Meeting\xa0Details"]['url']
+                if follow_links and type(events["Meeting Details"]) == dict :
+                    detail_url = events["Meeting Details"]['url']
                     meeting_details = self.lxmlize(detail_url)
 
                     agenda_table = meeting_details.xpath(
