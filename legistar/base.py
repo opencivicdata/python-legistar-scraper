@@ -147,7 +147,7 @@ class LegistarScraper(Scraper):
 
     def toTime(self, text) :
         time = datetime.datetime.strptime(text, self.date_format)
-        time = time.replace(tzinfo=pytz.timezone(self.TIMEZONE))
+        time = pytz.timezone(self.TIMEZONE).localize(time)
         return time
 
     def toDate(self, text) :

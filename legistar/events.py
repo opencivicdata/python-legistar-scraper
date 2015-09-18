@@ -1,27 +1,27 @@
 from .base import LegistarScraper
 
 class LegistarEventsScraper(LegistarScraper):
-    def eventPages(self, search_type='all') :
+    def eventPages(self, since) :
 
         page = self.lxmlize(self.EVENTSPAGE)
 
-        if search_type == 'all' :
+        if since is None :
+            yield from self.eventSearch(page, 'All')
+        else :
+            for year in range(since, self.now().year + 1) :
+                yield from self.eventSearch(page, str(year))
+
+    def eventSearch(self, page, value) :
             payload = self.sessionSecrets(page)
 
-            payload['ctl00$ContentPlaceHolder1$lstYears'] = 'All Years'
-            payload['ctl00_ContentPlaceHolder1_lstYears_ClientState'] = '{"logEntries":[],"value":"All","text":"All Years","enabled":true,"checkedIndices":[],"checkedItemsTextOverflows":false}'
-
+            payload['ctl00_ContentPlaceHolder1_lstYears_ClientState'] = '{"value":"%s"}' % value
 
             payload['__EVENTTARGET'] = 'ctl00$ContentPlaceHolder1$lstYears'
 
             return self.pages(self.EVENTSPAGE, payload)
 
-        else :
-            return self.pages(page)
-
-
-    def events(self, follow_links=True) :
-        for page in self.eventPages() :
+    def events(self, follow_links=True, since=None) :
+        for page in self.eventPages(since) :
             events_table = page.xpath("//table[@class='rgMasterTable']")[0]
             for events, headers, rows in self.parseDataTable(events_table) :
                 if follow_links and type(events["Meeting Details"]) == dict :
