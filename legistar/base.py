@@ -6,6 +6,7 @@ import datetime
 from collections import defaultdict
 import itertools
 import pytz
+import icalendar
 import re
 
 class LegistarScraper(Scraper):
@@ -105,8 +106,13 @@ class LegistarScraper(Scraper):
                     if field.find('.//a') is not None :
                         address = self._get_link_address(field.find('.//a'))
                         if address :
-                            value = {'label': text_content, 
-                                     'url': address}
+                            if key == '' and 'View.ashx?M=IC' in address :
+                                req = self.get(address)
+                                value = icalendar.Calendar.from_ical(req.text)
+                                key = 'iCalendar'
+                            else :
+                                value = {'label': text_content, 
+                                         'url': address}
                         else :
                             value = text_content
                     else :
@@ -121,7 +127,6 @@ class LegistarScraper(Scraper):
                 print(etree.tostring(row))
                 print(traceback.format_exc())
                 raise e
-
 
     def _get_link_address(self, link):
         url = None
