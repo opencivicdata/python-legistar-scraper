@@ -109,9 +109,13 @@ class LegistarBillScraper(LegistarScraper):
 
         history_table = detail_page.xpath("//table[@id='ctl00_ContentPlaceHolder1_gridLegislation_ctl00']")[0]
 
-        history = list(self.parseDataTable(history_table))
+        history = [row[0] for row in self.parseDataTable(history_table)] 
 
-        for action, _, _ in history[::-1] :
+        history = sorted(history, 
+                         key = lambda action : (self.toDate(action['Date']), 
+                                                action['Action\xa0Details']['url']))
+
+        for action in history :
             yield action
 
     def text(self, detail_url) :
