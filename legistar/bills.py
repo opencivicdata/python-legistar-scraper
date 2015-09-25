@@ -111,12 +111,22 @@ class LegistarBillScraper(LegistarScraper):
 
         history = [row[0] for row in self.parseDataTable(history_table)] 
 
-        history = sorted(history, 
-                         key = lambda action : (self.toDate(action['Date']), 
-                                                action['Action\xa0Details']['url']))
+        history = sorted(history,
+                         key = self._actionSortKey)
 
         for action in history :
             yield action
+
+                    
+    def _actionSortKey(self, action) :
+        action_date = self.toDate(action['Date'])
+
+        try :
+            action_url = action['Action\xa0Details']['url']
+        except TypeError :
+            action_url = None
+
+        return (action_date, action_url)
 
     def text(self, detail_url) :
         detail_page = self.lxmlize(detail_url)
