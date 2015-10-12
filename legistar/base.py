@@ -18,9 +18,9 @@ class LegistarScraper(Scraper):
 
     def lxmlize(self, url, payload=None):
         if payload :
-            entry = self.post(url, payload).text
+            entry = self.post(url, payload, verify=False).text
         else :
-            entry = self.get(url).text
+            entry = self.get(url, verify=False).text
         page = lxml.html.fromstring(entry)
         page.make_links_absolute(url)
         return page
@@ -107,7 +107,7 @@ class LegistarScraper(Scraper):
                         address = self._get_link_address(field.find('.//a'))
                         if address :
                             if key == '' and 'View.ashx?M=IC' in address :
-                                req = self.get(address)
+                                req = self.get(address, verify=False)
                                 value = icalendar.Calendar.from_ical(req.text)
                                 key = 'iCalendar'
                             else :
