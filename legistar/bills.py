@@ -131,7 +131,7 @@ class LegistarBillScraper(LegistarScraper):
     def text(self, detail_url) :
         detail_page = self.lxmlize(detail_url)
 
-        text_div = detail_page.xpath("//div[@id='ctl00_ContentPlaceHolder1_divText']/div/div")
+        text_div = detail_page.xpath("//div[@id='ctl00_ContentPlaceHolder1_divText']")
 
         if len(text_div) :
             return tostring(text_div[0], pretty_print=True).decode()
