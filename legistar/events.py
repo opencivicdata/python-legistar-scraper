@@ -1,4 +1,5 @@
 from .base import LegistarScraper
+from collections import deque
 
 class LegistarEventsScraper(LegistarScraper):
     def eventPages(self, since) :
@@ -21,11 +22,23 @@ class LegistarEventsScraper(LegistarScraper):
             return self.pages(self.EVENTSPAGE, payload)
 
     def events(self, follow_links=True, since=None) :
+        # If an event is added to the the legistar system while we
+        # are scraping, it will shift the list of events down and
+        # we might revisit the same event. So, we keep track of
+        # the last few events we've visited in order to
+        # make sure we are not revisiting
+        scraped_events = deque([], maxlen=10)
+
         for page in self.eventPages(since) :
             events_table = page.xpath("//table[@class='rgMasterTable']")[0]
-            for events, headers, rows in self.parseDataTable(events_table) :
+            for events, _, _ in self.parseDataTable(events_table) :
                 if follow_links and type(events["Meeting Details"]) == dict :
                     detail_url = events["Meeting Details"]['url']
+                    if detail_url in scraped_events :
+                        continue
+                    else :
+                        scraped_events.append(detail_url)
+
                     meeting_details = self.lxmlize(detail_url)
 
                     agenda_table = meeting_details.xpath(

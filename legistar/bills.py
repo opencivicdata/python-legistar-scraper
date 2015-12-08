@@ -1,13 +1,24 @@
 from .base import LegistarScraper
 from lxml.etree import tostring
+from collections import deque
 
 class LegistarBillScraper(LegistarScraper):
     def legislation(self, search_text='', created_after=None, 
                     created_before=None, num_pages=None) :
+
+        # If legislation is added to the the legistar system while we
+        # are scraping, it will shift the list of legislation down and
+        # we might revisit the same legislation. So, we keep track of
+        # the last few pieces of legislation we've visited in order to
+        # make sure we are not revisiting
+        scraped_leg = deque([], maxlen=10)
+
         for page in self.searchLegislation(search_text, created_after,
                                            created_before, num_pages) :
             for legislation_summary in self.parseSearchResults(page) :
-                yield legislation_summary
+                if not legislation_summary['url'] in scraped_leg :
+                    yield legislation_summary
+                    scraped_leg.append(legislation_summary['url'])
 
     def searchLegislation(self, search_text='', created_after=None,
                           created_before=None, num_pages = None):
