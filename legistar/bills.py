@@ -4,7 +4,7 @@ from collections import deque
 
 class LegistarBillScraper(LegistarScraper):
     def legislation(self, search_text='', created_after=None, 
-                    created_before=None, num_pages=None) :
+                    created_before=None) :
 
         # If legislation is added to the the legistar system while we
         # are scraping, it will shift the list of legislation down and
@@ -14,14 +14,14 @@ class LegistarBillScraper(LegistarScraper):
         scraped_leg = deque([], maxlen=10)
 
         for page in self.searchLegislation(search_text, created_after,
-                                           created_before, num_pages) :
+                                           created_before) :
             for legislation_summary in self.parseSearchResults(page) :
                 if not legislation_summary['url'] in scraped_leg :
                     yield legislation_summary
                     scraped_leg.append(legislation_summary['url'])
 
     def searchLegislation(self, search_text='', created_after=None,
-                          created_before=None, num_pages = None):
+                          created_before=None):
         """
         Submit a search query on the legislation search page, and return a list
         of summary results.

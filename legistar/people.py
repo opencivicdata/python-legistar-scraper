@@ -2,15 +2,16 @@ from .base import LegistarScraper
 
 class LegistarPersonScraper(LegistarScraper):
     MEMBERLIST = None
+    ALL_MEMBERS = None
 
-    def councilMembers(self, follow_links=True, all_members=False) :
-        print(self.MEMBERLIST)
+    def councilMembers(self, follow_links=True) :
 
-        if all_members :
+        if self.ALL_MEMBERS :
             page = self.lxmlize(self.MEMBERLIST)
             payload = self.sessionSecrets(page)
             payload['__EVENTTARGET'] = "ctl00$ContentPlaceHolder1$menuPeople"
-            payload['__EVENTARGUMENT'] = "3:2"
+            payload['__EVENTARGUMENT'] = self.ALL_MEMBERS
+            
 
         for page in self.pages(self.MEMBERLIST, payload) :
             table = page.xpath(
