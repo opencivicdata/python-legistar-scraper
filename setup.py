@@ -18,7 +18,6 @@ setup(name='legistar',
       install_requires=[
           'lxml',
           'pytz',
-          'pupa',
           'icalendar'
       ],
       classifiers=["Development Status :: 4 - Beta",
