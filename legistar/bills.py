@@ -122,8 +122,7 @@ class LegistarBillScraper(LegistarScraper):
 
         history = [row[0] for row in self.parseDataTable(history_table)] 
 
-        history = sorted(history,
-                         key = self._actionSortKey)
+        history = sorted(history, key = self._actionSortKey)
 
         for action in history :
             yield action
@@ -135,7 +134,7 @@ class LegistarBillScraper(LegistarScraper):
         try :
             action_url = action['Action\xa0Details']['url']
         except TypeError :
-            action_url = None
+            action_url = '0'
 
         return (action_date, action_url)
 
