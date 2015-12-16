@@ -118,7 +118,11 @@ class LegistarBillScraper(LegistarScraper):
     def history(self, detail_url) :
         detail_page = self.lxmlize(detail_url)
 
-        history_table = detail_page.xpath("//table[@id='ctl00_ContentPlaceHolder1_gridLegislation_ctl00']")[0]
+        try :
+            history_table = detail_page.xpath("//table[@id='ctl00_ContentPlaceHolder1_gridLegislation_ctl00']")[0]
+        except IndexError :
+            print(detail_url)
+            raise
 
         history = [row[0] for row in self.parseDataTable(history_table)] 
 
