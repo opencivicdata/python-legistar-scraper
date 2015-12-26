@@ -80,7 +80,7 @@ class LegistarBillScraper(LegistarScraper):
                 continue
             legislation_url = legislation[id_key]['url'].split(self.BASE_URL)[-1]
             legislation[id_key] = legislation_id
-            legislation['url'] = self.BASE_URL + legislation_url.split('&Options')[0]
+            legislation['url'] = self.BASE_URL + legislation_url.split('&Options')[0] + '&FullText=1'
 
             yield legislation
 
