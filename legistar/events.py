@@ -53,7 +53,6 @@ class LegistarEventsScraper(LegistarScraper):
             agenda_table = page.xpath(
                 "//table[@id='ctl00_ContentPlaceHolder1_gridMain_ctl00']")[0]
             agenda = self.parseDataTable(agenda_table)
-            print(agenda)
             yield from agenda
 
     def addDocs(self, e, events, doc_type) :
