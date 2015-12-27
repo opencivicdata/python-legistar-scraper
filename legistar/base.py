@@ -35,6 +35,8 @@ class LegistarScraper(Scraper):
             del payload['ctl00$ContentPlaceHolder1$btnSearch']
 
         while len(next_page) > 0 :
+            if payload is None:
+                payload = {}
             
             payload.update(self.sessionSecrets(page))
 

@@ -41,15 +41,20 @@ class LegistarEventsScraper(LegistarScraper):
 
                     meeting_details = self.lxmlize(detail_url)
 
-                    agenda_table = meeting_details.xpath(
-                        "//table[@id='ctl00_ContentPlaceHolder1_gridMain_ctl00']")[0]
-                    agenda = self.parseDataTable(agenda_table)
+                    agenda = self.agenda(detail_url)
 
                 else :
                     agenda = None
                 
                 yield events, agenda
 
+    def agenda(self, detail_url) :
+        for page in self.pages(detail_url) :
+            agenda_table = page.xpath(
+                "//table[@id='ctl00_ContentPlaceHolder1_gridMain_ctl00']")[0]
+            agenda = self.parseDataTable(agenda_table)
+            print(agenda)
+            yield from agenda
 
     def addDocs(self, e, events, doc_type) :
         try :
