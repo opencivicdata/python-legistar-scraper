@@ -253,7 +253,7 @@ class LegistarAPIBillScraper(Scraper) :
     def history(self, matter_id) :
         actions = self.endpoint('/matters/{0}/histories', matter_id)
         return sorted(actions, 
-                      key = lambda action : action['MatterHistoryActionId'])
+                      key = lambda action : action['MatterHistoryActionDate'])
 
     def text(self, matter_id) :
         version_route = '/matters/{0}/versions'
@@ -264,10 +264,9 @@ class LegistarAPIBillScraper(Scraper) :
         latest_version = max(versions, key=lambda x : x['Value'])['Key']
         
         text_url = self.BASE_URL + text_route.format(matter_id, latest_version)
-        response = requests.head(text_url)
+        response = self.get(text_url, stream=True)
         if int(response.headers['Content-Length']) < 21052630 :
-            return self.endpoint(text_route, matter_id, latest_version)
-         
+            return response.json()
 
     def toTime(self, text) :
         time = datetime.datetime.strptime(text, self.date_format)
