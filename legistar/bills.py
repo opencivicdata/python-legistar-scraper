@@ -1,6 +1,11 @@
 from .base import LegistarScraper
+from pupa.scrape import Scraper
 from lxml.etree import tostring
 from collections import deque
+from functools import partialmethod
+import datetime
+import pytz
+import requests
 
 class LegistarBillScraper(LegistarScraper):
     def legislation(self, search_text='', created_after=None, 
@@ -202,3 +207,74 @@ def dateBound(creation_date) :
         '{{"enabled":true, "emptyMessage":"","validationText":"{d.year}-{d.month:02}-{d.day:02}-00-00-00","valueAsString":"{d.year}-{d.month:02}-{d.day:02}-00-00-00","minDateStr":"1980-01-01-00-00-00","maxDateStr":"2099-12-31-00-00-00", "lastSetTextBoxValue":"{d.month}/{d.day}/{d.year}"}}'.format(d=creation_date)
 
     return payload
+
+class LegistarAPIBillScraper(Scraper) :
+    date_format = '%Y-%m-%dT%H:%M:%S'
+
+    def matters(self, since_date) :
+        since_date = datetime.datetime.strftime(since_date, '%Y-%m-%d')
+        params = {'$filter' : "MatterLastModifiedUtc gt datetime'{since_date}'".format(since_date = since_date)}
+        
+        matters_url = self.BASE_URL + '/matters'
+
+        response = self.get(matters_url, params=params)
+
+        yield from response.json()
+        
+        page_num = 1
+        while len(response.json()) == 1000 :
+            params['$skip'] = page_num * 1000
+            response = self.get(matters_url, params=params)
+            yield from response.json()
+
+            page_num += 1
+
+    def endpoint(self, route, *args) :
+        url = self.BASE_URL + route
+        response = self.get(url.format(*args))
+        return response.json()
+
+    sponsors = partialmethod(endpoint, '/matters/{0}/sponsors')
+    topics = partialmethod(endpoint, '/matters/{0}/indexes')
+    attachments = partialmethod(endpoint, '/matters/{0}/attachments')
+    code_sections = partialmethod(endpoint, 'matters/{0}/codesections')
+
+    def votes(self, history_id) :
+        url = self.BASE_URL + '/eventitems/{0}/votes'.format(history_id)
+        response = requests.get(url)
+        if response.status_code == 200 :
+            return response.json()
+        elif response.status_code == 500 and response.json().get('InnerException', {}).get('ExceptionMessage', '') == "The cast to value type 'System.Int32' failed because the materialized value is null. Either the result type's generic parameter or the query must use a nullable type." :
+            print('no votes')
+            return []
+        else :
+            response = self.get(url)
+            return response.json()
+
+    def history(self, matter_id) :
+        actions = self.endpoint('/matters/{0}/histories', matter_id)
+        return sorted(actions, 
+                      key = lambda action : action['MatterHistoryActionId'])
+
+    def text(self, matter_id) :
+        version_route = '/matters/{0}/versions'
+        text_route = '/matters/{0}/texts/{1}'
+
+        versions = self.endpoint(version_route, matter_id)
+        
+        latest_version = max(versions, key=lambda x : x['Value'])['Key']
+        return self.endpoint(text_route, matter_id, latest_version)
+         
+
+    def toTime(self, text) :
+        time = datetime.datetime.strptime(text, self.date_format)
+        time = pytz.timezone(self.TIMEZONE).localize(time)
+        return time
+
+    def legislation_detail_url(self, matter_id) :
+        gateway_url = self.BASE_WEB_URL + '/gateway.aspx?m=l&id=/matter.aspx?key={0}'
+        
+        legislation_detail_route = requests.head(gateway_url.format(matter_id)).headers['Location']
+        
+        return self.BASE_WEB_URL + legislation_detail_route
+
