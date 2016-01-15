@@ -245,7 +245,6 @@ class LegistarAPIBillScraper(Scraper) :
         if response.status_code == 200 :
             return response.json()
         elif response.status_code == 500 and response.json().get('InnerException', {}).get('ExceptionMessage', '') == "The cast to value type 'System.Int32' failed because the materialized value is null. Either the result type's generic parameter or the query must use a nullable type." :
-            print('no votes')
             return []
         else :
             response = self.get(url)
@@ -263,7 +262,11 @@ class LegistarAPIBillScraper(Scraper) :
         versions = self.endpoint(version_route, matter_id)
         
         latest_version = max(versions, key=lambda x : x['Value'])['Key']
-        return self.endpoint(text_route, matter_id, latest_version)
+        
+        text_url = self.BASE_URL + text_route.format(matter_id, latest_version)
+        response = requests.head(text_url)
+        if int(response.headers['Content-Length']) < 21052630 :
+            return self.endpoint(text_route, matter_id, latest_version)
          
 
     def toTime(self, text) :
