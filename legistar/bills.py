@@ -216,13 +216,17 @@ class LegistarAPIBillScraper(Scraper) :
         params = {'$filter' : "MatterLastModifiedUtc gt datetime'{since_date}'".format(since_date = since_date)}
         
         matters_url = self.BASE_URL + '/matters'
-
         response = self.get(matters_url, params=params)
 
-        yield from response.json()
-        
+        seen_matters = deque([], maxlen=1000)
+
         page_num = 1
         while len(response.json()) == 1000 :
+            for matter in response.json() :
+                if matter["MatterId"] not in seen_matters :
+                    yield matter
+                    seen_matters.append(matter["MatterId"])
+
             params['$skip'] = page_num * 1000
             response = self.get(matters_url, params=params)
             yield from response.json()
@@ -234,7 +238,6 @@ class LegistarAPIBillScraper(Scraper) :
         response = self.get(url.format(*args))
         return response.json()
 
-    sponsors = partialmethod(endpoint, '/matters/{0}/sponsors')
     topics = partialmethod(endpoint, '/matters/{0}/indexes')
     attachments = partialmethod(endpoint, '/matters/{0}/attachments')
     code_sections = partialmethod(endpoint, 'matters/{0}/codesections')
@@ -254,6 +257,11 @@ class LegistarAPIBillScraper(Scraper) :
         actions = self.endpoint('/matters/{0}/histories', matter_id)
         return sorted(actions, 
                       key = lambda action : action['MatterHistoryActionDate'])
+
+    def sponsors(self, matter_id) :
+        spons = self.endpoint('/matters/{0}/sponsors', matter_id)
+        return = sorted(spons, 
+                        key = lambda sponsor : sponsor["MatterSponsorSequence"])
 
     def text(self, matter_id) :
         version_route = '/matters/{0}/versions'
