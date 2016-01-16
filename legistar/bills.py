@@ -260,8 +260,8 @@ class LegistarAPIBillScraper(Scraper) :
 
     def sponsors(self, matter_id) :
         spons = self.endpoint('/matters/{0}/sponsors', matter_id)
-        return = sorted(spons, 
-                        key = lambda sponsor : sponsor["MatterSponsorSequence"])
+        return sorted(spons, 
+                      key = lambda sponsor : sponsor["MatterSponsorSequence"])
 
     def text(self, matter_id) :
         version_route = '/matters/{0}/versions'
