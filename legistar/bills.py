@@ -219,7 +219,7 @@ class LegistarAPIBillScraper(Scraper) :
         seen_matters = deque([], maxlen=1000)
 
         page_num = 0
-        while len(response.json()) == 1000 or page_num == 0:
+        while page_num == 0 or len(response.json()) == 1000 :
             params['$skip'] = page_num * 1000
             response = self.get(matters_url, params=params)
 
