@@ -221,7 +221,7 @@ class LegistarAPIBillScraper(Scraper) :
         seen_matters = deque([], maxlen=1000)
 
         page_num = 1
-        while len(response.json()) == 1000 :
+        while len(response.json()) == 1000 or page_num == 1:
             for matter in response.json() :
                 if matter["MatterId"] not in seen_matters :
                     yield matter
