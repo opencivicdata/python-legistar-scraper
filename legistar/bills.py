@@ -252,8 +252,11 @@ class LegistarAPIBillScraper(Scraper) :
 
     def history(self, matter_id) :
         actions = self.endpoint('/matters/{0}/histories', matter_id)
-        return sorted(actions, 
-                      key = lambda action : action['MatterHistoryActionDate'])
+        try:
+            return sorted(actions, 
+                          key = lambda action : action['MatterHistoryActionDate'])
+        except TypeError:
+            return actions
 
     def sponsors(self, matter_id) :
         spons = self.endpoint('/matters/{0}/sponsors', matter_id)
