@@ -1,4 +1,8 @@
+import datetime
+import pytz
+
 from .base import LegistarScraper
+from pupa.scrape import Scraper
 
 class LegistarPersonScraper(LegistarScraper):
     MEMBERLIST = None
@@ -8,7 +12,7 @@ class LegistarPersonScraper(LegistarScraper):
 
         if self.ALL_MEMBERS :
             page = self.lxmlize(self.MEMBERLIST)
-            payload = self.sessionSecrets(page)
+            payload = {}
             payload['__EVENTTARGET'] = "ctl00$ContentPlaceHolder1$menuPeople"
             payload['__EVENTARGUMENT'] = self.ALL_MEMBERS
             
@@ -39,3 +43,45 @@ class LegistarPersonScraper(LegistarScraper):
 
                 else :
                     yield councilman
+
+class LegistarAPIPersonScraper(Scraper):
+    date_format = '%Y-%m-%dT%H:%M:%S'
+
+    def body_types(self):
+        body_types_url = self.BASE_URL + '/bodytypes/'
+        response = self.get(body_types_url)
+
+        types = {body_type['BodyTypeName'] : body_type['BodyTypeId']
+                 for body_type in response.json()}
+
+        return types
+
+    def bodies(self):
+        bodies_url = self.BASE_URL + '/bodies/'
+
+        response = self.get(bodies_url)
+
+        for body in response.json():
+            yield body
+
+    def body_offices(self, body):
+        body_id = body['BodyId']
+
+        offices_url = self.BASE_URL + '/bodies/{}/OfficeRecords'.format(body_id)
+
+        page_num = 0
+        params = {}
+        while page_num == 0 or len(response.json()) == 1000 :
+            params['$skip'] = page_num * 1000
+            response = self.get(offices_url, params=params)
+
+            for office in response.json() :
+                yield office
+
+            page_num += 1
+
+    def toDate(self, text) :
+        time = datetime.datetime.strptime(text, self.date_format)
+        time = pytz.timezone(self.TIMEZONE).localize(time)
+        return time.date()
+            
