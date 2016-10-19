@@ -1,7 +1,7 @@
 import datetime
 import pytz
 
-from .base import LegistarScraper
+from .base import LegistarScraper, LegistarAPIScraper
 from pupa.scrape import Scraper
 
 class LegistarPersonScraper(LegistarScraper):
@@ -44,7 +44,7 @@ class LegistarPersonScraper(LegistarScraper):
                 else :
                     yield councilman
 
-class LegistarAPIPersonScraper(Scraper):
+class LegistarAPIPersonScraper(LegistarAPIScraper):
     date_format = '%Y-%m-%dT%H:%M:%S'
 
     def body_types(self):
@@ -81,7 +81,5 @@ class LegistarAPIPersonScraper(Scraper):
             page_num += 1
 
     def toDate(self, text) :
-        time = datetime.datetime.strptime(text, self.date_format)
-        time = pytz.timezone(self.TIMEZONE).localize(time)
-        return time.date()
+        return self.toTime(text).date()
             

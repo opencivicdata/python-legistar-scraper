@@ -186,3 +186,12 @@ def fieldKey(x) :
     field = field.split('Prompt')[0]
     field = field.rstrip('X21')
     return field
+
+class LegistarAPIScraper(Scraper):
+    date_format = '%Y-%m-%dT%H:%M:%S'
+    
+    def toTime(self, text) :
+        time = datetime.datetime.strptime(text, self.date_format)
+        time = pytz.timezone(self.TIMEZONE).localize(time)
+        return time
+

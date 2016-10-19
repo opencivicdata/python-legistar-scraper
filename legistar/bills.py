@@ -1,4 +1,4 @@
-from .base import LegistarScraper
+from .base import LegistarScraper, LegistarAPIScraper
 from pupa.scrape import Scraper
 from lxml.etree import tostring
 from collections import deque
@@ -208,8 +208,7 @@ def dateBound(creation_date) :
 
     return payload
 
-class LegistarAPIBillScraper(Scraper) :
-    date_format = '%Y-%m-%dT%H:%M:%S'
+class LegistarAPIBillScraper(LegistarAPIScraper) :
 
     def matters(self, since_date) :
         since_date = datetime.datetime.strftime(since_date, '%Y-%m-%d')
@@ -279,11 +278,6 @@ class LegistarAPIBillScraper(Scraper) :
         response = self.get(text_url, stream=True)
         if int(response.headers['Content-Length']) < 21052630 :
             return response.json()
-
-    def toTime(self, text) :
-        time = datetime.datetime.strptime(text, self.date_format)
-        time = pytz.timezone(self.TIMEZONE).localize(time)
-        return time
 
     def legislation_detail_url(self, matter_id) :
         gateway_url = self.BASE_WEB_URL + '/gateway.aspx?m=l&id=/matter.aspx?key={0}'

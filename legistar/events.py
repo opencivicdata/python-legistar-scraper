@@ -1,5 +1,11 @@
-from .base import LegistarScraper
+from pupa.scrape import Scraper
+
+from .base import LegistarScraper, LegistarAPIScraper
 from collections import deque
+
+import time
+import datetime
+import pytz
 
 class LegistarEventsScraper(LegistarScraper):
     def eventPages(self, since) :
@@ -63,3 +69,39 @@ class LegistarEventsScraper(LegistarScraper):
                                media_type="application/pdf")
         except ValueError :
             pass
+
+class LegistarAPIEventScraper(LegistarAPIScraper):
+    def events(self):
+        events_url = self.BASE_URL + '/events/'
+        
+        response = self.get(events_url)
+
+        for event in response.json():
+            
+            start = self.toTime(event['EventDate'])
+            start_time = time.strptime(event['EventTime'], '%I:%M %p')
+            event['start'] = start.replace(hour=start_time.tm_hour,
+                                           minute=start_time.tm_min)
+            event['status'] = confirmed_or_passed(event['start'])
+
+            yield event
+
+    def agenda(self, event):
+        agenda_url = self.BASE_URL + '/events/{}/eventitems'.format(event['EventId'])
+
+        response = self.get(agenda_url)
+
+        for item in response.json():
+            if item['EventItemTitle']:
+                yield item
+
+    
+def confirmed_or_passed(when) :
+    if datetime.datetime.utcnow().replace(tzinfo = pytz.utc) > when :
+        status = 'confirmed'
+    else :
+        status = 'passed'
+    
+    return status
+
+            
