@@ -251,12 +251,16 @@ class LegistarAPIBillScraper(LegistarAPIScraper) :
 
     def history(self, matter_id) :
         actions = self.endpoint('/matters/{0}/histories', matter_id)
+        for action in actions:
+            action['MatterHistoryActionName'] = action['MatterHistoryActionName'].strip()
 
         actions = sorted((action for action in actions
                           if action['MatterHistoryActionDate'] and
                              action['MatterHistoryActionName'] and
                              action['MatterHistoryActionBodyName']),
                           key = lambda action : action['MatterHistoryActionDate'])
+
+        
         return actions
 
     def sponsors(self, matter_id) :
