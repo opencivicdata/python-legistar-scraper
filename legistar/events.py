@@ -1,11 +1,11 @@
 from pupa.scrape import Scraper
 
 from .base import LegistarScraper, LegistarAPIScraper
-from collections import deque
 
 import time
 import datetime
 import pytz
+from collections import deque
 
 class LegistarEventsScraper(LegistarScraper):
     def eventPages(self, since) :
@@ -55,7 +55,14 @@ class LegistarEventsScraper(LegistarScraper):
                 yield events, agenda
 
     def agenda(self, detail_url) :
-        for page in self.pages(detail_url) :
+        page = self.lxmlize(detail_url)
+
+        payload = self.sessionSecrets(page)
+
+        payload.update({"__EVENTARGUMENT": "3:1",
+                        "__EVENTTARGET":"ctl00$ContentPlaceHolder1$menuMain"})
+        
+        for page in self.pages(detail_url, payload) :
             agenda_table = page.xpath(
                 "//table[@id='ctl00_ContentPlaceHolder1_gridMain_ctl00']")[0]
             agenda = self.parseDataTable(agenda_table)
@@ -69,6 +76,25 @@ class LegistarEventsScraper(LegistarScraper):
                                media_type="application/pdf")
         except ValueError :
             pass
+
+    def extractRollCall(self, action_detail_url) :
+        action_detail_page = self.lxmlize(action_detail_url)
+        try:
+            rollcall_table = action_detail_page.xpath("//table[@id='ctl00_ContentPlaceHolder1_gridRollCall_ctl00']")[0]
+        except IndexError:
+            self.warning("No rollcall found in table")
+            return []
+        roll_call = list(self.parseDataTable(rollcall_table))
+        call_list = []
+        for call, _, _ in roll_call :
+            option = call['Attendance']
+            call_list.append((option,
+                              call['Person Name']['label']))
+
+        return call_list
+        
+        
+
 
 class LegistarAPIEventScraper(LegistarAPIScraper):
     def events(self):
@@ -104,4 +130,3 @@ def confirmed_or_passed(when) :
     
     return status
 
-            
