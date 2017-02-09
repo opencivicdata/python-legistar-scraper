@@ -99,11 +99,8 @@ class LegistarEventsScraper(LegistarScraper):
 class LegistarAPIEventScraper(LegistarAPIScraper):
     def events(self):
         events_url = self.BASE_URL + '/events/'
-        
-        response = self.get(events_url)
 
-        for event in response.json():
-            
+        for event in self.pages(events_url, item_key="EventID"):
             start = self.toTime(event['EventDate'])
             start_time = time.strptime(event['EventTime'], '%I:%M %p')
             event['start'] = start.replace(hour=start_time.tm_hour,

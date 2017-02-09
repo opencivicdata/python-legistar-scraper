@@ -3,7 +3,7 @@ import lxml.html
 import lxml.etree as etree
 import traceback
 import datetime
-from collections import defaultdict
+from collections import defaultdict, deque
 import itertools
 import pytz
 import icalendar
@@ -179,7 +179,6 @@ class LegistarScraper(Scraper):
 
         return(payload)
 
-
 def fieldKey(x) :
     field_id = x.attrib['id']
     field = re.split(r'hyp|lbl', field_id)[-1]
@@ -194,4 +193,26 @@ class LegistarAPIScraper(Scraper):
         time = datetime.datetime.strptime(text, self.date_format)
         time = pytz.timezone(self.TIMEZONE).localize(time)
         return time
+
+    def pages(self, url, params=None, item_key=None):
+        if params is None:
+            params = {}
+        
+        seen = deque([], maxlen=1000)
+
+        page_num = 0
+        while page_num == 0 or len(response.json()) == 1000 :
+            params['$skip'] = page_num * 1000
+            response = self.get(url, params=params)
+
+            for item in response.json() :
+                if item[item_key] not in seen :
+                    yield item
+                    seen.append(item[item_key])
+
+            page_num += 1
+
+
+
+
 

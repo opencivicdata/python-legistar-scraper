@@ -61,9 +61,7 @@ class LegistarAPIPersonScraper(LegistarAPIScraper):
     def bodies(self):
         bodies_url = self.BASE_URL + '/bodies/'
 
-        response = self.get(bodies_url)
-
-        for body in response.json():
+        for body in self.pages(bodies_url, item_key="BodyId"):
             yield body
 
     def body_offices(self, body):
@@ -71,17 +69,8 @@ class LegistarAPIPersonScraper(LegistarAPIScraper):
 
         offices_url = self.BASE_URL + '/bodies/{}/OfficeRecords'.format(body_id)
 
-        page_num = 0
-        params = {}
-        while page_num == 0 or len(response.json()) == 1000 :
-            params['$skip'] = page_num * 1000
-            response = self.get(offices_url, params=params)
-
-            for office in response.json() :
-                yield office
-
-            page_num += 1
+        for office in self.pages(offices_url, item_key="OfficeRecordId"):
+            yield office
 
     def toDate(self, text) :
         return self.toTime(text).date()
-            

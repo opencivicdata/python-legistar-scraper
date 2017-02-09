@@ -215,19 +215,12 @@ class LegistarAPIBillScraper(LegistarAPIScraper) :
         params = {'$filter' : "MatterLastModifiedUtc gt datetime'{since_date}'".format(since_date = since_date)}
         
         matters_url = self.BASE_URL + '/matters'
-        seen_matters = deque([], maxlen=1000)
 
-        page_num = 0
-        while page_num == 0 or len(response.json()) == 1000 :
-            params['$skip'] = page_num * 1000
-            response = self.get(matters_url, params=params)
-
-            for matter in response.json() :
-                if matter["MatterId"] not in seen_matters :
-                    yield matter
-                    seen_matters.append(matter["MatterId"])
-
-            page_num += 1
+        for matter in self.pages(matters_url,
+                                 params=params,
+                                 item_key="MatterId"):
+            yield matter
+        
 
     def endpoint(self, route, *args) :
         url = self.BASE_URL + route
