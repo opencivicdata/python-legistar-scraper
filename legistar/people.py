@@ -74,3 +74,13 @@ class LegistarAPIPersonScraper(LegistarAPIScraper):
 
     def toDate(self, text) :
         return self.toTime(text).date()
+
+    def person_sources_from_office(self, office):
+        person_api_url = self.BASE_URL + '/persons/{OfficeRecordPersonId}'.format(**office)
+        
+        response = self.get(person_api_url)
+        person_web_url = self.WEB_URL + '/PersonDetail.aspx?ID={PersonId}&GUID={PersonGuid}'.format(**response.json())
+
+        return person_api_url, person_web_url
+
+    
