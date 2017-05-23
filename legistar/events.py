@@ -114,9 +114,16 @@ class LegistarAPIEventScraper(LegistarAPIScraper):
 
         response = self.get(agenda_url)
 
-        for item in response.json():
-            if item['EventItemTitle']:
-                yield item
+        try:
+            filtered_response = sorted((item for item in response.json() if item['EventItemTitle']), key = lambda item : item['EventItemMinutesSequence'])
+        except TypeError:
+          try:
+              filtered_response = sorted((item for item in response.json() if item['EventItemTitle']), key = lambda item : item['EventItemAgendaSequence'])
+          except:
+              filtered_response = (item for item in response.json() if item['EventItemTitle'])
+
+        for item in filtered_response:
+            yield item
 
     
 def confirmed_or_passed(when) :
