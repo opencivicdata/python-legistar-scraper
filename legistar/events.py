@@ -114,9 +114,15 @@ class LegistarAPIEventScraper(LegistarAPIScraper):
 
         response = self.get(agenda_url)
 
-        ordered_response = sorted((item for item in response.json() if item['EventItemTitle'] and (item['EventItemMinutesSequence'] or item['EventItemAgendaSequence'])), key = lambda item : (item['EventItemMinutesSequence'], item['EventItemAgendaSequence']))
+        try:
+            filtered_response = sorted((item for item in response.json() if item['EventItemTitle']), key = lambda item : item['EventItemMinutesSequence'])
+        except TypeError:
+          try:
+              filtered_response = sorted((item for item in response.json() if item['EventItemTitle']), key = lambda item : item['EventItemAgendaSequence'])
+          except:
+              filtered_response = (item for item in response.json() if item['EventItemTitle'])
 
-        for item in ordered_response:
+        for item in filtered_response:
             yield item
 
 
