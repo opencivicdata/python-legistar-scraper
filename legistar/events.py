@@ -115,13 +115,20 @@ class LegistarAPIEventScraper(LegistarAPIScraper):
         response = self.get(agenda_url)
 
         try:
-            # Order the event items according to the EventItemMinutesSequence. If an event item does not have a value for EventItemMinutesSequence, the script will throw a TypeError. In that case, try to order by EventItemAgendaSequence.
-            filtered_response = sorted((item for item in response.json() if item['EventItemTitle']), key = lambda item : item['EventItemMinutesSequence'])
+            # Order the event items according to the EventItemMinutesSequence. If an 
+            # event item does not have a value for EventItemMinutesSequence, the script 
+            #will throw a TypeError. In that case, try to order by EventItemAgendaSequence.
+            filtered_response = sorted((item for item in response.json() 
+                                        if item['EventItemTitle']), 
+                                       key = lambda item : item['EventItemMinutesSequence'])
         except TypeError:
             try:
-                filtered_response = sorted((item for item in response.json() if item['EventItemTitle']), key = lambda item : item['EventItemAgendaSequence'])
+                filtered_response = sorted((item for item in response.json() 
+                                            if item['EventItemTitle']), 
+                                           key = lambda item : item['EventItemAgendaSequence'])
             except TypeError:
-                filtered_response = (item for item in response.json() if item['EventItemTitle'])
+                filtered_response = (item for item in response.json() 
+                                     if item['EventItemTitle'])
 
         for item in filtered_response:
             yield item
