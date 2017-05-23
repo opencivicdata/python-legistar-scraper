@@ -51,7 +51,7 @@ class LegistarEventsScraper(LegistarScraper):
 
                 else :
                     agenda = None
-                
+
                 yield events, agenda
 
     def agenda(self, detail_url) :
@@ -61,7 +61,7 @@ class LegistarEventsScraper(LegistarScraper):
 
         payload.update({"__EVENTARGUMENT": "3:1",
                         "__EVENTTARGET":"ctl00$ContentPlaceHolder1$menuMain"})
-        
+
         for page in self.pages(detail_url, payload) :
             agenda_table = page.xpath(
                 "//table[@id='ctl00_ContentPlaceHolder1_gridMain_ctl00']")[0]
@@ -70,7 +70,7 @@ class LegistarEventsScraper(LegistarScraper):
 
     def addDocs(self, e, events, doc_type) :
         try :
-            if events[doc_type] != 'Not\xa0available' : 
+            if events[doc_type] != 'Not\xa0available' :
                 e.add_document(note= events[doc_type]['label'],
                                url = events[doc_type]['url'],
                                media_type="application/pdf")
@@ -92,8 +92,8 @@ class LegistarEventsScraper(LegistarScraper):
                               call['Person Name']['label']))
 
         return call_list
-        
-        
+
+
 
 
 class LegistarAPIEventScraper(LegistarAPIScraper):
@@ -114,16 +114,23 @@ class LegistarAPIEventScraper(LegistarAPIScraper):
 
         response = self.get(agenda_url)
 
-        for item in response.json():
-            if item['EventItemTitle']:
-                yield item
+        try:
+            filtered_response = sorted((item for item in response.json() if item['EventItemTitle']), key = lambda item : item['EventItemMinutesSequence'])
+        except TypeError:
+          try:
+              filtered_response = sorted((item for item in response.json() if item['EventItemTitle']), key = lambda item : item['EventItemAgendaSequence'])
+          except:
+              filtered_response = (item for item in response.json() if item['EventItemTitle'])
 
-    
+        for item in filtered_response:
+            yield item
+
+
 def confirmed_or_passed(when) :
     if datetime.datetime.utcnow().replace(tzinfo = pytz.utc) > when :
         status = 'confirmed'
     else :
         status = 'passed'
-    
+
     return status
 
