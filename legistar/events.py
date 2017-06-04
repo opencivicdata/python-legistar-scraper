@@ -1,4 +1,5 @@
 from pupa.scrape import Scraper
+import scrapelib
 
 from .base import LegistarScraper, LegistarAPIScraper
 
@@ -6,6 +7,8 @@ import time
 import datetime
 import pytz
 from collections import deque
+import icalendar
+
 
 class LegistarEventsScraper(LegistarScraper):
     def eventPages(self, since) :
@@ -19,13 +22,13 @@ class LegistarEventsScraper(LegistarScraper):
                 yield from self.eventSearch(page, str(year))
 
     def eventSearch(self, page, value) :
-            payload = self.sessionSecrets(page)
+        payload = self.sessionSecrets(page)
 
-            payload['ctl00_ContentPlaceHolder1_lstYears_ClientState'] = '{"value":"%s"}' % value
+        payload['ctl00_ContentPlaceHolder1_lstYears_ClientState'] = '{"value":"%s"}' % value
 
-            payload['__EVENTTARGET'] = 'ctl00$ContentPlaceHolder1$lstYears'
+        payload['__EVENTTARGET'] = 'ctl00$ContentPlaceHolder1$lstYears'
 
-            return self.pages(self.EVENTSPAGE, payload)
+        return self.pages(self.EVENTSPAGE, payload)
 
     def events(self, follow_links=True, since=None) :
         # If an event is added to the the legistar system while we
@@ -37,9 +40,9 @@ class LegistarEventsScraper(LegistarScraper):
 
         for page in self.eventPages(since) :
             events_table = page.xpath("//table[@class='rgMasterTable']")[0]
-            for events, _, _ in self.parseDataTable(events_table) :
-                if follow_links and type(events["Meeting Details"]) == dict :
-                    detail_url = events["Meeting Details"]['url']
+            for event, _, _ in self.parseDataTable(events_table) :
+                if follow_links and type(event["Meeting Details"]) == dict :
+                    detail_url = event["Meeting Details"]['url']
                     if detail_url in scraped_events :
                         continue
                     else :
@@ -52,7 +55,7 @@ class LegistarEventsScraper(LegistarScraper):
                 else :
                     agenda = None
                 
-                yield events, agenda
+                yield event, agenda
 
     def agenda(self, detail_url) :
         page = self.lxmlize(detail_url)
@@ -92,22 +95,45 @@ class LegistarEventsScraper(LegistarScraper):
                               call['Person Name']['label']))
 
         return call_list
-        
+
+
+    def ical(self, ical_text):
+        value = icalendar.Calendar.from_ical(ical_text)
+        return value
         
 
 
 class LegistarAPIEventScraper(LegistarAPIScraper):
-    def events(self):
+
+    def events(self, since_date):
+        since_date = datetime.datetime.strftime(since_date, '%Y-%m-%d')
+        params = {'$filter' : "EventLastModifiedUtc gt datetime'{since_date}'".format(since_date = since_date)}
+
         events_url = self.BASE_URL + '/events/'
 
-        for event in self.pages(events_url, item_key="EventId"):
-            start = self.toTime(event['EventDate'])
-            start_time = time.strptime(event['EventTime'], '%I:%M %p')
-            event['start'] = start.replace(hour=start_time.tm_hour,
-                                           minute=start_time.tm_min)
-            event['status'] = confirmed_or_passed(event['start'])
+        web_results = self._scrapeWebCalendar()
 
-            yield event
+        for api_event in self.pages(events_url,
+                                    params=params,
+                                    item_key="EventId"):
+            start = self.toTime(api_event['EventDate'])
+            start_time = time.strptime(api_event['EventTime'], '%I:%M %p')
+            api_event['start'] = start.replace(hour=start_time.tm_hour,
+                                               minute=start_time.tm_min)
+            api_event['status'] = confirmed_or_passed(api_event['start'])
+
+            # Create a key for lookups in the web_results dict.
+            key = (api_event['Api_EventBodyName'].strip(),
+                   self.toTime(api_event['Api_EventDate']).date(),
+                   api_event['Api_EventTime'])
+
+            try:
+                web_event = web_results[key]
+            except:
+                import pdb
+                pdb.set_trace()
+
+            yield event, web_event
 
     def agenda(self, event):
         agenda_url = self.BASE_URL + '/events/{}/eventitems'.format(event['EventId'])
@@ -132,6 +158,47 @@ class LegistarAPIEventScraper(LegistarAPIScraper):
 
         for item in filtered_response:
             yield item
+
+    def rollcalls(self, event):
+        for item in self.agenda(event):
+            if item['EventItemRollCallFlag']:
+                rollcall_url = self.BASE_URL + '/eventitems/{}/rollcalls'.format(item['EventItemId'])
+
+                response = self.get(rollcall_url)
+
+                for item in response.json():
+                    yield item
+
+    def _scrapeWebCalendar(self):
+        web_scraper = LegistarEventsScraper(self.jurisdiction,
+                                            self.datadir,
+                                            strict_validation=self.strict_validation,
+                                            fastmode=(self.requests_per_minute == 0))
+        web_scraper.EVENTSPAGE = self.EVENTSPAGE
+        web_scraper.BASE_URL = self.WEB_URL
+        web_scraper.TIMEZONE = self.TIMEZONE
+        web_scraper.date_format = '%m/%d/%Y'
+
+        web_info = {}
+
+        for event, _ in web_scraper.events(follow_links=False):
+            # Make the dict key (name, date-as-datetime, time), and add it.
+            key = (event['Name']['label'],
+                   web_scraper.toTime(event['Meeting Date']).date(),
+                   event['Meeting Time'])
+            web_info[key] = event
+
+        return web_info
+
+    def addDocs(self, e, events, doc_type):
+        try :
+            if events[doc_type] != 'Not\xa0available':
+                e.add_document(note= events[doc_type]['label'],
+                               url = events[doc_type]['url'],
+                               media_type="application/pdf")
+        except ValueError :
+            pass
+
 
     
 def confirmed_or_passed(when) :

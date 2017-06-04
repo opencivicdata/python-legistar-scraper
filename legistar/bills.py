@@ -282,7 +282,7 @@ class LegistarAPIBillScraper(LegistarAPIScraper) :
             return response.json()
 
     def legislation_detail_url(self, matter_id) :
-        gateway_url = self.BASE_WEB_URL + '/gateway.aspx?m=l&id=/matter.aspx?key={0}'
+        gateway_url = self.BASE_WEB_URL + '/gateway.aspx?m=l&id={0}'
         
         legislation_detail_route = self.head(gateway_url.format(matter_id)).headers['Location']
         

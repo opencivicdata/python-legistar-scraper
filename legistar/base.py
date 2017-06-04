@@ -1,13 +1,13 @@
+import datetime
+import itertools
+import traceback
+from collections import defaultdict, deque
+import re
+
 from pupa.scrape import Scraper
 import lxml.html
 import lxml.etree as etree
-import traceback
-import datetime
-from collections import defaultdict, deque
-import itertools
 import pytz
-import icalendar
-import re
 
 class LegistarScraper(Scraper):
     date_format='%m/%d/%Y'
@@ -108,10 +108,9 @@ class LegistarScraper(Scraper):
                     if field.find('.//a') is not None :
                         address = self._get_link_address(field.find('.//a'))
                         if address :
-                            if key == '' and 'View.ashx?M=IC' in address :
-                                req = self.get(address, verify=False)
-                                value = icalendar.Calendar.from_ical(req.text)
+                            if key == '' and 'View.ashx?M=IC' in address:
                                 key = 'iCalendar'
+                                value = {'url': address}
                             else :
                                 value = {'label': text_content, 
                                          'url': address}
