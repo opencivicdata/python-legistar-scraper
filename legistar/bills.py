@@ -210,9 +210,8 @@ def dateBound(creation_date) :
 
 class LegistarAPIBillScraper(LegistarAPIScraper) :
 
-    def matters(self, since_date) :
-        since_date = datetime.datetime.strftime(since_date, '%Y-%m-%d')
-        params = {'$filter' : "MatterLastModifiedUtc gt datetime'{since_date}'".format(since_date = since_date)}
+    def matters(self, since_datetime) :
+        params = {'$filter' : "MatterLastModifiedUtc gt datetime'{since_datetime}'".format(since_datetime = since_datetime.isoformat())}
         
         matters_url = self.BASE_URL + '/matters'
 
