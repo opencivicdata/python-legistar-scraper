@@ -126,13 +126,8 @@ class LegistarAPIEventScraper(LegistarAPIScraper):
                    self.toTime(api_event['EventDate']).date(),
                    api_event['EventTime'])
 
-            try:
-                web_event = web_results[key]
-            except:
-                import pdb
-                pdb.set_trace()
-
-            yield event, web_event
+            web_event = web_results[key]
+            yield api_event, web_event
 
     def agenda(self, event):
         agenda_url = self.BASE_URL + '/events/{}/eventitems'.format(event['EventId'])
