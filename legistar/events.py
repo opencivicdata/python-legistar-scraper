@@ -105,9 +105,8 @@ class LegistarEventsScraper(LegistarScraper):
 
 class LegistarAPIEventScraper(LegistarAPIScraper):
 
-    def events(self, since_date):
-        since_date = datetime.datetime.strftime(since_date, '%Y-%m-%d')
-        params = {'$filter' : "EventLastModifiedUtc gt datetime'{since_date}'".format(since_date = since_date)}
+    def events(self, since_datetime):
+        params = {'$filter' : "EventLastModifiedUtc gt datetime'{since_datetime}'".format(since_datetime = since_datetime.isoformat())}
 
         events_url = self.BASE_URL + '/events/'
 
@@ -123,9 +122,9 @@ class LegistarAPIEventScraper(LegistarAPIScraper):
             api_event['status'] = confirmed_or_passed(api_event['start'])
 
             # Create a key for lookups in the web_results dict.
-            key = (api_event['Api_EventBodyName'].strip(),
-                   self.toTime(api_event['Api_EventDate']).date(),
-                   api_event['Api_EventTime'])
+            key = (api_event['EventBodyName'].strip(),
+                   self.toTime(api_event['EventDate']).date(),
+                   api_event['EventTime'])
 
             try:
                 web_event = web_results[key]
