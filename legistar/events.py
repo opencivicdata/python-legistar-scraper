@@ -125,9 +125,12 @@ class LegistarAPIEventScraper(LegistarAPIScraper):
             key = (api_event['EventBodyName'].strip(),
                    self.toTime(api_event['EventDate']).date(),
                    api_event['EventTime'])
-
-            web_event = web_results[key]
-            yield api_event, web_event
+            try:
+                web_event = web_results[key]
+                yield api_event, web_event
+            except KeyError:
+                continue
+            
 
     def agenda(self, event):
         agenda_url = self.BASE_URL + '/events/{}/eventitems'.format(event['EventId'])
