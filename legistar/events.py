@@ -115,7 +115,7 @@ class LegistarAPIEventScraper(LegistarAPIScraper):
 
         web_results = self._scrapeWebCalendar()
 
-        # Ensure that scraper retrieved all events from the web, not just the current month, if since_datetime=None.
+        # We had intermittent issues, in which the scraper only retrieved events from the current month: this ensures that it actually grabs all events from the web.
         if len(web_results) < 100:
             raise ValueError('Did not scrape all events on web')
 
