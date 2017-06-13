@@ -209,9 +209,12 @@ def dateBound(creation_date) :
     return payload
 
 class LegistarAPIBillScraper(LegistarAPIScraper) :
-
-    def matters(self, since_datetime) :
-        params = {'$filter' : "MatterLastModifiedUtc gt datetime'{since_datetime}'".format(since_datetime = since_datetime.isoformat())}
+    # Make parameter optional, as it is in events.py
+    def matters(self, since_datetime=None) :
+        if since_datetime:
+            params = {'$filter' : "MatterLastModifiedUtc gt datetime'{since_datetime}'".format(since_datetime = since_datetime.isoformat())}
+        else:
+            params = {}
         
         matters_url = self.BASE_URL + '/matters'
 
@@ -219,7 +222,6 @@ class LegistarAPIBillScraper(LegistarAPIScraper) :
                                  params=params,
                                  item_key="MatterId"):
             yield matter
-        
 
     def endpoint(self, route, *args) :
         url = self.BASE_URL + route
