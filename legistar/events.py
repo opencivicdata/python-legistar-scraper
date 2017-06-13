@@ -124,10 +124,9 @@ class LegistarAPIEventScraper(LegistarAPIScraper):
                                                minute=start_time.tm_min)
             api_event['status'] = confirmed_or_passed(api_event['start'])
 
-            # Create a key for lookups in the web_results dict.
             key = (api_event['EventBodyName'].strip(),
-                   self.toTime(api_event['EventDate']).date(),
-                   api_event['EventTime'])
+                   api_event['start'])
+
             try:
                 web_event = web_results[key]
                 yield api_event, web_event
@@ -182,10 +181,13 @@ class LegistarAPIEventScraper(LegistarAPIScraper):
         web_info = {}
 
         for event, _ in web_scraper.events(follow_links=False):
-            # Make the dict key (name, date-as-datetime, time), and add it.
+            # Make the dict key (name, datetime.datetime), and add it.
+            response = self.get(event['iCalendar']['url'], verify=False)
+            event_time = web_scraper.ical(response.text).subcomponents[0]['DTSTART'].dt
+            event_time = pytz.timezone(self.TIMEZONE).localize(event_time)
+
             key = (event['Name']['label'],
-                   web_scraper.toTime(event['Meeting Date']).date(),
-                   event['Meeting Time'])
+                   event_time)
             web_info[key] = event
 
         return web_info
