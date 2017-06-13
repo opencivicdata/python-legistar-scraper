@@ -105,8 +105,11 @@ class LegistarEventsScraper(LegistarScraper):
 
 class LegistarAPIEventScraper(LegistarAPIScraper):
 
-    def events(self, since_datetime):
-        params = {'$filter' : "EventLastModifiedUtc gt datetime'{since_datetime}'".format(since_datetime = since_datetime.isoformat())}
+    def events(self, since_datetime=None):
+        if since_datetime:
+            params = {'$filter' : "EventLastModifiedUtc gt datetime'{since_datetime}'".format(since_datetime = since_datetime.isoformat())}
+        else:
+            params = {}
 
         events_url = self.BASE_URL + '/events/'
 
