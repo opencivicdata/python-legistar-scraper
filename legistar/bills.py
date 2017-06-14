@@ -221,6 +221,13 @@ class LegistarAPIBillScraper(LegistarAPIScraper) :
         for matter in self.pages(matters_url,
                                  params=params,
                                  item_key="MatterId"):
+            try:
+                legistar_url = self.legislation_detail_url()
+            except KeyError:
+                continue
+            else:
+                matter['legistar_url'] = legistar_url
+            
             yield matter
 
     def endpoint(self, route, *args) :
