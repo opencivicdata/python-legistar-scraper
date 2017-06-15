@@ -21,8 +21,8 @@ class LegistarEventsScraper(LegistarScraper):
 
         if since is None :
             for page in self.eventSearch(page, 'All'):
-                input_box, = page.xpath("//input[@id='ctl00_ContentPlaceHolder1_lstYears_Input']")
-                assert input_box.value == "All Years"
+                time_range, = page.xpath("//input[@id='ctl00_ContentPlaceHolder1_lstYears_Input']")
+                assert time_range.value == "All Years"
                 yield page
         else :
             for year in range(since, self.now().year + 1) :
