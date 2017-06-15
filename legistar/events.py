@@ -20,7 +20,10 @@ class LegistarEventsScraper(LegistarScraper):
         page.make_links_absolute(self.EVENTSPAGE)
 
         if since is None :
-            yield from self.eventSearch(page, 'All')
+            for page in self.eventSearch(page, 'All'):
+                input_box, = page.xpath("//input[@id='ctl00_ContentPlaceHolder1_lstYears_Input']")
+                assert input_box.value == "All Years"
+                yield page
         else :
             for year in range(since, self.now().year + 1) :
                 yield from self.eventSearch(page, str(year))
@@ -43,6 +46,7 @@ class LegistarEventsScraper(LegistarScraper):
         scraped_events = deque([], maxlen=10)
 
         for page in self.eventPages(since) :
+
             events_table = page.xpath("//table[@class='rgMasterTable']")[0]
             for event, _, _ in self.parseDataTable(events_table) :
                 if follow_links and type(event["Meeting Details"]) == dict :
