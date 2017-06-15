@@ -1,19 +1,23 @@
+import time
+import datetime
+from collections import deque
+
+import lxml.html
+import pytz
+import icalendar
+import requests
 from pupa.scrape import Scraper
 import scrapelib
 
 from .base import LegistarScraper, LegistarAPIScraper
 
-import time
-import datetime
-import pytz
-from collections import deque
-import icalendar
-
 
 class LegistarEventsScraper(LegistarScraper):
     def eventPages(self, since) :
-
-        page = self.lxmlize(self.EVENTSPAGE)
+        # Directly use the requests library here, so that we do not use a cached page, which may have expired .NET state values, even in fastmode (which uses the cache).
+        entry = requests.get(self.EVENTSPAGE, verify=False).text
+        page = lxml.html.fromstring(entry)
+        page.make_links_absolute(self.EVENTSPAGE)
 
         if since is None :
             yield from self.eventSearch(page, 'All')
