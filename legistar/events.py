@@ -127,19 +127,24 @@ class LegistarAPIEventScraper(LegistarAPIScraper):
                                     params=params,
                                     item_key="EventId"):
             start = self.toTime(api_event['EventDate'])
-            start_time = time.strptime(api_event['EventTime'], '%I:%M %p')
-            api_event['start'] = start.replace(hour=start_time.tm_hour,
-                                               minute=start_time.tm_min)
-            api_event['status'] = confirmed_or_passed(api_event['start'])
-
-            key = (api_event['EventBodyName'].strip(),
-                   api_event['start'])
-
+            # EventTime may be 'None': this try-except block catches those instances.
             try:
-                web_event = web_results[key]
-                yield api_event, web_event
-            except KeyError:
+                start_time = time.strptime(api_event['EventTime'], '%I:%M %p')
+            except TypeError:
                 continue
+            else:
+                api_event['start'] = start.replace(hour=start_time.tm_hour,
+                                                   minute=start_time.tm_min)
+                api_event['status'] = confirmed_or_passed(api_event['start'])
+
+                key = (api_event['EventBodyName'].strip(),
+                       api_event['start'])
+
+                try:
+                    web_event = web_results[key]
+                    yield api_event, web_event
+                except KeyError:
+                    continue
             
 
     def agenda(self, event):
