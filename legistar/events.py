@@ -14,8 +14,12 @@ from .base import LegistarScraper, LegistarAPIScraper
 
 class LegistarEventsScraper(LegistarScraper):
     def eventPages(self, since) :
-        # Directly use the requests library here, so that we do not use a cached page, which may have expired .NET state values, even in fastmode (which uses the cache).
-        entry = requests.get(self.EVENTSPAGE, verify=False).text
+        # Directly use the requests library here, so that we do not
+        # use a cached page, which may have expired .NET state values,
+        # even in fastmode (which uses the cache).
+        response = requests.get(self.EVENTSPAGE, verify=False)
+        self._check_errors(response)
+        entry = response.text
         page = lxml.html.fromstring(entry)
         page.make_links_absolute(self.EVENTSPAGE)
 

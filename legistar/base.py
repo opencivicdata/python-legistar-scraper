@@ -4,6 +4,7 @@ import traceback
 from collections import defaultdict, deque
 import re
 
+import scrapelib
 from pupa.scrape import Scraper
 import lxml.html
 import lxml.etree as etree
@@ -18,9 +19,11 @@ class LegistarScraper(Scraper):
 
     def lxmlize(self, url, payload=None):
         if payload :
-            entry = self.post(url, payload, verify=False).text
+            response = self.post(url, payload, verify=False)
         else :
-            entry = self.get(url, verify=False).text
+            response = self.get(url, verify=False)
+        self._check_errors(response)
+        entry = response.text
         page = lxml.html.fromstring(entry)
         page.make_links_absolute(url)
         return page
@@ -177,6 +180,12 @@ class LegistarScraper(Scraper):
             pass
 
         return(payload)
+
+    def _check_errors(self, response):
+        if response.url.endswith('Error.aspx'):
+            response.status_code = 503
+            raise scrapelib.HTTPError(response)
+
 
 def fieldKey(x) :
     field_id = x.attrib['id']
