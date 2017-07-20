@@ -199,7 +199,7 @@ class LegistarAPIEventScraper(LegistarAPIScraper):
 
         for event, _ in web_scraper.events(follow_links=False):
             # Make the dict key (name, datetime.datetime), and add it.
-            response = self.get(event['iCalendar']['url'], verify=False)
+            response = web_scraper.get(event['iCalendar']['url'], verify=False)
             event_time = web_scraper.ical(response.text).subcomponents[0]['DTSTART'].dt
             event_time = pytz.timezone(self.TIMEZONE).localize(event_time)
 
