@@ -238,6 +238,7 @@ class LegistarAPIBillScraper(LegistarAPIScraper) :
     topics = partialmethod(endpoint, '/matters/{0}/indexes')
     attachments = partialmethod(endpoint, '/matters/{0}/attachments')
     code_sections = partialmethod(endpoint, 'matters/{0}/codesections')
+    relations = partialmethod(endpoint, '/matters/{0}/relations')
 
     def votes(self, history_id) :
         url = self.BASE_URL + '/eventitems/{0}/votes'.format(history_id)
