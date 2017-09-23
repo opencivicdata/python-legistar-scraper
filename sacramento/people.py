@@ -8,6 +8,15 @@ class SacramentoPersonScraper(LegistarAPIPersonScraper):
     WEB_URL = 'https://sacramento.legistar.com'
     TIMEZONE = "America/Los_Angeles"
 
+    def body_offices(self, body):
+        body_id = body['BodyId']
+
+        offices_url = self.BASE_URL + '/bodies/{}/OfficeRecords'.format(body_id)
+
+        for office in self.pages(offices_url, item_key="OfficeRecordId"):
+            office['OfficeRecordFullName'] = "{} {}".format(office['OfficeRecordFirstName'], office['OfficeRecordLastName'])
+            yield office
+
     def scrape(self):
         body_types = self.body_types()
 
@@ -15,11 +24,16 @@ class SacramentoPersonScraper(LegistarAPIPersonScraper):
                          if body['BodyName'] == 'City Council ']
 
         terms = collections.defaultdict(list)
+
         for office in self.body_offices(city_council):
-            terms[office['OfficeRecordFullName']].append(office)
+
+            if office['OfficeRecordFullName'] != "Granicus BA":
+                terms[office['OfficeRecordFullName']].append(office)
         
         members = {}
+
         for member, offices in terms.items():
+
             p = Person(member)
             for term in offices:
                 role = term['OfficeRecordTitle']
@@ -34,10 +48,8 @@ class SacramentoPersonScraper(LegistarAPIPersonScraper):
             p.add_source(person_api_url, note='api')
             p.add_source(person_web_url, note='web')
 
-
             members[member] = p
 
-        print(body_types)
         for body in self.bodies():
             if body['BodyTypeId'] == body_types['Standing Committees']:
                 o = Organization(body['BodyName'],
