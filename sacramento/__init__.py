@@ -21,15 +21,15 @@ class Sacramento(Jurisdiction):
 
 
     def get_organizations(self):
-        org = Organization(name="Board of Directors", classification="legislature")
+        org = Organization(name="Sacramento City Council", classification="legislature")
 
         org.add_post('Mayor of the City of Sacramento',
-                     'Board Member',
-                     division_id='ocd-division/country:us/state:ca/place:los_angeles')
+                     'Mayor',
+                     division_id='ocd-division/country:us/state:ca/place:sacramento')
 
         for district in range(1, 9):
             org.add_post('Sacramento City Council Member, District {}'.format(district),
-                         'Council Member',
-                         division_id='ocd-division/country:us/state:ca/city:los_angeles/council_district:{}'.format(district))
+                         'Member',
+                         division_id='ocd-division/country:us/state:ca/place:sacramento/council_district:{}'.format(district))
 
         yield org
