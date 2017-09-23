@@ -219,8 +219,3 @@ class LegistarAPIScraper(Scraper):
                     seen.append(item[item_key])
 
             page_num += 1
-
-
-
-
-
