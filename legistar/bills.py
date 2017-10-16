@@ -238,7 +238,6 @@ class LegistarAPIBillScraper(LegistarAPIScraper) :
     topics = partialmethod(endpoint, '/matters/{0}/indexes')
     attachments = partialmethod(endpoint, '/matters/{0}/attachments')
     code_sections = partialmethod(endpoint, 'matters/{0}/codesections')
-    relations = partialmethod(endpoint, '/matters/{0}/relations')
 
     def votes(self, history_id) :
         url = self.BASE_URL + '/eventitems/{0}/votes'.format(history_id)
@@ -274,6 +273,19 @@ class LegistarAPIBillScraper(LegistarAPIScraper) :
                      if sponsor['MatterSponsorMatterVersion'] == max_version]
             return sorted(spons, 
                           key = lambda sponsor : sponsor["MatterSponsorSequence"])
+        else:
+            return []
+
+    def relations(self, matter_id):
+        relations = self.endpoint('/matters/{0}/relations', matter_id)
+        if relations:
+            highest_flag = max(int(relation['MatterRelationFlag']) 
+                               for relation in relations)
+
+            relations = [relation for relation in relations
+                         if relation['MatterRelationFlag'] == highest_flag]
+
+            return relations
         else:
             return []
 
