@@ -184,7 +184,12 @@ class LegistarScraper(Scraper):
     def _check_errors(self, response):
         if response.url.endswith('Error.aspx'):
             response.status_code = 503
-            raise scrapelib.HTTPError(response)
+        elif not response.text:
+            response.status_code = 520
+        else:
+            return None
+        
+        raise scrapelib.HTTPError(response)
 
 
 def fieldKey(x) :
