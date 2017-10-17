@@ -202,15 +202,12 @@ class LegistarAPIEventScraper(LegistarAPIScraper):
             # Make the dict key (name, datetime.datetime), and add it.
             response = self.get(event['iCalendar']['url'], verify=False)
             web_scraper._check_errors(response)
-            # "response.text" sometimes returns an empty string
-            # In that case, do not populate web_info: the ical function rasies an error, and more importantly, web_info should not exist without an event_time. 
-            if response.text:
-                event_time = web_scraper.ical(response.text).subcomponents[0]['DTSTART'].dt
-                event_time = pytz.timezone(self.TIMEZONE).localize(event_time)
+            event_time = web_scraper.ical(response.text).subcomponents[0]['DTSTART'].dt
+            event_time = pytz.timezone(self.TIMEZONE).localize(event_time)
 
-                key = (event['Name']['label'],
-                       event_time)
-                web_info[key] = event
+            key = (event['Name']['label'],
+                   event_time)
+            web_info[key] = event
 
         return web_info
 
