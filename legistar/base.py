@@ -187,7 +187,7 @@ class LegistarScraper(Scraper):
         elif not response.text:
             response.status_code = 520
         else:
-            return
+            return None
         
         raise scrapelib.HTTPError(response)
 
