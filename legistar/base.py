@@ -3,6 +3,8 @@ import itertools
 import traceback
 from collections import defaultdict, deque
 import re
+import requests
+import json
 
 import scrapelib
 from pupa.scrape import Scraper
@@ -10,29 +12,63 @@ import lxml.html
 import lxml.etree as etree
 import pytz
 
-class LegistarScraper(Scraper, LegistarScraper):
+
+class LegistarSession(requests.Session):
+
+    def request(self, method, url, **kwargs):
+        response = super(LegistarSession, self).request(method, url, **kwargs)
+        payload = kwargs.get('data')
+
+        self._check_errors(response, payload)
+
+        return response
+
+    def _check_errors(self, response, payload=None):
+        if response.url.endswith('Error.aspx'):
+            response.status_code = 503
+        elif not response.text:
+            response.status_code = 520
+        # Legistar intermittently does not return the expected response when selecting "All Years" - instead, it returns "This Month"
+        # Raise an HTTPError in such cases.
+        elif self.check_time_range(payload):
+            page = lxml.html.fromstring(response.text)
+            time_range, = page.xpath("//input[@id='ctl00_ContentPlaceHolder1_lstYears_Input']")
+            if time_range.value != "All Years":
+                response.status_code = 520
+            else:
+                return None
+        else:
+            return None
+        
+        raise scrapelib.HTTPError(response)
+
+    # Determines if we sent a post request looking for "All Years"
+    def check_time_range(self, payload):
+        if payload:
+            value_dict = json.loads(payload['ctl00_ContentPlaceHolder1_lstYears_ClientState'])
+            return value_dict['value'] == 'All'
+        
+
+class LegistarScraper(Scraper, LegistarSession):
     date_format='%m/%d/%Y'
 
     def __init__(self, *args, **kwargs) :
         super(LegistarScraper, self).__init__(*args, **kwargs)
         self.timeout = 600
 
-    # Accept value
-    def lxmlize(self, url, payload=None, value=None):
+    def lxmlize(self, url, payload=None):
         if payload :
             response = self.post(url, payload, verify=False)
         else :
             response = self.get(url, verify=False)
-        # Pass value here...so I know if "All" could trigger an AssertionError
-        self._check_errors(response, value)
+        self._check_errors(response)
         entry = response.text
         page = lxml.html.fromstring(entry)
         page.make_links_absolute(url)
         return page
 
-    # Accept value
-    def pages(self, url, payload=None, value=None) :
-        page = self.lxmlize(url, payload, value)
+    def pages(self, url, payload=None) :
+        page = self.lxmlize(url, payload)
         
         yield page
 
@@ -184,15 +220,15 @@ class LegistarScraper(Scraper, LegistarScraper):
 
         return(payload)
 
-    def _check_errors(self, response):
-        if response.url.endswith('Error.aspx'):
-            response.status_code = 503
-        elif not response.text:
-            response.status_code = 520
-        else:
-            return None
+    # def _check_errors(self, response):
+    #     if response.url.endswith('Error.aspx'):
+    #         response.status_code = 503
+    #     elif not response.text:
+    #         response.status_code = 520
+    #     else:
+    #         return None
         
-        raise scrapelib.HTTPError(response)
+    #     raise scrapelib.HTTPError(response)
 
 
 def fieldKey(x) :
@@ -227,27 +263,3 @@ class LegistarAPIScraper(Scraper):
                     seen.append(item[item_key])
 
             page_num += 1
-
-class LegistarSession(requests.Session):
-
-    def request(self, method, url, **kwargs):
-        response = super(LegistarSession, self).request(method, url, **kwargs)
-        self._check_errors(response)
-        return response
-
-    # How can we know if we are looking for "All"? This info would be in the payload, or we could pass it in as an argument to pages and lxmlize (i.e., pages(value=None), lxmlize(value=None))....
-    # Then, allow check_errors to take in "value" as an arg, too.
-    def _check_errors(self, response, value=None):
-        if response.url.endswith('Error.aspx'):
-            response.status_code = 503
-        elif not response.text:
-            response.status_code = 520
-        elif value == 'All':
-            page = lxml.html.fromstring(response.text)
-            time_range, = page.xpath("//input[@id='ctl00_ContentPlaceHolder1_lstYears_Input']")
-            if time_range.value != "All Years":
-                response.status_code = 520
-        else:
-            return None
-        
-        raise scrapelib.HTTPError(response)
