@@ -24,11 +24,19 @@ class LegistarEventsScraper(LegistarScraper):
         page.make_links_absolute(self.EVENTSPAGE)
 
         if since is None :
-            for page in self.eventSearch(page, 'All'):
-                time_range, = page.xpath("//input[@id='ctl00_ContentPlaceHolder1_lstYears_Input']")
-                time_range = time_range.value
-                assert time_range == "All Years"
-                yield page
+            # Legistar intermittently does not return the expected response, which raises an AssertionError.
+            # In such cases, try once to resend the POST request (via eventSearch --> pages --> lxmlize).
+            for i in range(0,2):
+                try:
+                    for page in self.eventSearch(page, 'All'):
+                        time_range, = page.xpath("//input[@id='ctl00_ContentPlaceHolder1_lstYears_Input']")
+                        time_range = time_range.value
+                        assert time_range == "All Years"
+                        yield page
+                except AssertionError:
+                    continue
+                else:
+                    break
         else :
             for year in range(since, self.now().year + 1) :
                 yield from self.eventSearch(page, str(year))
@@ -36,14 +44,8 @@ class LegistarEventsScraper(LegistarScraper):
     def eventSearch(self, page, value) :
         payload = self.sessionSecrets(page)
 
-        # payload['ctl00_ContentPlaceHolder1_lstYears_ClientState'] = '{"value":"%s"}' % value
-
-        if (value == 'All'):
-            payload['ctl00_ContentPlaceHolder1_lstYears_ClientState'] = '{"value":%s, "text":%s}' % ('All', 'All Years')
-            payload['__EVENTARGUMENT'] = '{ "Command":"Select", "Index":0 }'
-
+        payload['ctl00_ContentPlaceHolder1_lstYears_ClientState'] = '{"value":"%s"}' % value
         payload['__EVENTTARGET'] = 'ctl00$ContentPlaceHolder1$lstYears'
-
 
         return self.pages(self.EVENTSPAGE, payload)
 
