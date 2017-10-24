@@ -36,9 +36,14 @@ class LegistarEventsScraper(LegistarScraper):
     def eventSearch(self, page, value) :
         payload = self.sessionSecrets(page)
 
-        payload['ctl00_ContentPlaceHolder1_lstYears_ClientState'] = '{"value":"%s"}' % value
+        # payload['ctl00_ContentPlaceHolder1_lstYears_ClientState'] = '{"value":"%s"}' % value
+
+        if (value == 'All'):
+            payload['ctl00_ContentPlaceHolder1_lstYears_ClientState'] = '{"value":%s, "text":%s}' % ('All', 'All Years')
+            payload['__EVENTARGUMENT'] = '{ "Command":"Select", "Index":0 }'
 
         payload['__EVENTTARGET'] = 'ctl00$ContentPlaceHolder1$lstYears'
+
 
         return self.pages(self.EVENTSPAGE, payload)
 
