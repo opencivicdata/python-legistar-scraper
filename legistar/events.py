@@ -25,18 +25,12 @@ class LegistarEventsScraper(LegistarScraper):
 
         if since is None :
             # Legistar intermittently does not return the expected response, which raises an AssertionError.
-            # In such cases, try once to resend the POST request (via eventSearch --> pages --> lxmlize).
-            for i in range(0,2):
-                try:
-                    for page in self.eventSearch(page, 'All'):
-                        time_range, = page.xpath("//input[@id='ctl00_ContentPlaceHolder1_lstYears_Input']")
-                        time_range = time_range.value
-                        assert time_range == "All Years"
-                        yield page
-                except AssertionError:
-                    continue
-                else:
-                    break
+            # In such cases, try once to resend the POST request (via eventSearch --> pages --> lxmlize). 
+            for page in self.eventSearch(page, 'All'):
+                time_range, = page.xpath("//input[@id='ctl00_ContentPlaceHolder1_lstYears_Input']")
+                time_range = time_range.value
+                assert time_range == "All Years"
+                yield page
         else :
             for year in range(since, self.now().year + 1) :
                 yield from self.eventSearch(page, str(year))
@@ -45,10 +39,11 @@ class LegistarEventsScraper(LegistarScraper):
         payload = self.sessionSecrets(page)
 
         payload['ctl00_ContentPlaceHolder1_lstYears_ClientState'] = '{"value":"%s"}' % value
-        
+
         payload['__EVENTTARGET'] = 'ctl00$ContentPlaceHolder1$lstYears'
 
-        return self.pages(self.EVENTSPAGE, payload)
+        # Pass in value
+        return self.pages(self.EVENTSPAGE, payload, value)
 
     def events(self, follow_links=True, since=None) :
         # If an event is added to the the legistar system while we
