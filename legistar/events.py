@@ -45,6 +45,7 @@ class LegistarEventsScraper(LegistarScraper):
         payload = self.sessionSecrets(page)
 
         payload['ctl00_ContentPlaceHolder1_lstYears_ClientState'] = '{"value":"%s"}' % value
+        
         payload['__EVENTTARGET'] = 'ctl00$ContentPlaceHolder1$lstYears'
 
         return self.pages(self.EVENTSPAGE, payload)
