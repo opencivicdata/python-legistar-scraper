@@ -16,15 +16,7 @@ import pytz
 class LegistarSession(requests.Session):
 
     def request(self, method, url, **kwargs):
-        print('Sending request to {} with the {} method...'.format(url, method))
-        # When we resend the POST request via `lxmlize`, we get the expected data, i.e., with "All Years" selected: https://github.com/reginafcompton/python-legistar-scraper/blob/5dedec530d93d1713155c6f61ce45df2b9090354/legistar/base.py#L20
-        # However, when we retry via the RetrySession Class, the POST AssertionError persists. 
-        # The difference? The cookies.
-        # Some oddities: when the AssertionError disappears on the made-from-scratch retry, one of the Cookies disappears - [<Cookie BIGipServerprod_insite_443=874644234.47873.0000 for metro.legistar.com/>
-        # However, this cookie also appears when the Assertion succeeds without a retry...so, the cookie itself does not seem to be the cause of the problem. 
-
         response = super(LegistarSession, self).request(method, url, **kwargs)
-        print(response.cookies)
         payload = kwargs.get('data')
 
         self._check_errors(response, payload)
@@ -41,20 +33,22 @@ class LegistarSession(requests.Session):
             raise scrapelib.HTTPError(response)
         # Legistar intermittently does not return the expected response when selecting "All Years" - instead, it returns "This Month"
         # Raise an HTTPError in such cases.
-        if self.check_time_range(payload):
-            self.search_range_error(response)
+        if self.range_is_all(payload):
+            self.search_range_error(response, payload)
 
-    def search_range_error(self, response):
+    def search_range_error(self, response, payload):
         page = lxml.html.fromstring(response.text)
         time_range, = page.xpath("//input[@id='ctl00_ContentPlaceHolder1_lstYears_Input']")
         time_range = time_range.value
-        print("Time range: {}".format(time_range))
-        if time_range.value != "All Years":
+        if time_range != "All Years":
             response.status_code = 520
+            # In the event of a retry, the new request does not contain the correct payload data.
+            # This comes as a result of not updating the payload via sessionSecrets: so, we do that here.
+            payload.update(self.sessionSecrets(page))
 
-        raise scrapelib.HTTPError(response)
+            raise scrapelib.HTTPError(response)
     # Determines if we sent a post request looking for "All Years"
-    def check_time_range(self, payload):
+    def range_is_all(self, payload):
         if payload:
             value_dict = json.loads(payload['ctl00_ContentPlaceHolder1_lstYears_ClientState'])
             return value_dict['value'] == 'All'
