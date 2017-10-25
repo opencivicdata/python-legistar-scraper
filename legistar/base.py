@@ -16,9 +16,11 @@ import pytz
 class LegistarSession(requests.Session):
 
     def request(self, method, url, **kwargs):
-        print('getting a response...')
+        print('Request: getting a response...')
         response = super(LegistarSession, self).request(method, url, **kwargs)
         payload = kwargs.get('data')
+        # if payload :
+        #     response = self.post(url, payload, verify=False)
 
         self._check_errors(response, payload)
 
@@ -37,28 +39,14 @@ class LegistarSession(requests.Session):
         if self.check_time_range(payload):
             self.search_range_error(response)
 
-        # elif self.check_time_range(payload):
-        #     page = lxml.html.fromstring(response.text)
-        #     time_range, = page.xpath("//input[@id='ctl00_ContentPlaceHolder1_lstYears_Input']")
-        #     if time_range.value != "All Years":
-        #         print("alll years failure")
-        #         response.status_code = 520
-        #     else:
-        #         return None
-        # else:
-        #     return None
-        
-        # raise scrapelib.HTTPError(response)
-
     def search_range_error(self, response):
         page = lxml.html.fromstring(response.text)
         time_range, = page.xpath("//input[@id='ctl00_ContentPlaceHolder1_lstYears_Input']")
         if time_range.value != "All Years":
-            print("alll years failure")
+            print("ERROR: alll years failure")
             response.status_code = 520
 
         raise scrapelib.HTTPError(response)
-
     # Determines if we sent a post request looking for "All Years"
     def check_time_range(self, payload):
         if payload:
