@@ -31,27 +31,33 @@ class LegistarSession(requests.Session):
         if not response.text:
             response.status_code = 520
             raise scrapelib.HTTPError(response)
-        # Legistar intermittently does not return the expected response when selecting "All Years" - instead, it returns "This Month"
-        # Raise an HTTPError in such cases.
-        if self.range_is_all(payload):
-            self.search_range_error(response, payload)
 
-    def search_range_error(self, response, payload):
-        page = lxml.html.fromstring(response.text)
-        time_range, = page.xpath("//input[@id='ctl00_ContentPlaceHolder1_lstYears_Input']")
-        time_range = time_range.value
-        if time_range != "All Years":
-            response.status_code = 520
-            # In the event of a retry, the new request does not contain the correct payload data.
-            # This comes as a result of not updating the payload via sessionSecrets: so, we do that here.
-            payload.update(self.sessionSecrets(page))
+        self._range_error(response, payload)
 
-            raise scrapelib.HTTPError(response)
-    # Determines if we sent a post request looking for "All Years"
-    def range_is_all(self, payload):
-        if payload:
-            value_dict = json.loads(payload['ctl00_ContentPlaceHolder1_lstYears_ClientState'])
-            return value_dict['value'] == 'All'
+    def _range_error(self, response, payload):
+        '''Legistar intermittently does not return the expected response when
+        selecting a time range All Years" - instead, it returns "This Month"
+        '''
+
+        range_var = 'ctl00_ContentPlaceHolder1_lstYears_ClientState'
+        if range_var in payload:
+
+            expected_range = json.loads(payload[range_var])['value']
+        
+            page = lxml.html.fromstring(response.text)
+            returned_range, = page.xpath("//input[@id='ctl00_ContentPlaceHolder1_lstYears_Input']")
+
+            returned_range = returned_range.value
+
+            if returned_range != expected_range:
+                response.status_code = 520
+                # In the event of a retry, the new request does not
+                # contain the correct payload data.  This comes as a
+                # result of not updating the payload via sessionSecrets:
+                # so, we do that here.
+                payload.update(self.sessionSecrets(page))
+
+                raise scrapelib.HTTPError(response)
         
 
 class LegistarScraper(Scraper, LegistarSession):
@@ -224,16 +230,6 @@ class LegistarScraper(Scraper, LegistarSession):
             pass
 
         return(payload)
-
-    # def _check_errors(self, response):
-    #     if response.url.endswith('Error.aspx'):
-    #         response.status_code = 503
-    #     elif not response.text:
-    #         response.status_code = 520
-    #     else:
-    #         return None
-        
-    #     raise scrapelib.HTTPError(response)
 
 
 def fieldKey(x) :
