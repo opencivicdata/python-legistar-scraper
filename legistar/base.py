@@ -19,7 +19,10 @@ class LegistarSession(requests.Session):
         print('Sending request to {} with the {} method...'.format(url, method))
         # When we resend the POST request via `lxmlize`, we get the expected data, i.e., with "All Years" selected: https://github.com/reginafcompton/python-legistar-scraper/blob/5dedec530d93d1713155c6f61ce45df2b9090354/legistar/base.py#L20
         # However, when we retry via the RetrySession Class, the POST AssertionError persists. 
-        # The difference? lxmlize simply sends a new POST. It does not create a new session: the cookies persist between POST requests. 
+        # The difference? lxmlize simply sends a new POST. It does not create a new session.
+        # Some oddities: when the AssertionError disappears on the made-from-scratch retry, one of the Cookies disappears - [<Cookie BIGipServerprod_insite_443=874644234.47873.0000 for metro.legistar.com/>
+        # However, this cookie also appears when the Assertion succeeds without a retry...so, the cookie itself does not seem to be the cause of the problem. 
+
         response = super(LegistarSession, self).request(method, url, **kwargs)
         payload = kwargs.get('data')
 
