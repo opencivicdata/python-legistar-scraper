@@ -3,6 +3,8 @@ import itertools
 import traceback
 from collections import defaultdict, deque
 import re
+import requests
+import json
 
 import scrapelib
 from pupa.scrape import Scraper
@@ -10,7 +12,62 @@ import lxml.html
 import lxml.etree as etree
 import pytz
 
-class LegistarScraper(Scraper):
+
+class LegistarSession(requests.Session):
+
+    def request(self, method, url, **kwargs):
+        response = super(LegistarSession, self).request(method, url, **kwargs)
+        payload = kwargs.get('data')
+
+        self._check_errors(response, payload)
+
+        return response
+
+    def _check_errors(self, response, payload):
+        if response.url.endswith('Error.aspx'):
+            response.status_code = 503
+            raise scrapelib.HTTPError(response)
+        
+        if not response.text:
+            response.status_code = 520
+            raise scrapelib.HTTPError(response)
+
+        if payload:
+            self._range_error(response, payload)
+
+    def _range_error(self, response, payload):
+        '''Legistar intermittently does not return the expected response when
+        selecting a time range when searching for events. Right now we
+        are only handling the 'All' range
+        '''
+
+        if self._range_is_all(payload):
+
+            expected_range = 'All Years'
+
+            page = lxml.html.fromstring(response.text)
+            returned_range, = page.xpath("//input[@id='ctl00_ContentPlaceHolder1_lstYears_Input']")
+
+            returned_range = returned_range.value
+
+            if returned_range != expected_range:
+                response.status_code = 520
+                # In the event of a retry, the new request does not
+                # contain the correct payload data.  This comes as a
+                # result of not updating the payload via sessionSecrets:
+                # so, we do that here.
+                payload.update(self.sessionSecrets(page))
+
+                raise scrapelib.HTTPError(response)
+
+    def _range_is_all(self, payload):
+        range_var = 'ctl00_ContentPlaceHolder1_lstYears_ClientState'
+        all_range = (range_var in payload and
+                     json.loads(payload[range_var])['value'] == 'All')
+        return all_range
+        
+
+class LegistarScraper(Scraper, LegistarSession):
     date_format='%m/%d/%Y'
 
     def __init__(self, *args, **kwargs) :
@@ -22,7 +79,6 @@ class LegistarScraper(Scraper):
             response = self.post(url, payload, verify=False)
         else :
             response = self.get(url, verify=False)
-        self._check_errors(response)
         entry = response.text
         page = lxml.html.fromstring(entry)
         page.make_links_absolute(url)
@@ -181,16 +237,6 @@ class LegistarScraper(Scraper):
 
         return(payload)
 
-    def _check_errors(self, response):
-        if response.url.endswith('Error.aspx'):
-            response.status_code = 503
-        elif not response.text:
-            response.status_code = 520
-        else:
-            return None
-        
-        raise scrapelib.HTTPError(response)
-
 
 def fieldKey(x) :
     field_id = x.attrib['id']
@@ -224,8 +270,3 @@ class LegistarAPIScraper(Scraper):
                     seen.append(item[item_key])
 
             page_num += 1
-
-
-
-
-
