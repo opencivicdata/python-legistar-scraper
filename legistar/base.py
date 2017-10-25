@@ -23,7 +23,7 @@ class LegistarSession(requests.Session):
 
         return response
 
-    def _check_errors(self, response, payload=None):
+    def _check_errors(self, response, payload):
         if response.url.endswith('Error.aspx'):
             response.status_code = 503
             raise scrapelib.HTTPError(response)
@@ -32,18 +32,19 @@ class LegistarSession(requests.Session):
             response.status_code = 520
             raise scrapelib.HTTPError(response)
 
-        self._range_error(response, payload)
+        if payload:
+            self._range_error(response, payload)
 
     def _range_error(self, response, payload):
         '''Legistar intermittently does not return the expected response when
-        selecting a time range All Years" - instead, it returns "This Month"
+        selecting a time range when searching for events. Right now we
+        are only handling the 'All' range
         '''
 
-        range_var = 'ctl00_ContentPlaceHolder1_lstYears_ClientState'
-        if range_var in payload:
+        if self._range_is_all(payload):
 
-            expected_range = json.loads(payload[range_var])['value']
-        
+            expected_range = 'All Years'
+
             page = lxml.html.fromstring(response.text)
             returned_range, = page.xpath("//input[@id='ctl00_ContentPlaceHolder1_lstYears_Input']")
 
@@ -58,6 +59,12 @@ class LegistarSession(requests.Session):
                 payload.update(self.sessionSecrets(page))
 
                 raise scrapelib.HTTPError(response)
+
+    def _range_is_all(self, payload):
+        range_var = 'ctl00_ContentPlaceHolder1_lstYears_ClientState'
+        all_range = (range_var in payload and
+                         json.loads(payload[range_var])['value'] == 'All')
+        return all_range
         
 
 class LegistarScraper(Scraper, LegistarSession):
@@ -72,7 +79,6 @@ class LegistarScraper(Scraper, LegistarSession):
             response = self.post(url, payload, verify=False)
         else :
             response = self.get(url, verify=False)
-        self._check_errors(response)
         entry = response.text
         page = lxml.html.fromstring(entry)
         page.make_links_absolute(url)
