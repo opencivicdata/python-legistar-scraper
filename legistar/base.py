@@ -63,7 +63,7 @@ class LegistarSession(requests.Session):
     def _range_is_all(self, payload):
         range_var = 'ctl00_ContentPlaceHolder1_lstYears_ClientState'
         all_range = (range_var in payload and
-                         json.loads(payload[range_var])['value'] == 'All')
+                     json.loads(payload[range_var])['value'] == 'All')
         return all_range
         
 
