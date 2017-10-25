@@ -3,6 +3,8 @@ import itertools
 import traceback
 from collections import defaultdict, deque
 import re
+import requests
+import json
 
 import scrapelib
 from pupa.scrape import Scraper
@@ -10,7 +12,49 @@ import lxml.html
 import lxml.etree as etree
 import pytz
 
-class LegistarScraper(Scraper):
+
+class LegistarSession(requests.Session):
+
+    def request(self, method, url, **kwargs):
+        response = super(LegistarSession, self).request(method, url, **kwargs)
+        payload = kwargs.get('data')
+
+        self._check_errors(response, payload)
+
+        return response
+
+    def _check_errors(self, response, payload=None):
+        if response.url.endswith('Error.aspx'):
+            response.status_code = 503
+            raise scrapelib.HTTPError(response)
+        
+        if not response.text:
+            response.status_code = 520
+            raise scrapelib.HTTPError(response)
+        # Legistar intermittently does not return the expected response when selecting "All Years" - instead, it returns "This Month"
+        # Raise an HTTPError in such cases.
+        if self.range_is_all(payload):
+            self.search_range_error(response, payload)
+
+    def search_range_error(self, response, payload):
+        page = lxml.html.fromstring(response.text)
+        time_range, = page.xpath("//input[@id='ctl00_ContentPlaceHolder1_lstYears_Input']")
+        time_range = time_range.value
+        if time_range != "All Years":
+            response.status_code = 520
+            # In the event of a retry, the new request does not contain the correct payload data.
+            # This comes as a result of not updating the payload via sessionSecrets: so, we do that here.
+            payload.update(self.sessionSecrets(page))
+
+            raise scrapelib.HTTPError(response)
+    # Determines if we sent a post request looking for "All Years"
+    def range_is_all(self, payload):
+        if payload:
+            value_dict = json.loads(payload['ctl00_ContentPlaceHolder1_lstYears_ClientState'])
+            return value_dict['value'] == 'All'
+        
+
+class LegistarScraper(Scraper, LegistarSession):
     date_format='%m/%d/%Y'
 
     def __init__(self, *args, **kwargs) :
@@ -181,15 +225,15 @@ class LegistarScraper(Scraper):
 
         return(payload)
 
-    def _check_errors(self, response):
-        if response.url.endswith('Error.aspx'):
-            response.status_code = 503
-        elif not response.text:
-            response.status_code = 520
-        else:
-            return None
+    # def _check_errors(self, response):
+    #     if response.url.endswith('Error.aspx'):
+    #         response.status_code = 503
+    #     elif not response.text:
+    #         response.status_code = 520
+    #     else:
+    #         return None
         
-        raise scrapelib.HTTPError(response)
+    #     raise scrapelib.HTTPError(response)
 
 
 def fieldKey(x) :
@@ -224,8 +268,3 @@ class LegistarAPIScraper(Scraper):
                     seen.append(item[item_key])
 
             page_num += 1
-
-
-
-
-
