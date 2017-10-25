@@ -16,11 +16,12 @@ import pytz
 class LegistarSession(requests.Session):
 
     def request(self, method, url, **kwargs):
-        print('Request: getting a response...')
+        print('Sending request to {} with the {} method...'.format(url, method))
+        # Creates a new session with a payload and verify=False...
+        # ...but the post request seems to be different than it is in lxmlize: https://github.com/reginafcompton/python-legistar-scraper/blob/5dedec530d93d1713155c6f61ce45df2b9090354/legistar/base.py#L20
+        # It seems that the below is exactly the same as: requests.post(url, payload, verify=False)
         response = super(LegistarSession, self).request(method, url, **kwargs)
         payload = kwargs.get('data')
-        # if payload :
-        #     response = self.post(url, payload, verify=False)
 
         self._check_errors(response, payload)
 
