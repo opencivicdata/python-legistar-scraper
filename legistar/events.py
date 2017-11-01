@@ -201,6 +201,13 @@ class LegistarAPIEventScraper(LegistarAPIScraper):
         return web_info
 
     def _event_key(self, event, web_scraper):
+        '''Since Legistar InSite contains more information about events than
+        are available in the API, we need to scrape both. Then, we have
+        to line them up. This method makes a key that should be
+        uniquely identify  every event and will allow us to link
+        events from the two data sources. 
+        '''
+        
         response = web_scraper.get(event['iCalendar']['url'], verify=False)
         event_time = web_scraper.ical(response.text).subcomponents[0]['DTSTART'].dt
         event_time = pytz.timezone(self.TIMEZONE).localize(event_time)
