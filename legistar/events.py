@@ -195,16 +195,27 @@ class LegistarAPIEventScraper(LegistarAPIScraper):
         web_info = {}
 
         for event, _ in web_scraper.events(follow_links=False):
-            # Make the dict key (name, datetime.datetime), and add it.
-            response = web_scraper.get(event['iCalendar']['url'], verify=False)
-            event_time = web_scraper.ical(response.text).subcomponents[0]['DTSTART'].dt
-            event_time = pytz.timezone(self.TIMEZONE).localize(event_time)
-
-            key = (event['Name']['label'],
-                   event_time)
+            key = self._event_key(event, web_scraper)
             web_info[key] = event
 
         return web_info
+
+    def _event_key(self, event, web_scraper):
+        '''Since Legistar InSite contains more information about events than
+        are available in the API, we need to scrape both. Then, we have
+        to line them up. This method makes a key that should be
+        uniquely identify  every event and will allow us to link
+        events from the two data sources. 
+        '''
+        
+        response = web_scraper.get(event['iCalendar']['url'], verify=False)
+        event_time = web_scraper.ical(response.text).subcomponents[0]['DTSTART'].dt
+        event_time = pytz.timezone(self.TIMEZONE).localize(event_time)
+
+        key = (event['Name']['label'],
+               event_time)
+
+        return key
 
     def addDocs(self, e, events, doc_type):
         try :
