@@ -267,14 +267,24 @@ class LegistarAPIBillScraper(LegistarAPIScraper) :
     def sponsors(self, matter_id) :
         spons = self.endpoint('/matters/{0}/sponsors', matter_id)
         if spons:
-            max_version = str(max(int(sponsor['MatterSponsorMatterVersion'])
-                              for sponsor in spons))
+            max_version = max(self._version_rank(sponsor['MatterSponsorMatterVersion'])
+                              for sponsor in spons)
+
             spons = [sponsor for sponsor in spons
-                     if sponsor['MatterSponsorMatterVersion'] == max_version]
-            return sorted(spons, 
+                     if sponsor['MatterSponsorMatterVersion'] == str(max_version)]
+
+            return sorted(spons,
                           key = lambda sponsor : sponsor["MatterSponsorSequence"])
+
         else:
             return []
+
+    def _version_rank(self, version) :
+        '''
+        In general, matter versions are numbers. This method provides an
+        override opportunity for handling versions that are not numbers.
+        '''
+        return int(version)
 
     def relations(self, matter_id):
         relations = self.endpoint('/matters/{0}/relations', matter_id)
