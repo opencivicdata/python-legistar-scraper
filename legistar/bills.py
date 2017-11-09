@@ -6,6 +6,7 @@ from functools import partialmethod
 import datetime
 import pytz
 import requests
+import scrapelib
 
 class LegistarBillScraper(LegistarScraper):
     def legislation(self, search_text='', created_after=None, 
@@ -241,13 +242,20 @@ class LegistarAPIBillScraper(LegistarAPIScraper) :
 
     def votes(self, history_id) :
         url = self.BASE_URL + '/eventitems/{0}/votes'.format(history_id)
-        response = requests.get(url)
-        if response.status_code == 200 :
-            return response.json()
-        elif response.status_code == 500 and response.json().get('InnerException', {}).get('ExceptionMessage', '') == "The cast to value type 'System.Int32' failed because the materialized value is null. Either the result type's generic parameter or the query must use a nullable type." :
-            return []
-        else :
+
+        try:
             response = self.get(url)
+
+        except scrapelib.HTTPError as e:
+            response = e.response  # response object
+
+            # Handle no individual votes from vote event
+            if response.status_code == 500 and response.json().get('InnerException', {}).get('ExceptionMessage', '') == "The cast to value type 'System.Int32' failed because the materialized value is null. Either the result type's generic parameter or the query must use a nullable type." :
+                return []
+
+            raise
+
+        else:
             return response.json()
 
     def history(self, matter_id) :
