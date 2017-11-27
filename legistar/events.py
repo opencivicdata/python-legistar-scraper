@@ -122,7 +122,7 @@ class LegistarAPIEventScraper(LegistarAPIScraper):
 
         events_url = self.BASE_URL + '/events/'
 
-        web_results = self._scrapeWebCalendar()
+        web_results = self._scrapeWebCalendar(since_datetime.year)
 
         for api_event in self.pages(events_url,
                                     params=params,
@@ -182,7 +182,7 @@ class LegistarAPIEventScraper(LegistarAPIScraper):
                 for item in response.json():
                     yield item
 
-    def _scrapeWebCalendar(self):
+    def _scrapeWebCalendar(self, since=None):
         web_scraper = LegistarEventsScraper(self.jurisdiction,
                                             self.datadir,
                                             strict_validation=self.strict_validation,
@@ -194,7 +194,7 @@ class LegistarAPIEventScraper(LegistarAPIScraper):
 
         web_info = {}
 
-        for event, _ in web_scraper.events(follow_links=False):
+        for event, _ in web_scraper.events(follow_links=False, since=since):
             key = self._event_key(event, web_scraper)
             web_info[key] = event
 
