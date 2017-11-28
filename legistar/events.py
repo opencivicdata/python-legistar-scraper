@@ -22,12 +22,8 @@ class LegistarEventsScraper(LegistarScraper):
         page = lxml.html.fromstring(entry)
         page.make_links_absolute(self.EVENTSPAGE)
 
-        if since is None :
-            for page in self.eventSearch(page, 'All'):
-                yield page
-        else :
-            for year in range(since, self.now().year + 1) :
-                yield from self.eventSearch(page, str(year))
+        for page in self.eventSearch(page, since):
+            yield page
 
     def eventSearch(self, page, value) :
         payload = self.sessionSecrets(page)
@@ -55,7 +51,10 @@ class LegistarEventsScraper(LegistarScraper):
         else:
             since_year = 0
 
-        for year in range(self.now().year, since_year, -1):
+        # Anticipate events will be scheduled for the following year to avoid
+        # missing upcoming events during scrapes near the end of the current
+        # year.
+        for year in range(self.now().year + 1, since_year, -1):
             for page in self.eventPages(year) :
 
                 events_table = page.xpath("//table[@class='rgMasterTable']")[0]
