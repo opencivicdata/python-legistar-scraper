@@ -157,7 +157,7 @@ class LegistarAPIEventScraper(LegistarAPIScraper):
             else:
                 api_event['start'] = start.replace(hour=start_time.tm_hour,
                                                    minute=start_time.tm_min)
-                api_event['status'] = confirmed_or_passed(api_event['start'])
+                api_event['status'] = self._event_status(api_event)
 
                 key = (api_event['EventBodyName'].strip(),
                        api_event['start'])
@@ -262,13 +262,17 @@ class LegistarAPIEventScraper(LegistarAPIScraper):
         except ValueError :
             pass
 
+    def _event_status(self, event):
+        '''Events can have a status of tentative, confirmed, cancelled, or
+        passed (http://docs.opencivicdata.org/en/latest/data/event.html). By
+        default, set status to passed if the current date and time exceeds the
+        event date and time, or confirmed otherwise. Available for override in
+        jurisdictional scrapers.
+        '''
+        if datetime.datetime.utcnow().replace(tzinfo = pytz.utc) > event['start']:
+            status = 'passed'
+        else:
+            status = 'confirmed'
 
-    
-def confirmed_or_passed(when) :
-    if datetime.datetime.utcnow().replace(tzinfo = pytz.utc) > when :
-        status = 'confirmed'
-    else :
-        status = 'passed'
-    
-    return status
+        return status
 
