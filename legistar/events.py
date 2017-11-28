@@ -225,7 +225,7 @@ class LegistarAPIEventScraper(LegistarAPIScraper):
         web_scraper.EVENTSPAGE = self.EVENTSPAGE
         web_scraper.BASE_URL = self.WEB_URL
         web_scraper.TIMEZONE = self.TIMEZONE
-        web_scraper.date_format='%m/%d/%Y'
+        web_scraper.date_format = '%m/%d/%Y'
 
         for year in reversed(range(web_scraper.now().year + 1)):
             for event, _ in web_scraper.events(follow_links=False, since=year):
