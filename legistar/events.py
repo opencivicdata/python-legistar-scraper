@@ -63,7 +63,7 @@ class LegistarEventsScraper(LegistarScraper):
 
                 else :
                     agenda = None
-                
+
                 yield event, agenda
 
     def agenda(self, detail_url) :
@@ -73,7 +73,7 @@ class LegistarEventsScraper(LegistarScraper):
 
         payload.update({"__EVENTARGUMENT": "3:1",
                         "__EVENTTARGET":"ctl00$ContentPlaceHolder1$menuMain"})
-        
+
         for page in self.pages(detail_url, payload) :
             agenda_table = page.xpath(
                 "//table[@id='ctl00_ContentPlaceHolder1_gridMain_ctl00']")[0]
@@ -82,7 +82,7 @@ class LegistarEventsScraper(LegistarScraper):
 
     def addDocs(self, e, events, doc_type) :
         try :
-            if events[doc_type] != 'Not\xa0available' : 
+            if events[doc_type] != 'Not\xa0available' :
                 e.add_document(note= events[doc_type]['label'],
                                url = events[doc_type]['url'],
                                media_type="application/pdf")
@@ -109,12 +109,15 @@ class LegistarEventsScraper(LegistarScraper):
     def ical(self, ical_text):
         value = icalendar.Calendar.from_ical(ical_text)
         return value
-        
+
 
 
 class LegistarAPIEventScraper(LegistarAPIScraper):
 
     def events(self, since_datetime=None):
+        self._events = self._scrapeWebCalendar()
+        self._scraped_events = {}
+
         if since_datetime:
             # Minutes are often published after an event occurs – without a
             # corresponding event modification. Query all update fields so later
@@ -127,24 +130,16 @@ class LegistarAPIEventScraper(LegistarAPIScraper):
             since_fmt = " gt datetime'{}'".format(since_datetime.isoformat())
             since_filter = ' or '.join(field + since_fmt for field in update_fields)
 
-            # The web calendar does not provide update data. Get the oldest
-            # updated events first so we know how far back to scrape the GUI.
-            params = {'$filter' : since_filter, '$orderby': 'EventDate asc'}
+            params = {'$filter' : since_filter}
 
         else:
             params = {}
 
         events_url = self.BASE_URL + '/events/'
-        web_results = {}
 
         for api_event in self.pages(events_url,
                                     params=params,
                                     item_key="EventId"):
-
-            start = self.toTime(api_event['EventDate'])
-
-            if not web_results:
-                web_results = self._scrapeWebCalendar(start.year)
 
             # EventTime may be 'None': this try-except block catches those instances.
             try:
@@ -154,21 +149,21 @@ class LegistarAPIEventScraper(LegistarAPIScraper):
                 continue
 
             else:
+                start = self.toTime(api_event['EventDate'])
                 api_event['start'] = start.replace(hour=start_time.tm_hour,
                                                    minute=start_time.tm_min)
+
                 api_event['status'] = self._event_status(api_event)
 
-                key = (api_event['EventBodyName'].strip(),
-                       api_event['start'])
+                # Skip events that do not appear in the web interface.
+                if all(api_event[k] == 1 for k in ('EventAgendaStatusId',
+                                                   'EventMinutesStatusId')):
+                    continue
 
-                try:
-                    web_event = web_results[key]
+                else:
+                    web_event = self.web_results(api_event)
                     yield api_event, web_event
 
-                except KeyError:
-                    # Upcoming events sometimes appear in the API prior to the
-                    # web interface. Skip them.
-                    continue
 
     def agenda(self, event):
         agenda_url = self.BASE_URL + '/events/{}/eventitems'.format(event['EventId'])
@@ -176,19 +171,19 @@ class LegistarAPIEventScraper(LegistarAPIScraper):
         response = self.get(agenda_url)
 
         try:
-            # Order the event items according to the EventItemMinutesSequence. If an 
-            # event item does not have a value for EventItemMinutesSequence, the script 
+            # Order the event items according to the EventItemMinutesSequence. If an
+            # event item does not have a value for EventItemMinutesSequence, the script
             #will throw a TypeError. In that case, try to order by EventItemAgendaSequence.
-            filtered_response = sorted((item for item in response.json() 
-                                        if item['EventItemTitle']), 
+            filtered_response = sorted((item for item in response.json()
+                                        if item['EventItemTitle']),
                                        key = lambda item : item['EventItemMinutesSequence'])
         except TypeError:
             try:
-                filtered_response = sorted((item for item in response.json() 
-                                            if item['EventItemTitle']), 
+                filtered_response = sorted((item for item in response.json()
+                                            if item['EventItemTitle']),
                                            key = lambda item : item['EventItemAgendaSequence'])
             except TypeError:
-                filtered_response = (item for item in response.json() 
+                filtered_response = (item for item in response.json()
                                      if item['EventItemTitle'])
 
         for item in filtered_response:
@@ -204,32 +199,45 @@ class LegistarAPIEventScraper(LegistarAPIScraper):
                 for item in response.json():
                     yield item
 
-    def _scrapeWebCalendar(self, since=None):
+    def web_results(self, event):
+        api_key = (event['EventBodyName'].strip(),
+                   event['start'])
+
+        if api_key in self._scraped_events:
+            return self._scraped_events[api_key]
+
+        else:
+            for event, web_scraper in self._events:
+                web_key = self._event_key(event, web_scraper)
+                self._scraped_events[web_key] = event
+                if web_key == api_key:
+                    return event
+
+    def _scrapeWebCalendar(self):
+        '''Generator yielding events from Legistar in roughly reverse
+        chronological order.
+        '''
         web_scraper = LegistarEventsScraper(self.jurisdiction,
                                             self.datadir,
                                             strict_validation=self.strict_validation,
                                             fastmode=(self.requests_per_minute == 0))
+
         web_scraper.EVENTSPAGE = self.EVENTSPAGE
         web_scraper.BASE_URL = self.WEB_URL
         web_scraper.TIMEZONE = self.TIMEZONE
-        web_scraper.date_format = '%m/%d/%Y'
+        web_scraper.date_format='%m/%d/%Y'
 
-        web_info = {}
-
-        for event, _ in web_scraper.events(follow_links=False, since=since):
-            key = self._event_key(event, web_scraper)
-            web_info[key] = event
-
-        return web_info
+        for year in reversed(range(web_scraper.now().year + 1)):
+            for event, _ in web_scraper.events(follow_links=False, since=year):
+                yield event, web_scraper
 
     def _event_key(self, event, web_scraper):
         '''Since Legistar InSite contains more information about events than
         are available in the API, we need to scrape both. Then, we have
         to line them up. This method makes a key that should be
-        uniquely identify  every event and will allow us to link
-        events from the two data sources. 
+        uniquely identify every event and will allow us to link
+        events from the two data sources.
         '''
-        
         response = web_scraper.get(event['iCalendar']['url'], verify=False)
         event_time = web_scraper.ical(response.text).subcomponents[0]['DTSTART'].dt
         event_time = pytz.timezone(self.TIMEZONE).localize(event_time)
@@ -255,7 +263,7 @@ class LegistarAPIEventScraper(LegistarAPIScraper):
         event date and time, or confirmed otherwise. Available for override in
         jurisdictional scrapers.
         '''
-        if datetime.datetime.utcnow().replace(tzinfo = pytz.utc) > event['start']:
+        if datetime.datetime.utcnow().replace(tzinfo=pytz.utc) > event['start']:
             status = 'passed'
         else:
             status = 'confirmed'
