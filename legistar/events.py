@@ -127,25 +127,24 @@ class LegistarAPIEventScraper(LegistarAPIScraper):
             since_fmt = " gt datetime'{}'".format(since_datetime.isoformat())
             since_filter = ' or '.join(field + since_fmt for field in update_fields)
 
-            params = {'$filter' : since_filter}
+            # The web calendar does not provide update data. Get the oldest
+            # updated events first so we know how far back to scrape the GUI.
+            params = {'$filter' : since_filter, '$orderby': 'EventDate asc'}
 
-            # Update data is not accessible via the web calendar. If a value for
-            # `since_datetime` is provided, scrape the preceding year onward so
-            # we don't wind up with missing events in early January, when our
-            # window might include a chunk of the prior year.
-            year_buffer = since_datetime.year - 1
         else:
             params = {}
-            year_buffer = None
 
         events_url = self.BASE_URL + '/events/'
-
-        web_results = self._scrapeWebCalendar(year_buffer)
+        web_results = {}
 
         for api_event in self.pages(events_url,
                                     params=params,
                                     item_key="EventId"):
+
             start = self.toTime(api_event['EventDate'])
+
+            if not web_results:
+                web_results = self._scrapeWebCalendar(start.year)
 
             # EventTime may be 'None': this try-except block catches those instances.
             try:
@@ -167,22 +166,9 @@ class LegistarAPIEventScraper(LegistarAPIScraper):
                     yield api_event, web_event
 
                 except KeyError:
-                    # It is unlikely but possible for an event to be updated
-                    # long after it occurs, thus showing up when we query the API
-                    # by updated date while being excluded from the web calendar
-                    # scrape. If that occurs, fail loudly.
-
-                    _, event_date = key
-
-                    # Upcoming events sometimes appear in the API prior to the web
-                    # interface. Skip over events that fall within our buffer.
-                    if event_date.year >= year_buffer:
-                        continue
-
-                    else:
-                        api_event['url'] = events_url + api_event['EventId']
-                        error_fmt = '{EventBodyName} event dated {EventDate} not in web calendar scrape: {url}'
-                        raise KeyError(error_fmt.format(**api_event))
+                    # Upcoming events sometimes appear in the API prior to the
+                    # web interface. Skip them.
+                    continue
 
     def agenda(self, event):
         agenda_url = self.BASE_URL + '/events/{}/eventitems'.format(event['EventId'])
