@@ -46,25 +46,35 @@ class LegistarEventsScraper(LegistarScraper):
         # make sure we are not revisiting
         scraped_events = deque([], maxlen=10)
 
-        for page in self.eventPages(since) :
+        if since:
+            try:
+                since_year = since - 1
+            except TypeError:
+                raise TypeError('Expected integer for keyword arg :since, got "{since}" of type {type}'.format(since=since,
+                                                                                                               type=type(since)))
+        else:
+            since_year = 0
 
-            events_table = page.xpath("//table[@class='rgMasterTable']")[0]
-            for event, _, _ in self.parseDataTable(events_table) :
-                if follow_links and type(event["Meeting Details"]) == dict :
-                    detail_url = event["Meeting Details"]['url']
-                    if detail_url in scraped_events :
-                        continue
+        for year in range(self.now().year, since_year, -1):
+            for page in self.eventPages(year) :
+
+                events_table = page.xpath("//table[@class='rgMasterTable']")[0]
+                for event, _, _ in self.parseDataTable(events_table) :
+                    if follow_links and type(event["Meeting Details"]) == dict :
+                        detail_url = event["Meeting Details"]['url']
+                        if detail_url in scraped_events :
+                            continue
+                        else :
+                            scraped_events.append(detail_url)
+
+                        meeting_details = self.lxmlize(detail_url)
+
+                        agenda = self.agenda(detail_url)
+
                     else :
-                        scraped_events.append(detail_url)
+                        agenda = None
 
-                    meeting_details = self.lxmlize(detail_url)
-
-                    agenda = self.agenda(detail_url)
-
-                else :
-                    agenda = None
-
-                yield event, agenda
+                    yield event, agenda
 
     def agenda(self, detail_url) :
         page = self.lxmlize(detail_url)
@@ -156,8 +166,7 @@ class LegistarAPIEventScraper(LegistarAPIScraper):
                 api_event['status'] = self._event_status(api_event)
 
                 # Skip events that do not appear in the web interface.
-                if all(api_event[k] == 1 for k in ('EventAgendaStatusId',
-                                                   'EventMinutesStatusId')):
+                if api_event['EventAgendaStatusId'] == 1:
                     continue
 
                 else:
@@ -207,8 +216,7 @@ class LegistarAPIEventScraper(LegistarAPIScraper):
             return self._scraped_events[api_key]
 
         else:
-            for event, web_scraper in self._events:
-                web_key = self._event_key(event, web_scraper)
+            for web_key, event in self._events:
                 self._scraped_events[web_key] = event
                 if web_key == api_key:
                     return event
@@ -227,9 +235,9 @@ class LegistarAPIEventScraper(LegistarAPIScraper):
         web_scraper.TIMEZONE = self.TIMEZONE
         web_scraper.date_format = '%m/%d/%Y'
 
-        for year in reversed(range(web_scraper.now().year + 1)):
-            for event, _ in web_scraper.events(follow_links=False, since=year):
-                yield event, web_scraper
+        for event, _ in web_scraper.events(follow_links=False):
+            event_key = self._event_key(event, web_scraper)
+            yield event_key, event
 
     def _event_key(self, event, web_scraper):
         '''Since Legistar InSite contains more information about events than
