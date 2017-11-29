@@ -164,8 +164,7 @@ class LegistarAPIEventScraper(LegistarAPIScraper):
 
                 api_event['status'] = self._event_status(api_event)
 
-                # Skip events that do not appear in the web interface.
-                if api_event['EventAgendaStatusId'] == 1:
+                if self._not_in_web_interface(api_event):
                     continue
 
                 else:
@@ -276,4 +275,12 @@ class LegistarAPIEventScraper(LegistarAPIScraper):
             status = 'confirmed'
 
         return status
+
+    def _not_in_web_interface(event):
+        '''Occasionally, an event will appear in the API, but not in the web
+        interface. This method checks attributes of the API event that tell us
+        whether the given event is one of those cases, returning True if so, and
+        False otherwise. Available for override in jurisdictional scrapers.
+        '''
+        return event['EventAgendaStatusId'] == 1  # agenda not yet final
 
