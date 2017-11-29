@@ -7,7 +7,6 @@ import pytz
 import icalendar
 import requests
 from pupa.scrape import Scraper
-from pupa.exceptions import ScrapeError
 import scrapelib
 
 from .base import LegistarScraper, LegistarAPIScraper
@@ -58,10 +57,10 @@ class LegistarEventsScraper(LegistarScraper):
         # missing upcoming events during scrapes near the end of the current
         # year.
         for year in range(current_year + 1, since_year, -1):
-            count = 0
+            no_events_in_year = True
 
             for page in self.eventPages(year):
-                count += 1
+                no_events_in_year = False
                 events_table = page.xpath("//table[@class='rgMasterTable']")[0]
                 for event, _, _ in self.parseDataTable(events_table) :
                     if follow_links and type(event["Meeting Details"]) == dict :
@@ -80,7 +79,7 @@ class LegistarEventsScraper(LegistarScraper):
 
                     yield event, agenda
 
-            if not count:  # Bail from scrape if no results returned from year
+            if no_events_in_year:  # Bail from scrape if no results returned from year
                 break
 
     def agenda(self, detail_url) :
@@ -183,8 +182,8 @@ class LegistarAPIEventScraper(LegistarAPIScraper):
                         yield api_event, web_event
 
                     else:
-                        raise ScrapeError('API event could not be found in web interface: {0}{1}'.format(events_url,
-                                                                                                         api_event['EventId']))
+                        self.warning('API event could not be found in web interface: {0}{1}'.format(events_url, api_event['EventId']))
+                        continue
 
     def agenda(self, event):
         agenda_url = self.BASE_URL + '/events/{}/eventitems'.format(event['EventId'])
