@@ -7,6 +7,7 @@ import pytz
 import icalendar
 import requests
 from pupa.scrape import Scraper
+from pupa.exceptions import ScrapeError
 import scrapelib
 
 from .base import LegistarScraper, LegistarAPIScraper
@@ -42,21 +43,25 @@ class LegistarEventsScraper(LegistarScraper):
         # make sure we are not revisiting
         scraped_events = deque([], maxlen=10)
 
+        current_year = self.now().year
+
         if since:
-            try:
+            if since > current_year:
+                raise ValueError('Value of :since cannot exceed {}'.format(current_year))
+            else:
                 since_year = since - 1
-            except TypeError:
-                raise TypeError('Expected integer for keyword arg :since, got "{since}" of type {type}'.format(since=since,
-                                                                                                               type=type(since)))
+
         else:
             since_year = 0
 
         # Anticipate events will be scheduled for the following year to avoid
         # missing upcoming events during scrapes near the end of the current
         # year.
-        for year in range(self.now().year + 1, since_year, -1):
-            for page in self.eventPages(year) :
+        for year in range(current_year + 1, since_year, -1):
+            count = 0
 
+            for page in self.eventPages(year):
+                count += 1
                 events_table = page.xpath("//table[@class='rgMasterTable']")[0]
                 for event, _, _ in self.parseDataTable(events_table) :
                     if follow_links and type(event["Meeting Details"]) == dict :
@@ -74,6 +79,9 @@ class LegistarEventsScraper(LegistarScraper):
                         agenda = None
 
                     yield event, agenda
+
+            if not count:  # Bail from scrape if no results returned from year
+                break
 
     def agenda(self, detail_url) :
         page = self.lxmlize(detail_url)
@@ -168,9 +176,15 @@ class LegistarAPIEventScraper(LegistarAPIScraper):
                     continue
 
                 else:
+                    # None if entire web calendar scraped but API event not found
                     web_event = self.web_results(api_event)
-                    yield api_event, web_event
 
+                    if web_event:
+                        yield api_event, web_event
+
+                    else:
+                        raise ScrapeError('API event could not be found in web interface: {0}{1}'.format(events_url,
+                                                                                                         api_event['EventId']))
 
     def agenda(self, event):
         agenda_url = self.BASE_URL + '/events/{}/eventitems'.format(event['EventId'])
@@ -276,7 +290,7 @@ class LegistarAPIEventScraper(LegistarAPIScraper):
 
         return status
 
-    def _not_in_web_interface(event):
+    def _not_in_web_interface(self, event):
         '''Occasionally, an event will appear in the API, but not in the web
         interface. This method checks attributes of the API event that tell us
         whether the given event is one of those cases, returning True if so, and
