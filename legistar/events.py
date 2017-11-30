@@ -295,5 +295,5 @@ class LegistarAPIEventScraper(LegistarAPIScraper):
         whether the given event is one of those cases, returning True if so, and
         False otherwise. Available for override in jurisdictional scrapers.
         '''
-        return event['EventAgendaStatusId'] == 1  # agenda not yet final
+        return False
 
