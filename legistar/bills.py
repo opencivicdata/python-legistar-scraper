@@ -313,9 +313,9 @@ class LegistarAPIBillScraper(LegistarAPIScraper) :
 
         versions = self.endpoint(version_route, matter_id)
         
-        latest_version = max(versions, key=lambda x : x['Value'])['Key']
+        latest_version = max(versions, key=lambda x: self._version_rank(x['Value']))
         
-        text_url = self.BASE_URL + text_route.format(matter_id, latest_version)
+        text_url = self.BASE_URL + text_route.format(matter_id, latest_version['Key'])
         response = self.get(text_url, stream=True)
         if int(response.headers['Content-Length']) < 21052630 :
             return response.json()
