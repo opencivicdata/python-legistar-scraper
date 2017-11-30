@@ -25,10 +25,10 @@ class LegistarEventsScraper(LegistarScraper):
         for page in self.eventSearch(page, since):
             yield page
 
-    def eventSearch(self, page, value) :
+    def eventSearch(self, page, since) :
         payload = self.sessionSecrets(page)
 
-        payload['ctl00_ContentPlaceHolder1_lstYears_ClientState'] = '{"value":"%s"}' % value
+        payload['ctl00_ContentPlaceHolder1_lstYears_ClientState'] = '{"value":"%s"}' % since
 
         payload['__EVENTTARGET'] = 'ctl00$ContentPlaceHolder1$lstYears'
 
@@ -131,7 +131,13 @@ class LegistarEventsScraper(LegistarScraper):
 class LegistarAPIEventScraper(LegistarAPIScraper):
 
     def events(self, since_datetime=None):
+        # Set attribute equal to an instance of our generator yielding events
+        # scraped from the Legistar web interface. This allows us to pause
+        # and resume iteration as needed.
         self._events = self._scrapeWebCalendar()
+
+        # Instantiate dictionary where events from generator are stored as they
+        # are scraped.
         self._scraped_events = {}
 
         if since_datetime:
@@ -223,12 +229,17 @@ class LegistarAPIEventScraper(LegistarAPIScraper):
         api_key = (event['EventBodyName'].strip(),
                    event['start'])
 
+        # Check the cache of events we've already scraped from the web interface
+        # for the API event at hand.
         if api_key in self._scraped_events:
             return self._scraped_events[api_key]
 
         else:
+            # If API event not in web scrape cache, continue scraping the web
+            # interface.
             for web_key, event in self._events:
                 self._scraped_events[web_key] = event
+                # When we find the API event, stop scraping.
                 if web_key == api_key:
                     return event
 
