@@ -237,8 +237,22 @@ class LegistarAPIBillScraper(LegistarAPIScraper) :
         return response.json()
 
     topics = partialmethod(endpoint, '/matters/{0}/indexes')
-    attachments = partialmethod(endpoint, '/matters/{0}/attachments')
     code_sections = partialmethod(endpoint, 'matters/{0}/codesections')
+
+    def attachments(self, matter_id):
+        attachments = self.endpoint('/matters/{0}/attachments', matter_id)
+
+        unique_attachments = []
+        scraped_urls = set()
+
+        # Handle matters with duplicate attachments.
+        for attachment in attachments:
+            url = attachment['MatterAttachmentHyperlink']
+            if url not in scraped_urls:
+                unique_attachments.append(attachment)
+                scraped_urls.add(url)
+
+        return unique_attachments
 
     def votes(self, history_id) :
         url = self.BASE_URL + '/eventitems/{0}/votes'.format(history_id)
