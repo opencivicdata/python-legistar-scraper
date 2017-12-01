@@ -253,7 +253,7 @@ class LegistarAPIEventScraper(LegistarAPIScraper):
             web_scraper.cache_storage = self.cache_storage
 
         if self.requests_per_minute == 0:
-            self.cache_write_only = False
+            web_scraper.cache_write_only = False
 
         web_scraper.EVENTSPAGE = self.EVENTSPAGE
         web_scraper.BASE_URL = self.WEB_URL

@@ -7,18 +7,18 @@ long_description = ''
 setup(name='legistar',
       version=__version__,
       packages=['legistar'],
-      author='James Turk',
-      author_email='jturk@sunlightfoundation.com',
+      author='Forest Gregg',
+      author_email='fgregg@datamade.us',
       license='BSD',
       url='http://github.com/opencivicdata/python-legistar-scraper/',
       description='Mixin classes for legistar scrapers',
       long_description=long_description,
       platforms=['any'],
-      dependency_links = ['git+ssh://git@github.com/opencivicdata/pupa.git'],
       install_requires=[
           'lxml',
           'pytz',
-          'icalendar'
+          'icalendar',
+          'scrapelib'
       ],
       classifiers=["Development Status :: 4 - Beta",
                    "Intended Audience :: Developers",

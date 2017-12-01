@@ -2,7 +2,6 @@ import datetime
 import pytz
 
 from .base import LegistarScraper, LegistarAPIScraper
-from pupa.scrape import Scraper
 
 class LegistarPersonScraper(LegistarScraper):
     MEMBERLIST = None
