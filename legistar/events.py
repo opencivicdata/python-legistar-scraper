@@ -6,14 +6,12 @@ import lxml.html
 import pytz
 import icalendar
 import requests
-from pupa.scrape import Scraper
-import scrapelib
 
 from .base import LegistarScraper, LegistarAPIScraper
 
 
 class LegistarEventsScraper(LegistarScraper):
-    def eventPages(self, since) :
+    def eventPages(self, since):
         # Directly use the requests library here, so that we do not
         # use a cached page, which may have expired .NET state values,
         # even in fastmode (which uses the cache).
@@ -25,7 +23,7 @@ class LegistarEventsScraper(LegistarScraper):
         for page in self.eventSearch(page, since):
             yield page
 
-    def eventSearch(self, page, since) :
+    def eventSearch(self, page, since):
         payload = self.sessionSecrets(page)
 
         payload['ctl00_ContentPlaceHolder1_lstYears_ClientState'] = '{"value":"%s"}' % since
@@ -34,7 +32,7 @@ class LegistarEventsScraper(LegistarScraper):
 
         return self.pages(self.EVENTSPAGE, payload)
 
-    def events(self, follow_links=True, since=None) :
+    def events(self, follow_links=True, since=None):
         # If an event is added to the the legistar system while we
         # are scraping, it will shift the list of events down and
         # we might revisit the same event. So, we keep track of
@@ -46,7 +44,8 @@ class LegistarEventsScraper(LegistarScraper):
 
         if since:
             if since > current_year:
-                raise ValueError('Value of :since cannot exceed {}'.format(current_year))
+                raise ValueError(
+                    'Value of :since cannot exceed {}'.format(current_year))
             else:
                 since_year = since - 1
 
@@ -62,19 +61,17 @@ class LegistarEventsScraper(LegistarScraper):
             for page in self.eventPages(year):
                 no_events_in_year = False
                 events_table = page.xpath("//table[@class='rgMasterTable']")[0]
-                for event, _, _ in self.parseDataTable(events_table) :
-                    if follow_links and type(event["Meeting Details"]) == dict :
+                for event, _, _ in self.parseDataTable(events_table):
+                    if follow_links and type(event["Meeting Details"]) == dict:
                         detail_url = event["Meeting Details"]['url']
-                        if detail_url in scraped_events :
+                        if detail_url in scraped_events:
                             continue
-                        else :
+                        else:
                             scraped_events.append(detail_url)
-
-                        meeting_details = self.lxmlize(detail_url)
 
                         agenda = self.agenda(detail_url)
 
-                    else :
+                    else:
                         agenda = None
 
                     yield event, agenda
@@ -82,50 +79,49 @@ class LegistarEventsScraper(LegistarScraper):
             if no_events_in_year:  # Bail from scrape if no results returned from year
                 break
 
-    def agenda(self, detail_url) :
+    def agenda(self, detail_url):
         page = self.lxmlize(detail_url)
 
         payload = self.sessionSecrets(page)
 
         payload.update({"__EVENTARGUMENT": "3:1",
-                        "__EVENTTARGET":"ctl00$ContentPlaceHolder1$menuMain"})
+                        "__EVENTTARGET": "ctl00$ContentPlaceHolder1$menuMain"})
 
-        for page in self.pages(detail_url, payload) :
+        for page in self.pages(detail_url, payload):
             agenda_table = page.xpath(
                 "//table[@id='ctl00_ContentPlaceHolder1_gridMain_ctl00']")[0]
             agenda = self.parseDataTable(agenda_table)
             yield from agenda
 
-    def addDocs(self, e, events, doc_type) :
-        try :
-            if events[doc_type] != 'Not\xa0available' :
-                e.add_document(note= events[doc_type]['label'],
-                               url = events[doc_type]['url'],
+    def addDocs(self, e, events, doc_type):
+        try:
+            if events[doc_type] != 'Not\xa0available':
+                e.add_document(note=events[doc_type]['label'],
+                               url=events[doc_type]['url'],
                                media_type="application/pdf")
-        except ValueError :
+        except ValueError:
             pass
 
-    def extractRollCall(self, action_detail_url) :
+    def extractRollCall(self, action_detail_url):
         action_detail_page = self.lxmlize(action_detail_url)
         try:
-            rollcall_table = action_detail_page.xpath("//table[@id='ctl00_ContentPlaceHolder1_gridRollCall_ctl00']")[0]
+            rollcall_table = action_detail_page.xpath(
+                "//table[@id='ctl00_ContentPlaceHolder1_gridRollCall_ctl00']")[0]
         except IndexError:
             self.warning("No rollcall found in table")
             return []
         roll_call = list(self.parseDataTable(rollcall_table))
         call_list = []
-        for call, _, _ in roll_call :
+        for call, _, _ in roll_call:
             option = call['Attendance']
             call_list.append((option,
                               call['Person Name']['label']))
 
         return call_list
 
-
     def ical(self, ical_text):
         value = icalendar.Calendar.from_ical(ical_text)
         return value
-
 
 
 class LegistarAPIEventScraper(LegistarAPIScraper):
@@ -150,9 +146,10 @@ class LegistarAPIEventScraper(LegistarAPIScraper):
                              'EventMinutesLastPublishedUTC')
 
             since_fmt = " gt datetime'{}'".format(since_datetime.isoformat())
-            since_filter = ' or '.join(field + since_fmt for field in update_fields)
+            since_filter = ' or '.join(
+                field + since_fmt for field in update_fields)
 
-            params = {'$filter' : since_filter}
+            params = {'$filter': since_filter}
 
         else:
             params = {}
@@ -188,26 +185,28 @@ class LegistarAPIEventScraper(LegistarAPIScraper):
                         yield api_event, web_event
 
                     else:
-                        self.warning('API event could not be found in web interface: {0}{1}'.format(events_url, api_event['EventId']))
+                        self.warning('API event could not be found in web interface: {0}{1}'.format(
+                            events_url, api_event['EventId']))
                         continue
 
     def agenda(self, event):
-        agenda_url = self.BASE_URL + '/events/{}/eventitems'.format(event['EventId'])
+        agenda_url = self.BASE_URL + \
+            '/events/{}/eventitems'.format(event['EventId'])
 
         response = self.get(agenda_url)
 
         try:
             # Order the event items according to the EventItemMinutesSequence. If an
             # event item does not have a value for EventItemMinutesSequence, the script
-            #will throw a TypeError. In that case, try to order by EventItemAgendaSequence.
+            # will throw a TypeError. In that case, try to order by EventItemAgendaSequence.
             filtered_response = sorted((item for item in response.json()
                                         if item['EventItemTitle']),
-                                       key = lambda item : item['EventItemMinutesSequence'])
+                                       key=lambda item: item['EventItemMinutesSequence'])
         except TypeError:
             try:
                 filtered_response = sorted((item for item in response.json()
                                             if item['EventItemTitle']),
-                                           key = lambda item : item['EventItemAgendaSequence'])
+                                           key=lambda item: item['EventItemAgendaSequence'])
             except TypeError:
                 filtered_response = (item for item in response.json()
                                      if item['EventItemTitle'])
@@ -218,7 +217,8 @@ class LegistarAPIEventScraper(LegistarAPIScraper):
     def rollcalls(self, event):
         for item in self.agenda(event):
             if item['EventItemRollCallFlag']:
-                rollcall_url = self.BASE_URL + '/eventitems/{}/rollcalls'.format(item['EventItemId'])
+                rollcall_url = self.BASE_URL + \
+                    '/eventitems/{}/rollcalls'.format(item['EventItemId'])
 
                 response = self.get(rollcall_url)
 
@@ -247,7 +247,8 @@ class LegistarAPIEventScraper(LegistarAPIScraper):
         '''Generator yielding events from Legistar in roughly reverse
         chronological order.
         '''
-        web_scraper = LegistarEventsScraper(requests_per_minute = self.requests_per_minute)
+        web_scraper = LegistarEventsScraper(
+            requests_per_minute=self.requests_per_minute)
 
         if self.cache_storage:
             web_scraper.cache_storage = self.cache_storage
@@ -272,7 +273,8 @@ class LegistarAPIEventScraper(LegistarAPIScraper):
         events from the two data sources.
         '''
         response = web_scraper.get(event['iCalendar']['url'], verify=False)
-        event_time = web_scraper.ical(response.text).subcomponents[0]['DTSTART'].dt
+        event_time = web_scraper.ical(
+            response.text).subcomponents[0]['DTSTART'].dt
         event_time = pytz.timezone(self.TIMEZONE).localize(event_time)
 
         key = (event['Name']['label'],
@@ -281,12 +283,12 @@ class LegistarAPIEventScraper(LegistarAPIScraper):
         return key
 
     def addDocs(self, e, events, doc_type):
-        try :
+        try:
             if events[doc_type] != 'Not\xa0available':
-                e.add_document(note= events[doc_type]['label'],
-                               url = events[doc_type]['url'],
+                e.add_document(note=events[doc_type]['label'],
+                               url=events[doc_type]['url'],
                                media_type="application/pdf")
-        except ValueError :
+        except ValueError:
             pass
 
     def _event_status(self, event):
@@ -310,4 +312,3 @@ class LegistarAPIEventScraper(LegistarAPIScraper):
         False otherwise. Available for override in jurisdictional scrapers.
         '''
         return False
-
