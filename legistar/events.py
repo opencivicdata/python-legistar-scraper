@@ -247,10 +247,13 @@ class LegistarAPIEventScraper(LegistarAPIScraper):
         '''Generator yielding events from Legistar in roughly reverse
         chronological order.
         '''
-        web_scraper = LegistarEventsScraper(self.jurisdiction,
-                                            self.datadir,
-                                            strict_validation=self.strict_validation,
-                                            fastmode=(self.requests_per_minute == 0))
+        web_scraper = LegistarEventsScraper(requests_per_minute = self.requests_per_minute)
+
+        if self.cache_storage:
+            web_scraper.cache_storage = self.cache_storage
+
+        if self.requests_per_minute == 0:
+            self.cache_write_only = False
 
         web_scraper.EVENTSPAGE = self.EVENTSPAGE
         web_scraper.BASE_URL = self.WEB_URL

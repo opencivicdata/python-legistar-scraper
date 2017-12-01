@@ -5,9 +5,9 @@ from collections import defaultdict, deque
 import re
 import requests
 import json
+import logging
 
 import scrapelib
-from pupa.scrape import Scraper
 import lxml.html
 import lxml.etree as etree
 import pytz
@@ -67,12 +67,11 @@ class LegistarSession(requests.Session):
         return all_range
         
 
-class LegistarScraper(Scraper, LegistarSession):
+class LegistarScraper(scrapelib.Scraper, LegistarSession):
     date_format='%m/%d/%Y'
 
     def __init__(self, *args, **kwargs) :
         super(LegistarScraper, self).__init__(*args, **kwargs)
-        self.timeout = 600
 
     def lxmlize(self, url, payload=None):
         if payload :
@@ -245,8 +244,13 @@ def fieldKey(x) :
     field = field.rstrip('X21')
     return field
 
-class LegistarAPIScraper(Scraper):
+class LegistarAPIScraper(scrapelib.Scraper):
     date_format = '%Y-%m-%dT%H:%M:%S'
+
+    def __init__(self, *args, **kwargs):
+        super(LegistarAPIScraper, self).__init__(*args, **kwargs)
+        self.logger = logging.getLogger("legistar")
+        self.warning = self.logger.warning
     
     def toTime(self, text) :
         time = datetime.datetime.strptime(text, self.date_format)

@@ -1,5 +1,4 @@
 from .base import LegistarScraper, LegistarAPIScraper
-from pupa.scrape import Scraper
 from lxml.etree import tostring
 from collections import deque
 from functools import partialmethod
