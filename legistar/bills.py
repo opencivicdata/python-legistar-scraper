@@ -212,10 +212,14 @@ def dateBound(creation_date) :
 class LegistarAPIBillScraper(LegistarAPIScraper) :
     # Make parameter optional, as it is in events.py
     def matters(self, since_datetime=None) :
+
+        # scrape from oldest to newest. This makes resuming big scraping jobs easier
+        # because upon a scrape failure we can import everything scraped and then
+        # scrape everything newer then the last bill we scraped
+        params = {'$orderby': 'MatterLastModifiedUtc'}
+
         if since_datetime:
-            params = {'$filter' : "MatterLastModifiedUtc gt datetime'{since_datetime}'".format(since_datetime = since_datetime.isoformat())}
-        else:
-            params = {}
+            params['$filter'] = "MatterLastModifiedUtc gt datetime'{since_datetime}'".format(since_datetime = since_datetime.isoformat())
         
         matters_url = self.BASE_URL + '/matters'
 

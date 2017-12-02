@@ -140,6 +140,11 @@ class LegistarAPIEventScraper(LegistarAPIScraper):
         # are scraped.
         self._scraped_events = {}
 
+        # scrape from oldest to newest. This makes resuming big scraping jobs easier
+        # because upon a scrape failure we can import everything scraped and then
+        # scrape everything newer then the last event we scraped
+        params = {'$orderby': 'EventLastModifiedUtc'}
+
         if since_datetime:
             # Minutes are often published after an event occurs – without a
             # corresponding event modification. Query all update fields so later
@@ -152,10 +157,7 @@ class LegistarAPIEventScraper(LegistarAPIScraper):
             since_fmt = " gt datetime'{}'".format(since_datetime.isoformat())
             since_filter = ' or '.join(field + since_fmt for field in update_fields)
 
-            params = {'$filter' : since_filter}
-
-        else:
-            params = {}
+            params['$filter'] = since_filter
 
         events_url = self.BASE_URL + '/events/'
 
