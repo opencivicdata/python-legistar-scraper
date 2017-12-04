@@ -235,12 +235,23 @@ class LegistarAPIBillScraper(LegistarAPIScraper) :
             
             yield matter
 
+    def fetch(self, matter_id):
+        matter = self.endpoint('/matters/{}', matter_id)
+
+        try:
+            legistar_url = self.legislation_detail_url(matter['MatterId'])
+        except KeyError:
+            return None
+        else:
+            matter['legistar_url'] = legistar_url
+
+        return matter
+
     def endpoint(self, route, *args) :
         url = self.BASE_URL + route
         response = self.get(url.format(*args))
         return response.json()
 
-    fetch = partialmethod(endpoint, '/matters/{}')
     topics = partialmethod(endpoint, '/matters/{0}/indexes')
     code_sections = partialmethod(endpoint, 'matters/{0}/codesections')
 
