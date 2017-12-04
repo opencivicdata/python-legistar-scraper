@@ -235,7 +235,7 @@ class LegistarAPIBillScraper(LegistarAPIScraper) :
             
             yield matter
 
-    def fetch(self, matter_id):
+    def matter(self, matter_id):
         matter = self.endpoint('/matters/{}', matter_id)
 
         try:
