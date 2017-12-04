@@ -229,6 +229,8 @@ class LegistarAPIBillScraper(LegistarAPIScraper) :
             try:
                 legistar_url = self.legislation_detail_url(matter['MatterId'])
             except KeyError:
+                url = matters_url + '/{}'.format(matter_id)
+                self.warning('Bill could not be found in web interface: {}'.format(url))
                 continue
             else:
                 matter['legistar_url'] = legistar_url
@@ -239,8 +241,10 @@ class LegistarAPIBillScraper(LegistarAPIScraper) :
         matter = self.endpoint('/matters/{}', matter_id)
 
         try:
-            legistar_url = self.legislation_detail_url(matter['MatterId'])
+            legistar_url = self.legislation_detail_url(matter_id)
         except KeyError:
+            url = self.BASE_URL + '/matters/{}'.format(matter_id)
+            self.warning('Bill could not be found in web interface: {}'.format(url))
             return None
         else:
             matter['legistar_url'] = legistar_url
