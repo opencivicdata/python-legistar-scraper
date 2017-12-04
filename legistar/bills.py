@@ -6,6 +6,7 @@ from functools import partialmethod
 import datetime
 import pytz
 import requests
+import scrapelib
 
 class LegistarBillScraper(LegistarScraper):
     def legislation(self, search_text='', created_after=None, 
@@ -211,10 +212,14 @@ def dateBound(creation_date) :
 class LegistarAPIBillScraper(LegistarAPIScraper) :
     # Make parameter optional, as it is in events.py
     def matters(self, since_datetime=None) :
+
+        # scrape from oldest to newest. This makes resuming big scraping jobs easier
+        # because upon a scrape failure we can import everything scraped and then
+        # scrape everything newer then the last bill we scraped
+        params = {'$orderby': 'MatterLastModifiedUtc'}
+
         if since_datetime:
-            params = {'$filter' : "MatterLastModifiedUtc gt datetime'{since_datetime}'".format(since_datetime = since_datetime.isoformat())}
-        else:
-            params = {}
+            params['$filter'] = "MatterLastModifiedUtc gt datetime'{since_datetime}'".format(since_datetime = since_datetime.isoformat())
         
         matters_url = self.BASE_URL + '/matters'
 
@@ -236,18 +241,39 @@ class LegistarAPIBillScraper(LegistarAPIScraper) :
         return response.json()
 
     topics = partialmethod(endpoint, '/matters/{0}/indexes')
-    attachments = partialmethod(endpoint, '/matters/{0}/attachments')
     code_sections = partialmethod(endpoint, 'matters/{0}/codesections')
+
+    def attachments(self, matter_id):
+        attachments = self.endpoint('/matters/{0}/attachments', matter_id)
+
+        unique_attachments = []
+        scraped_urls = set()
+
+        # Handle matters with duplicate attachments.
+        for attachment in attachments:
+            url = attachment['MatterAttachmentHyperlink']
+            if url not in scraped_urls:
+                unique_attachments.append(attachment)
+                scraped_urls.add(url)
+
+        return unique_attachments
 
     def votes(self, history_id) :
         url = self.BASE_URL + '/eventitems/{0}/votes'.format(history_id)
-        response = requests.get(url)
-        if response.status_code == 200 :
-            return response.json()
-        elif response.status_code == 500 and response.json().get('InnerException', {}).get('ExceptionMessage', '') == "The cast to value type 'System.Int32' failed because the materialized value is null. Either the result type's generic parameter or the query must use a nullable type." :
-            return []
-        else :
+
+        try:
             response = self.get(url)
+
+        except scrapelib.HTTPError as e:
+            response = e.response  # response object
+
+            # Handle no individual votes from vote event
+            if response.status_code == 500 and response.json().get('InnerException', {}).get('ExceptionMessage', '') == "The cast to value type 'System.Int32' failed because the materialized value is null. Either the result type's generic parameter or the query must use a nullable type." :
+                return []
+
+            raise
+
+        else:
             return response.json()
 
     def history(self, matter_id) :
@@ -305,9 +331,9 @@ class LegistarAPIBillScraper(LegistarAPIScraper) :
 
         versions = self.endpoint(version_route, matter_id)
         
-        latest_version = max(versions, key=lambda x : x['Value'])['Key']
+        latest_version = max(versions, key=lambda x: self._version_rank(x['Value']))
         
-        text_url = self.BASE_URL + text_route.format(matter_id, latest_version)
+        text_url = self.BASE_URL + text_route.format(matter_id, latest_version['Key'])
         response = self.get(text_url, stream=True)
         if int(response.headers['Content-Length']) < 21052630 :
             return response.json()
