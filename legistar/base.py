@@ -180,7 +180,7 @@ class LegistarScraper(Scraper, LegistarSession):
 
                     data[key] = value
 
-                yield data, keys, row
+                yield dict(data), keys, row
 
             except Exception as e:
                 print('Problem parsing row:')
