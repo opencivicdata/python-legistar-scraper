@@ -229,11 +229,27 @@ class LegistarAPIBillScraper(LegistarAPIScraper) :
             try:
                 legistar_url = self.legislation_detail_url(matter['MatterId'])
             except KeyError:
+                url = matters_url + '/{}'.format(matter_id)
+                self.warning('Bill could not be found in web interface: {}'.format(url))
                 continue
             else:
                 matter['legistar_url'] = legistar_url
             
             yield matter
+
+    def matter(self, matter_id):
+        matter = self.endpoint('/matters/{}', matter_id)
+
+        try:
+            legistar_url = self.legislation_detail_url(matter_id)
+        except KeyError:
+            url = self.BASE_URL + '/matters/{}'.format(matter_id)
+            self.warning('Bill could not be found in web interface: {}'.format(url))
+            return None
+        else:
+            matter['legistar_url'] = legistar_url
+
+        return matter
 
     def endpoint(self, route, *args) :
         url = self.BASE_URL + route
