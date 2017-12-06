@@ -229,7 +229,7 @@ class LegistarAPIBillScraper(LegistarAPIScraper) :
             try:
                 legistar_url = self.legislation_detail_url(matter['MatterId'])
             except KeyError:
-                url = matters_url + '/{}'.format(matter_id)
+                url = matters_url + '/{}'.format(matter['MatterId'])
                 self.warning('Bill could not be found in web interface: {}'.format(url))
                 continue
             else:
