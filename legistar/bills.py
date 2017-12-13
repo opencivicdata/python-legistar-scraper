@@ -308,9 +308,12 @@ class LegistarAPIBillScraper(LegistarAPIScraper) :
 
     def sponsors(self, matter_id) :
         spons = self.endpoint('/matters/{0}/sponsors', matter_id)
+
         if spons:
-            max_version = max(self._version_rank(sponsor['MatterSponsorMatterVersion'])
-                              for sponsor in spons)
+            max_version = max(
+                (sponsor['MatterSponsorMatterVersion'] for sponsor in spons),
+                key = lambda version : self._version_rank(version)
+            )
 
             spons = [sponsor for sponsor in spons
                      if sponsor['MatterSponsorMatterVersion'] == str(max_version)]
