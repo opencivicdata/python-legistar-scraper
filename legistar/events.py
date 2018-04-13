@@ -194,7 +194,7 @@ class LegistarAPIEventScraper(LegistarAPIScraper):
 
         yield from self.pages(events_url,
                               params=params,
-                              item_key="EventId"):
+                              item_key="EventId")
 
     def agenda(self, event):
         agenda_url = self.BASE_URL + '/events/{}/eventitems'.format(event['EventId'])
