@@ -254,7 +254,14 @@ class LegistarAPIEventScraper(LegistarAPIScraper):
         return response.json()
 
     def search(self, **kwargs):
-        params = ' and '.join("{0} eq '{1}'".format(k, v) for k, v in kwargs.items())
+        conditions = []
+        for k, v in kwargs:
+            if k.endswith('Date'):
+                condition = "{0} eq datetime'{1}'".format(k, v)
+            else:
+                condition = "{0} eq '{1}'".format(k, v)
+            conditions.append(condition)
+        params = ' and '.join(conditions)
         return self.endpoint("/events/?$filter={0}", params)
 
     def _scrapeWebCalendar(self):
