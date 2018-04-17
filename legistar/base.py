@@ -255,12 +255,7 @@ class LegistarAPIScraper(Scraper):
 
     def search(self, route, item_key, search_conditions):
         """
-        Base function for searching the Legistar API. You typically
-        will want to specialize this using by setting the route
-        and item key in a wrapper function.
-
-        If you were searching for matters, then this would looke like
-        search('/matters/', 'MatterId', your_search_condition)
+        Base function for searching the Legistar API.
 
         Arguments:
 
@@ -273,6 +268,11 @@ class LegistarAPIScraper(Scraper):
 
                              It would be nice if we could provide a
                              friendly search API. Something like https://github.com/tuomur/python-odata
+
+
+        Examples:
+        # Search for bills introduced after Jan. 1, 2017
+        search('/matters/', 'MatterId', "MatterIntroDate gt datetime'2017-01-01'")
         """
 
         search_url = self.BASE_URL + route
