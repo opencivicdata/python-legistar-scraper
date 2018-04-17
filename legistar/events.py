@@ -248,22 +248,6 @@ class LegistarAPIEventScraper(LegistarAPIScraper):
                 if web_key == api_key:
                     return event
 
-    def endpoint(self, route, *args) :
-        url = self.BASE_URL + route
-        response = self.get(url.format(*args))
-        return response.json()
-
-    def search(self, **kwargs):
-        conditions = []
-        for k, v in kwargs:
-            if k.endswith('Date'):
-                condition = "{0} eq datetime'{1}'".format(k, v)
-            else:
-                condition = "{0} eq '{1}'".format(k, v)
-            conditions.append(condition)
-        params = ' and '.join(conditions)
-        return self.endpoint("/events/?$filter={0}", params)
-
     def _scrapeWebCalendar(self):
         '''Generator yielding events from Legistar in roughly reverse
         chronological order.
