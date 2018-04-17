@@ -307,3 +307,11 @@ class LegistarAPIScraper(Scraper):
                     seen.append(item[item_key])
 
             page_num += 1
+
+    def accept_response(self, response, **kwargs):
+        '''
+        This overrides a method that controls whether
+        the scraper should retry on an error. We don't
+        want to retry if the API returns a 400
+        '''
+        return response.status_code < 401
