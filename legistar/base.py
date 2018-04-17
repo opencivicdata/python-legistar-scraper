@@ -287,7 +287,6 @@ class LegistarAPIScraper(Scraper):
             raise
 
 
-
     def pages(self, url, params=None, item_key=None):
         if params is None:
             params = {}
