@@ -259,11 +259,13 @@ class LegistarAPIScraper(Scraper):
         will want to specialize this using by setting the route
         and item key in a wrapper function.
 
+        If you were searching for matters, then this would looke like
+        search('/matters/', 'MatterId', your_search_condition)
 
         Arguments:
 
         route -- The path to search, i.e. /matters/, /events/, etc
-        item_key -- The unique id for the items that you are searching.
+        item_key -- The unique id field for the items that you are searching.
                     This is necessary for proper pagination. examples
                     might be MatterId or EventId
         search_conditions -- a string in the OData format for the
