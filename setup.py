@@ -16,9 +16,12 @@ setup(name='legistar',
       platforms=['any'],
       dependency_links = ['git+ssh://git@github.com/opencivicdata/pupa.git'],
       install_requires=[
+          'requests',
           'lxml',
           'pytz',
-          'icalendar'
+          'icalendar',
+          'scrapelib',
+          'pupa',
       ],
       classifiers=["Development Status :: 4 - Beta",
                    "Intended Audience :: Developers",
