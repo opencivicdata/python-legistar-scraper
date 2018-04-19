@@ -1,12 +1,16 @@
-from .base import LegistarScraper, LegistarAPIScraper
-from pupa.scrape import Scraper
-from lxml.etree import tostring
 from collections import deque
 from functools import partialmethod
 import datetime
+import urllib.parse
+
+from pupa.scrape import Scraper
+from lxml.etree import tostring
 import pytz
 import requests
 import scrapelib
+
+from .base import LegistarScraper, LegistarAPIScraper
+
 
 class LegistarBillScraper(LegistarScraper):
     def legislation(self, search_text='', created_after=None, 
@@ -358,9 +362,27 @@ class LegistarAPIBillScraper(LegistarAPIScraper) :
             return response.json()
 
     def legislation_detail_url(self, matter_id) :
-        gateway_url = self.BASE_WEB_URL + '/gateway.aspx?m=l&id={0}'
+        gateway_url = self.BASE_WEB_URL + '/gateway.aspx?m=l&id={}'
         
         legislation_detail_route = self.head(gateway_url.format(matter_id)).headers['Location']
         
         return self.BASE_WEB_URL + legislation_detail_route
 
+    def legislation_pdf_url(self, matter_id):
+        '''
+        For some Legistar sites, the official legislation text is
+        the RTF file we can get from the `text` method (for others it's a
+        pdf we can get from the `attachments` method).
+
+        But, even if the RTF is the canonical format, we might want a nicely
+        formatted PDF version of the text. Such a PDF is available from the
+        Legistar sites and this method gets us URL for that PDF
+        '''
+        if not hasattr(self, gid):
+            gateway_url = self.BASE_WEB_URL + '/gateway.aspx?M=R2&ID={}&GUID=LATEST&Extra=L5'
+            pdf_route = self.head(gateway_url.format(matter_id)).headers['Location']
+            self.gid = urllib.parse.parse_qs(urllib.parse.urlparse(pdf_route).query)['GID']
+
+        url = self.BASE_WEB_URL + '/ViewReport.ashx?M=R&N=Text&GID={gid}&ID={matter_id}&GUID=LATEST&Extra=L5'
+
+        return url.format(gid=self.gid, matter_id=matter_id)
