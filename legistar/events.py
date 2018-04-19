@@ -167,7 +167,8 @@ class LegistarAPIEventScraper(LegistarAPIScraper):
                         yield api_event, web_event
 
                     else:
-                        self.warning('API event could not be found in web interface: {0}{1}'.format(events_url, api_event['EventId']))
+                        event_url = '{0}/events/{1}'.format(self.BASE_URL, api_event['EventId'])
+                        self.warning('API event could not be found in web interface: {0}'.format(event_url))
                         continue
 
     def api_events(self, since_datetime=None):
