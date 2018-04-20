@@ -302,9 +302,9 @@ class LegistarAPIBillScraper(LegistarAPIScraper):
             action['MatterHistoryActionName'] = action['MatterHistoryActionName'].strip()
 
         actions = sorted((action for action in actions
-                          if action['MatterHistoryActionDate'] and
-                          action['MatterHistoryActionName'] and
-                          action['MatterHistoryActionBodyName']),
+                          if (action['MatterHistoryActionDate'] and
+                              action['MatterHistoryActionName'] and
+                              action['MatterHistoryActionBodyName'])),
                          key=lambda action: action['MatterHistoryActionDate'])
 
         return actions

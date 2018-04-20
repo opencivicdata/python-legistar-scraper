@@ -195,8 +195,8 @@ class LegistarAPIEventScraper(LegistarAPIScraper):
                               item_key="EventId")
 
     def agenda(self, event):
-        agenda_url = self.BASE_URL + \
-            '/events/{}/eventitems'.format(event['EventId'])
+        agenda_url = (self.BASE_URL +
+                      '/events/{}/eventitems'.format(event['EventId']))
 
         response = self.get(agenda_url)
 
@@ -278,8 +278,7 @@ class LegistarAPIEventScraper(LegistarAPIScraper):
         events from the two data sources.
         '''
         response = web_scraper.get(event['iCalendar']['url'], verify=False)
-        event_time = web_scraper.ical(
-            response.text).subcomponents[0]['DTSTART'].dt
+        event_time = web_scraper.ical(response.text).subcomponents[0]['DTSTART'].dt
         event_time = pytz.timezone(self.TIMEZONE).localize(event_time)
 
         key = (event['Name']['label'],
