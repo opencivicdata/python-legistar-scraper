@@ -189,7 +189,7 @@ def dateWithin(created_after, created_before):
         '{d.month}/{d.day}/{d.year}'.format(d=created_before)
 
     payload['ctl00_ContentPlaceHolder1_txtFileCreated2_dateInput_ClientState'] =\
-        '{{"enabled":true, "emptyMessage":"","validationText":"{d.year}-{d.month:02}-{d.day:02}-00-00-00","valueAsString":"{d.year}-{d.month:02}-{d.day:02}-00-00-00","minDateStr":"1980-01-01-00-00-00","maxDateStr":"2099-12-31-00-00-00", "lastSetTextBoxValue":"{d.month}/{d.day}/{d.year}"}}'.format(
+        '{{"enabled":true, "emptyMessage":"","validationText":"{d.year}-{d.month:02}-{d.day:02}-00-00-00","valueAsString":"{d.year}-{d.month:02}-{d.day:02}-00-00-00","minDateStr":"1980-01-01-00-00-00","maxDateStr":"2099-12-31-00-00-00", "lastSetTextBoxValue":"{d.month}/{d.day}/{d.year}"}}'.format( # noqa : E501
             d=created_before)
 
     payload['ctl00$ContentPlaceHolder1$radFileCreated'] = 'between'
@@ -206,7 +206,7 @@ def dateBound(creation_date):
         '{d.month}/{d.day}/{d.year}'.format(d=creation_date)
 
     payload['ctl00_ContentPlaceHolder1_txtFileCreated1_dateInput_ClientState'] =\
-        '{{"enabled":true, "emptyMessage":"","validationText":"{d.year}-{d.month:02}-{d.day:02}-00-00-00","valueAsString":"{d.year}-{d.month:02}-{d.day:02}-00-00-00","minDateStr":"1980-01-01-00-00-00","maxDateStr":"2099-12-31-00-00-00", "lastSetTextBoxValue":"{d.month}/{d.day}/{d.year}"}}'.format(
+        '{{"enabled":true, "emptyMessage":"","validationText":"{d.year}-{d.month:02}-{d.day:02}-00-00-00","valueAsString":"{d.year}-{d.month:02}-{d.day:02}-00-00-00","minDateStr":"1980-01-01-00-00-00","maxDateStr":"2099-12-31-00-00-00", "lastSetTextBoxValue":"{d.month}/{d.day}/{d.year}"}}'.format( # noqa : E501
             d=creation_date)
 
     return payload
@@ -215,11 +215,15 @@ def dateBound(creation_date):
 class LegistarAPIBillScraper(LegistarAPIScraper):
     # Make parameter optional, as it is in events.py
     def matters(self, since_datetime=None):
+
+        # scrape from oldest to newest. This makes resuming big
+        # scraping jobs easier because upon a scrape failure we can
+        # import everything scraped and then scrape everything newer
+        # then the last bill we scraped
+        params = {'$orderby': 'MatterLastModifiedUtc'}
+
         if since_datetime:
-            params = {'$filter': "MatterLastModifiedUtc gt datetime'{since_datetime}'".format(
-                since_datetime=since_datetime.isoformat())}
-        else:
-            params = {}
+            params['$filter'] = "MatterLastModifiedUtc gt datetime'{since_datetime}'".format(since_datetime=since_datetime.isoformat())
 
         matters_url = self.BASE_URL + '/matters'
 
@@ -229,11 +233,27 @@ class LegistarAPIBillScraper(LegistarAPIScraper):
             try:
                 legistar_url = self.legislation_detail_url(matter['MatterId'])
             except KeyError:
+                url = matters_url + '/{}'.format(matter['MatterId'])
+                self.warning('Bill could not be found in web interface: {}'.format(url))
                 continue
             else:
                 matter['legistar_url'] = legistar_url
 
             yield matter
+
+    def matter(self, matter_id):
+        matter = self.endpoint('/matters/{}', matter_id)
+
+        try:
+            legistar_url = self.legislation_detail_url(matter_id)
+        except KeyError:
+            url = self.BASE_URL + '/matters/{}'.format(matter_id)
+            self.warning('Bill could not be found in web interface: {}'.format(url))
+            return None
+        else:
+            matter['legistar_url'] = legistar_url
+
+        return matter
 
     def endpoint(self, route, *args):
         url = self.BASE_URL + route
@@ -241,8 +261,22 @@ class LegistarAPIBillScraper(LegistarAPIScraper):
         return response.json()
 
     topics = partialmethod(endpoint, '/matters/{0}/indexes')
-    attachments = partialmethod(endpoint, '/matters/{0}/attachments')
     code_sections = partialmethod(endpoint, 'matters/{0}/codesections')
+
+    def attachments(self, matter_id):
+        attachments = self.endpoint('/matters/{0}/attachments', matter_id)
+
+        unique_attachments = []
+        scraped_urls = set()
+
+        # Handle matters with duplicate attachments.
+        for attachment in attachments:
+            url = attachment['MatterAttachmentHyperlink']
+            if url not in scraped_urls:
+                unique_attachments.append(attachment)
+                scraped_urls.add(url)
+
+        return unique_attachments
 
     def votes(self, history_id):
         url = self.BASE_URL + '/eventitems/{0}/votes'.format(history_id)
@@ -254,7 +288,7 @@ class LegistarAPIBillScraper(LegistarAPIScraper):
             response = e.response  # response object
 
             # Handle no individual votes from vote event
-            if response.status_code == 500 and response.json().get('InnerException', {}).get('ExceptionMessage', '') == "The cast to value type 'System.Int32' failed because the materialized value is null. Either the result type's generic parameter or the query must use a nullable type.":
+            if response.status_code == 500 and response.json().get('InnerException', {}).get('ExceptionMessage', '') == "The cast to value type 'System.Int32' failed because the materialized value is null. Either the result type's generic parameter or the query must use a nullable type.": # noqa : 501
                 return []
 
             raise
@@ -277,9 +311,12 @@ class LegistarAPIBillScraper(LegistarAPIScraper):
 
     def sponsors(self, matter_id):
         spons = self.endpoint('/matters/{0}/sponsors', matter_id)
+
         if spons:
-            max_version = max(self._version_rank(sponsor['MatterSponsorMatterVersion'])
-                              for sponsor in spons)
+            max_version = max(
+                (sponsor['MatterSponsorMatterVersion'] for sponsor in spons),
+                key=lambda version: self._version_rank(version)
+            )
 
             spons = [sponsor for sponsor in spons
                      if sponsor['MatterSponsorMatterVersion'] == str(max_version)]

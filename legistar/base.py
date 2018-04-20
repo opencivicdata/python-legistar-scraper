@@ -180,7 +180,7 @@ class LegistarScraper(scrapelib.Scraper, LegistarSession):
 
                     data[key] = value
 
-                yield data, keys, row
+                yield dict(data), keys, row
 
             except Exception as e:
                 print('Problem parsing row:')
@@ -192,10 +192,10 @@ class LegistarScraper(scrapelib.Scraper, LegistarSession):
         url = None
         if 'onclick' in link.attrib:
             onclick = link.attrib['onclick']
-            if (onclick is not None
-                and onclick.startswith(("radopen('",
-                                        "window.open",
-                                        "OpenTelerikWindow"))):
+            if (onclick is not None and
+                onclick.startswith(("radopen('",
+                                    "window.open",
+                                    "OpenTelerikWindow"))):
                 url = self.BASE_URL + onclick.split("'")[1]
         elif 'href' in link.attrib:
             url = link.attrib['href']
@@ -261,6 +261,41 @@ class LegistarAPIScraper(scrapelib.Scraper):
         time = pytz.timezone(self.TIMEZONE).localize(time)
         return time
 
+    def search(self, route, item_key, search_conditions):
+        """
+        Base function for searching the Legistar API.
+
+        Arguments:
+
+        route -- The path to search, i.e. /matters/, /events/, etc
+        item_key -- The unique id field for the items that you are searching.
+                    This is necessary for proper pagination. examples
+                    might be MatterId or EventId
+        search_conditions -- a string in the OData format for the
+                             your search conditions http://www.odata.org/documentation/odata-version-3-0/url-conventions/#url5.1.2
+
+                             It would be nice if we could provide a
+                             friendly search API. Something like https://github.com/tuomur/python-odata
+
+
+        Examples:
+        # Search for bills introduced after Jan. 1, 2017
+        search('/matters/', 'MatterId', "MatterIntroDate gt datetime'2017-01-01'")
+        """
+
+        search_url = self.BASE_URL + route
+
+        params = {'$filter': search_conditions}
+
+        try:
+            yield from self.pages(search_url,
+                                  params=params,
+                                  item_key=item_key)
+        except requests.HTTPError as e:
+            if e.response.status_code == 400:
+                raise ValueError(e.response.json()['Message'])
+            raise
+
     def pages(self, url, params=None, item_key=None):
         if params is None:
             params = {}
@@ -268,9 +303,11 @@ class LegistarAPIScraper(scrapelib.Scraper):
         seen = deque([], maxlen=1000)
 
         page_num = 0
+        response = None
         while page_num == 0 or len(response.json()) == 1000:
             params['$skip'] = page_num * 1000
             response = self.get(url, params=params)
+            response.raise_for_status()
 
             for item in response.json():
                 if item[item_key] not in seen:
@@ -278,3 +315,11 @@ class LegistarAPIScraper(scrapelib.Scraper):
                     seen.append(item[item_key])
 
             page_num += 1
+
+    def accept_response(self, response, **kwargs):
+        '''
+        This overrides a method that controls whether
+        the scraper should retry on an error. We don't
+        want to retry if the API returns a 400
+        '''
+        return response.status_code < 401

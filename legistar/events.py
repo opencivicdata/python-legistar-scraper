@@ -136,29 +136,7 @@ class LegistarAPIEventScraper(LegistarAPIScraper):
         # are scraped.
         self._scraped_events = {}
 
-        if since_datetime:
-            # Minutes are often published after an event occurs – without a
-            # corresponding event modification. Query all update fields so later
-            # changes are always caught by our scraper, particularly when
-            # scraping narrower windows of time.
-            update_fields = ('EventLastModifiedUtc',
-                             'EventAgendaLastPublishedUTC',
-                             'EventMinutesLastPublishedUTC')
-
-            since_fmt = " gt datetime'{}'".format(since_datetime.isoformat())
-            since_filter = ' or '.join(
-                field + since_fmt for field in update_fields)
-
-            params = {'$filter': since_filter}
-
-        else:
-            params = {}
-
-        events_url = self.BASE_URL + '/events/'
-
-        for api_event in self.pages(events_url,
-                                    params=params,
-                                    item_key="EventId"):
+        for api_event in self.api_events(since_datetime):
 
             # EventTime may be 'None': this try-except block catches those instances.
             try:
@@ -185,9 +163,36 @@ class LegistarAPIEventScraper(LegistarAPIScraper):
                         yield api_event, web_event
 
                     else:
-                        self.warning('API event could not be found in web interface: {0}{1}'.format(
-                            events_url, api_event['EventId']))
+                        event_url = '{0}/events/{1}'.format(self.BASE_URL, api_event['EventId'])
+                        self.warning('API event could not be found in web interface: {0}'.format(event_url))
                         continue
+
+    def api_events(self, since_datetime=None):
+        # scrape from oldest to newest. This makes resuming big
+        # scraping jobs easier because upon a scrape failure we can
+        # import everything scraped and then scrape everything newer
+        # then the last event we scraped
+        params = {'$orderby': 'EventLastModifiedUtc'}
+
+        if since_datetime:
+            # Minutes are often published after an event occurs – without a
+            # corresponding event modification. Query all update fields so later
+            # changes are always caught by our scraper, particularly when
+            # scraping narrower windows of time.
+            update_fields = ('EventLastModifiedUtc',
+                             'EventAgendaLastPublishedUTC',
+                             'EventMinutesLastPublishedUTC')
+
+            since_fmt = " gt datetime'{}'".format(since_datetime.isoformat())
+            since_filter = ' or '.join(field + since_fmt for field in update_fields)
+
+            params['$filter'] = since_filter
+
+        events_url = self.BASE_URL + '/events/'
+
+        yield from self.pages(events_url,
+                              params=params,
+                              item_key="EventId")
 
     def agenda(self, event):
         agenda_url = self.BASE_URL + \
