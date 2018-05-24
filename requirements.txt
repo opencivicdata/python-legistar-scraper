@@ -1,1 +1,2 @@
 pytest
+https://github.com/datamade/pytest-flake8/zipball/master
