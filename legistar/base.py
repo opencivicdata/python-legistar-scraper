@@ -3,6 +3,8 @@ import itertools
 import traceback
 from collections import defaultdict, deque
 import re
+import requests
+import json
 
 import scrapelib
 from pupa.scrape import Scraper
@@ -10,7 +12,62 @@ import lxml.html
 import lxml.etree as etree
 import pytz
 
-class LegistarScraper(Scraper):
+
+class LegistarSession(requests.Session):
+
+    def request(self, method, url, **kwargs):
+        response = super(LegistarSession, self).request(method, url, **kwargs)
+        payload = kwargs.get('data')
+
+        self._check_errors(response, payload)
+
+        return response
+
+    def _check_errors(self, response, payload):
+        if response.url.endswith('Error.aspx'):
+            response.status_code = 503
+            raise scrapelib.HTTPError(response)
+        
+        if not response.text:
+            response.status_code = 520
+            raise scrapelib.HTTPError(response)
+
+        if payload:
+            self._range_error(response, payload)
+
+    def _range_error(self, response, payload):
+        '''Legistar intermittently does not return the expected response when
+        selecting a time range when searching for events. Right now we
+        are only handling the 'All' range
+        '''
+
+        if self._range_is_all(payload):
+
+            expected_range = 'All Years'
+
+            page = lxml.html.fromstring(response.text)
+            returned_range, = page.xpath("//input[@id='ctl00_ContentPlaceHolder1_lstYears_Input']")
+
+            returned_range = returned_range.value
+
+            if returned_range != expected_range:
+                response.status_code = 520
+                # In the event of a retry, the new request does not
+                # contain the correct payload data.  This comes as a
+                # result of not updating the payload via sessionSecrets:
+                # so, we do that here.
+                payload.update(self.sessionSecrets(page))
+
+                raise scrapelib.HTTPError(response)
+
+    def _range_is_all(self, payload):
+        range_var = 'ctl00_ContentPlaceHolder1_lstYears_ClientState'
+        all_range = (range_var in payload and
+                     json.loads(payload[range_var])['value'] == 'All')
+        return all_range
+        
+
+class LegistarScraper(Scraper, LegistarSession):
     date_format='%m/%d/%Y'
 
     def __init__(self, *args, **kwargs) :
@@ -22,7 +79,6 @@ class LegistarScraper(Scraper):
             response = self.post(url, payload, verify=False)
         else :
             response = self.get(url, verify=False)
-        self._check_errors(response)
         entry = response.text
         page = lxml.html.fromstring(entry)
         page.make_links_absolute(url)
@@ -124,7 +180,7 @@ class LegistarScraper(Scraper):
 
                     data[key] = value
 
-                yield data, keys, row
+                yield dict(data), keys, row
 
             except Exception as e:
                 print('Problem parsing row:')
@@ -181,11 +237,6 @@ class LegistarScraper(Scraper):
 
         return(payload)
 
-    def _check_errors(self, response):
-        if response.url.endswith('Error.aspx'):
-            response.status_code = 503
-            raise scrapelib.HTTPError(response)
-
 
 def fieldKey(x) :
     field_id = x.attrib['id']
@@ -202,6 +253,42 @@ class LegistarAPIScraper(Scraper):
         time = pytz.timezone(self.TIMEZONE).localize(time)
         return time
 
+    def search(self, route, item_key, search_conditions):
+        """
+        Base function for searching the Legistar API.
+
+        Arguments:
+
+        route -- The path to search, i.e. /matters/, /events/, etc
+        item_key -- The unique id field for the items that you are searching.
+                    This is necessary for proper pagination. examples
+                    might be MatterId or EventId
+        search_conditions -- a string in the OData format for the
+                             your search conditions http://www.odata.org/documentation/odata-version-3-0/url-conventions/#url5.1.2
+
+                             It would be nice if we could provide a
+                             friendly search API. Something like https://github.com/tuomur/python-odata
+
+
+        Examples:
+        # Search for bills introduced after Jan. 1, 2017
+        search('/matters/', 'MatterId', "MatterIntroDate gt datetime'2017-01-01'")
+        """
+
+        search_url = self.BASE_URL + route
+
+        params = {'$filter': search_conditions}
+
+        try:
+            yield from self.pages(search_url,
+                                  params=params,
+                                  item_key=item_key)
+        except requests.HTTPError as e:
+            if e.response.status_code == 400:
+                raise ValueError(e.response.json()['Message'])
+            raise
+
+
     def pages(self, url, params=None, item_key=None):
         if params is None:
             params = {}
@@ -212,6 +299,7 @@ class LegistarAPIScraper(Scraper):
         while page_num == 0 or len(response.json()) == 1000 :
             params['$skip'] = page_num * 1000
             response = self.get(url, params=params)
+            response.raise_for_status()
 
             for item in response.json() :
                 if item[item_key] not in seen :
@@ -219,3 +307,11 @@ class LegistarAPIScraper(Scraper):
                     seen.append(item[item_key])
 
             page_num += 1
+
+    def accept_response(self, response, **kwargs):
+        '''
+        This overrides a method that controls whether
+        the scraper should retry on an error. We don't
+        want to retry if the API returns a 400
+        '''
+        return response.status_code < 401

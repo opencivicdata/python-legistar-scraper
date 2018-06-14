@@ -42,3 +42,4 @@ stuff/*
 htmlcov/
 _cache/*
 _data/*
+venv
