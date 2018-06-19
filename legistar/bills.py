@@ -2,8 +2,8 @@ from .base import LegistarScraper, LegistarAPIScraper
 from lxml.etree import tostring
 from collections import deque
 from functools import partialmethod
-import scrapelib
 import requests
+
 
 class LegistarBillScraper(LegistarScraper):
     def legislation(self, search_text='', created_after=None,
