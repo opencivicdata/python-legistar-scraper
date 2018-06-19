@@ -5,7 +5,6 @@ from functools import partialmethod
 import scrapelib
 import requests
 
-
 class LegistarBillScraper(LegistarScraper):
     def legislation(self, search_text='', created_after=None,
                     created_before=None):
@@ -282,19 +281,9 @@ class LegistarAPIBillScraper(LegistarAPIScraper):
     def votes(self, history_id):
         url = self.BASE_URL + '/eventitems/{0}/votes'.format(history_id)
 
-        try:
-            response = self.get(url)
-            response.raise_for_status()
-
-        except (scrapelib.HTTPError, requests.exceptions.HTTPError) as e:
-            response = e.response  # response object
-
-            # Handle no individual votes from vote event
-            if self._missing_votes(response):
-                return []
-            else:
-                raise
-
+        response = self.get(url)
+        if self._missing_votes(response):
+            return []
         else:
             return response.json()
 
@@ -367,7 +356,7 @@ class LegistarAPIBillScraper(LegistarAPIScraper):
     def legislation_detail_url(self, matter_id):
         gateway_url = self.BASE_WEB_URL + '/gateway.aspx?m=l&id={0}'
 
-        legislation_detail_route = self.head(
+        legislation_detail_route = requests.head(
             gateway_url.format(matter_id)).headers['Location']
 
         return self.BASE_WEB_URL + legislation_detail_route
