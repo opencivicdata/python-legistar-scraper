@@ -3,6 +3,7 @@ from lxml.etree import tostring
 from collections import deque
 from functools import partialmethod
 import scrapelib
+import requests
 
 
 class LegistarBillScraper(LegistarScraper):
@@ -283,15 +284,16 @@ class LegistarAPIBillScraper(LegistarAPIScraper):
 
         try:
             response = self.get(url)
+            response.raise_for_status()
 
-        except scrapelib.HTTPError as e:
+        except (scrapelib.HTTPError, requests.exceptions.HTTPError) as e:
             response = e.response  # response object
 
             # Handle no individual votes from vote event
-            if response.status_code == 500 and response.json().get('InnerException', {}).get('ExceptionMessage', '') == "The cast to value type 'System.Int32' failed because the materialized value is null. Either the result type's generic parameter or the query must use a nullable type.": # noqa : 501
+            if self._missing_votes(response):
                 return []
-
-            raise
+            else:
+                raise
 
         else:
             return response.json()
@@ -369,3 +371,19 @@ class LegistarAPIBillScraper(LegistarAPIScraper):
             gateway_url.format(matter_id)).headers['Location']
 
         return self.BASE_WEB_URL + legislation_detail_route
+
+    def _missing_votes(self, response):
+        # Handle no individual votes from vote event
+        missing = (response.status_code == 500 and
+                   response.json().get('InnerException', {}).get('ExceptionMessage', '') == "The cast to value type 'System.Int32' failed because the materialized value is null. Either the result type's generic parameter or the query must use a nullable type.") # noqa : 501
+        return missing
+
+    def accept_response(self, response, **kwargs):
+        '''
+        If we hit a missing votes page we don't need to keep retrying it.
+        This overrides a method that controls whether the scraper
+        should retry on an error.
+        '''
+        accept = (super().accept_response(response) or
+                  self._missing_votes(response))
+        return accept
