@@ -230,19 +230,14 @@ class LegistarAPIEventScraper(LegistarAPIScraper):
 
         This is also practical because matter files that are hidden
         in the Legistar Agenda do not seem to available for scraping
-        on Legistar or through the API'''
+        on Legistar or through the API
 
-        if item['EventItemMatterFile'] is not None:
-
-            if item['EventItemMatterStatus'] == 'Draft':
-                suppress = True
-            elif item['EventItemMatterType'] == 'Closed Session':
-                suppress = True
-            else:
-                suppress = False
-
-            if suppress:
-                item['EventItemMatterFile'] = None
+        Since we are not completely sure that the same suppression
+        logic should be used for all Legislative Bodies, this method
+        is currently just a hook for being overridden in particular
+        scrapers. As of now, at least LA Metro uses this hook.
+        '''
+        pass
 
     def rollcalls(self, event):
         for item in self.agenda(event):
