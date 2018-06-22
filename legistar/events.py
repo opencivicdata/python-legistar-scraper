@@ -217,7 +217,27 @@ class LegistarAPIEventScraper(LegistarAPIScraper):
                                      if item['EventItemTitle'])
 
         for item in filtered_response:
+            self._suppress_item_matter(item, agenda_url)
             yield item
+
+    def _suppress_item_matter(self, item, agenda_url):
+        '''
+        Agenda items in Legistar do not always display links to
+        associated matter files even if the same agenda item
+        in the API references a Matter File. The agenda items
+        we scrape should honor the suppression on the Legistar
+        agendas.
+
+        This is also practical because matter files that are hidden
+        in the Legistar Agenda do not seem to available for scraping
+        on Legistar or through the API
+
+        Since we are not completely sure that the same suppression
+        logic should be used for all Legislative Bodies, this method
+        is currently just a hook for being overridden in particular
+        scrapers. As of now, at least LA Metro uses this hook.
+        '''
+        pass
 
     def rollcalls(self, event):
         for item in self.agenda(event):
