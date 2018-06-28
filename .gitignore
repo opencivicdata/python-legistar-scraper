@@ -17,6 +17,7 @@ develop-eggs
 .installed.cfg
 lib
 lib64
+.DS_Store
 
 # Installer logs
 pip-log.txt
@@ -41,3 +42,4 @@ stuff/*
 htmlcov/
 _cache/*
 _data/*
+venv
