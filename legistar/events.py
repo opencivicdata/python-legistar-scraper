@@ -139,7 +139,7 @@ class LegistarAPIEventScraper(LegistarAPIScraper):
         for api_event in self.api_events(since_datetime):
 
             time_str = api_event['EventTime']
-            if not time_str: # If we don't have an event time, skip it
+            if not time_str:  # If we don't have an event time, skip it
                 continue
 
             start_time = time.strptime(time_str, '%I:%M %p')
