@@ -212,7 +212,7 @@ class LegistarAPIEventScraper(LegistarAPIScraper):
 
     def minutes(self, event):
         minutes_url = (self.BASE_URL +
-                      '/events/{}/eventitems'.format(event['EventId']))
+                       '/events/{}/eventitems'.format(event['EventId']))
 
         response = self.get(minutes_url)
 
