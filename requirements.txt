@@ -24,4 +24,3 @@ six==1.11.0
 urllib3==1.22
 validictory==1.1.1
 pytest
-https://github.com/datamade/pytest-flake8/zipball/master
