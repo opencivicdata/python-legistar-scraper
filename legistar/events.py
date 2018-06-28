@@ -138,34 +138,32 @@ class LegistarAPIEventScraper(LegistarAPIScraper):
 
         for api_event in self.api_events(since_datetime):
 
-            # EventTime may be 'None': this try-except block catches those instances.
-            try:
-                start_time = time.strptime(api_event['EventTime'], '%I:%M %p')
+            time_str = api_event['EventTime']
+            if not time_str:  # If we don't have an event time, skip it
+                continue
 
-            except TypeError:
+            start_time = time.strptime(time_str, '%I:%M %p')
+
+            start = self.toTime(api_event['EventDate'])
+            api_event['start'] = start.replace(hour=start_time.tm_hour,
+                                               minute=start_time.tm_min)
+
+            api_event['status'] = self._event_status(api_event)
+
+            if self._not_in_web_interface(api_event):
                 continue
 
             else:
-                start = self.toTime(api_event['EventDate'])
-                api_event['start'] = start.replace(hour=start_time.tm_hour,
-                                                   minute=start_time.tm_min)
+                # None if entire web calendar scraped but API event not found
+                web_event = self.web_results(api_event)
 
-                api_event['status'] = self._event_status(api_event)
-
-                if self._not_in_web_interface(api_event):
-                    continue
+                if web_event:
+                    yield api_event, web_event
 
                 else:
-                    # None if entire web calendar scraped but API event not found
-                    web_event = self.web_results(api_event)
-
-                    if web_event:
-                        yield api_event, web_event
-
-                    else:
-                        event_url = '{0}/events/{1}'.format(self.BASE_URL, api_event['EventId'])
-                        self.warning('API event could not be found in web interface: {0}'.format(event_url))
-                        continue
+                    event_url = '{0}/events/{1}'.format(self.BASE_URL, api_event['EventId'])
+                    self.warning('API event could not be found in web interface: {0}'.format(event_url))
+                    continue
 
     def api_events(self, since_datetime=None):
         # scrape from oldest to newest. This makes resuming big
