@@ -16,7 +16,6 @@ pupa==0.8.0
 py==1.4.34
 pycparser==2.18
 pyOpenSSL==17.3.0
-pytest==3.2.2
 python-dateutil==2.6.1
 pytz==2017.2
 requests==2.18.4
@@ -24,3 +23,5 @@ scrapelib==1.1.0
 six==1.11.0
 urllib3==1.22
 validictory==1.1.1
+pytest
+https://github.com/datamade/pytest-flake8/zipball/master
