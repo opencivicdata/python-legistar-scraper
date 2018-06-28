@@ -198,24 +198,34 @@ class LegistarAPIEventScraper(LegistarAPIScraper):
 
         response = self.get(agenda_url)
 
-        try:
-            # Order the event items according to the EventItemMinutesSequence. If an
-            # event item does not have a value for EventItemMinutesSequence, the script
-            # will throw a TypeError. In that case, try to order by EventItemAgendaSequence.
-            filtered_response = sorted((item for item in response.json()
-                                        if item['EventItemTitle']),
-                                       key=lambda item: item['EventItemMinutesSequence'])
-        except TypeError:
-            try:
-                filtered_response = sorted((item for item in response.json()
-                                            if item['EventItemTitle']),
-                                           key=lambda item: item['EventItemAgendaSequence'])
-            except TypeError:
-                filtered_response = (item for item in response.json()
-                                     if item['EventItemTitle'])
+        # If an event item does not have a value for
+        # EventItemAgendaSequence, it is not on the agenda
+        filtered_items = (item for item in response.json()
+                          if (item['EventItemTitle'] and
+                              item['EventItemAgendaSequence']))
+        sorted_items = sorted(filtered_items,
+                              key=lambda item: item['EventItemAgendaSequence'])
 
-        for item in filtered_response:
+        for item in sorted_items:
             self._suppress_item_matter(item, agenda_url)
+            yield item
+
+    def minutes(self, event):
+        minutes_url = (self.BASE_URL +
+                      '/events/{}/eventitems'.format(event['EventId']))
+
+        response = self.get(minutes_url)
+
+        # If an event item does not have a value for
+        # EventItemMinutesSequence, it is not in the minutes
+        filtered_items = (item for item in response.json()
+                          if (item['EventItemTitle'] and
+                              item['EventItemMinutesSequence']))
+        sorted_items = sorted(filtered_items,
+                              key=lambda item: item['EventItemMinutesSequence'])
+
+        for item in sorted_items:
+            self._suppress_item_matter(item, minutes_url)
             yield item
 
     def _suppress_item_matter(self, item, agenda_url):
