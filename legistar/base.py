@@ -196,7 +196,10 @@ class LegistarScraper(LegistarSession, scrapelib.Scraper):
                 onclick.startswith(("radopen('",
                                     "window.open",
                                     "OpenTelerikWindow"))):
-                url = self.BASE_URL + onclick.split("'")[1]
+                onclick_path = onclick.split("'")[1]
+                if not onclick_path.startswith("/"):
+                    onclick_path = "/" + onclick_path
+                url = self.BASE_URL + onclick_path
         elif 'href' in link.attrib:
             url = link.attrib['href']
 
