@@ -152,10 +152,13 @@ class LegistarScraper(LegistarSession, scrapelib.Scraper):
         keys = []
         for header in headers:
             text_content = header.text_content().replace('&nbsp;', ' ').strip()
+            inputs = header.xpath('.//input')
             if text_content:
                 keys.append(text_content)
-            else:
+            elif len(inputs) > 0:
                 keys.append(header.xpath('.//input')[0].value)
+            else:
+                keys.append(header.xpath('.//img')[0].get('alt'))
 
         for row in rows:
             try:
@@ -167,7 +170,7 @@ class LegistarScraper(LegistarSession, scrapelib.Scraper):
                     if field.find('.//a') is not None:
                         address = self._get_link_address(field.find('.//a'))
                         if address:
-                            if key == '' and 'View.ashx?M=IC' in address:
+                            if key in ['', 'ics'] and 'View.ashx?M=IC' in address:
                                 key = 'iCalendar'
                                 value = {'url': address}
                             else:
