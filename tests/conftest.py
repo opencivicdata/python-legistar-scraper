@@ -13,6 +13,7 @@ def scraper():
     scraper.requests_per_minute = 0
     return scraper
 
+
 @pytest.fixture
 def project_directory():
     test_directory = os.path.abspath(os.path.dirname(__file__))
