@@ -4,6 +4,5 @@ python:
 install:
   - pip install -r requirements.txt
   - pip install -e .
-  - python tests/refresh_fixtures.py
 script:
   pytest

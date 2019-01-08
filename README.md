@@ -41,13 +41,12 @@ directory.
 A convenience script is provided for refreshing the fixtures, i.e., re-scraping
 Legistar and storing the resultant HTML.
 
-Usage:
+The Legistar site is fairly stable, however if your patch addresses a change
+in page structure, update the fixtures as follows:
 
 ```bash
 python tests/refresh_fixtures.py  # refresh all fixtures
 python tests/refresh_fixtures.py chicago,nyc  # refresh chicago and nyc fixtures
 ```
 
-Travis is configured to refresh the fixtures before running tests. Refresh your
-local fixtures when you begin development on a new feature, to minimize the
-possibility of a difference between your fixtures and those employed by Travis.
+Be sure to commit the refreshed fixture and submit it with your patch.
