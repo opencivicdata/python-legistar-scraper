@@ -45,8 +45,7 @@ The Legistar site is fairly stable, however if your patch addresses a change
 in page structure, update the fixtures as follows:
 
 ```bash
-python tests/refresh_fixtures.py  # refresh all fixtures
-python tests/refresh_fixtures.py chicago,nyc  # refresh chicago and nyc fixtures
+python tests/refresh_fixtures.py
 ```
 
 Be sure to commit the refreshed fixture and submit it with your patch.
