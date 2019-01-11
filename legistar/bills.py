@@ -3,6 +3,7 @@ from lxml.etree import tostring
 from collections import deque
 from functools import partialmethod
 import requests
+from urllib.parse import urljoin
 
 
 class LegistarBillScraper(LegistarScraper):
@@ -359,7 +360,7 @@ class LegistarAPIBillScraper(LegistarAPIScraper):
         legislation_detail_route = requests.head(
             gateway_url.format(matter_id)).headers['Location']
 
-        return self.BASE_WEB_URL + legislation_detail_route
+        return urljoin(self.BASE_WEB_URL, legislation_detail_route)
 
     def _missing_votes(self, response):
         # Handle no individual votes from vote event
