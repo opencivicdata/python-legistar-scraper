@@ -254,7 +254,7 @@ class LegistarAPIBillScraper(LegistarAPIScraper):
             self.warning('Bill could not be found in web interface: {}'.format(url))
             if scrape_restricted:
                 return matter
-            else:   
+            else:
                 return None
         else:
             matter['legistar_url'] = legistar_url
