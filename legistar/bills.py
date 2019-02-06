@@ -214,8 +214,7 @@ def dateBound(creation_date):
 
 
 class LegistarAPIBillScraper(LegistarAPIScraper):
-    # Make parameter optional, as it is in events.py
-    def matters(self, since_datetime=None):
+    def matters(self, since_datetime=None, scrape_private=False):
 
         # scrape from oldest to newest. This makes resuming big
         # scraping jobs easier because upon a scrape failure we can
@@ -236,13 +235,16 @@ class LegistarAPIBillScraper(LegistarAPIScraper):
             except KeyError:
                 url = matters_url + '/{}'.format(matter['MatterId'])
                 self.warning('Bill could not be found in web interface: {}'.format(url))
-                continue
+                if scrape_private:
+                    yield matter
+                else:
+                    continue
             else:
                 matter['legistar_url'] = legistar_url
 
             yield matter
 
-    def matter(self, matter_id):
+    def matter(self, matter_id, scrape_private=False):
         matter = self.endpoint('/matters/{}', matter_id)
 
         try:
@@ -250,7 +252,10 @@ class LegistarAPIBillScraper(LegistarAPIScraper):
         except KeyError:
             url = self.BASE_URL + '/matters/{}'.format(matter_id)
             self.warning('Bill could not be found in web interface: {}'.format(url))
-            return None
+            if scrape_private:
+                return matter
+            else:   
+                return None
         else:
             matter['legistar_url'] = legistar_url
 
