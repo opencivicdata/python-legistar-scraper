@@ -216,9 +216,9 @@ def dateBound(creation_date):
 class LegistarAPIBillScraper(LegistarAPIScraper):
     def __init__(self, *args, **kwargs):
         '''
-        Initialize the Bill scraper with a `scrape_restricted` property. 
-        Do not collect private bills (i.e., bills with 'MatterRestrictViewViaWeb' 
-        set as True in the API), unless the scrapers have access to them, e.g., via a token. 
+        Initialize the Bill scraper with a `scrape_restricted` property.
+        Do not collect private bills (i.e., bills with 'MatterRestrictViewViaWeb'
+        set as True in the API), unless the scrapers have access to them, e.g., via a token.
         '''
         super().__init__(*args, **kwargs)
 
