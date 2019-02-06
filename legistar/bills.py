@@ -215,7 +215,6 @@ def dateBound(creation_date):
 
 class LegistarAPIBillScraper(LegistarAPIScraper):
     def matters(self, since_datetime=None, scrape_restricted=False):
-
         # scrape from oldest to newest. This makes resuming big
         # scraping jobs easier because upon a scrape failure we can
         # import everything scraped and then scrape everything newer
@@ -236,6 +235,7 @@ class LegistarAPIBillScraper(LegistarAPIScraper):
                 url = matters_url + '/{}'.format(matter['MatterId'])
                 self.warning('Bill could not be found in web interface: {}'.format(url))
                 if scrape_restricted:
+                    matter['legistar_url'] = self.BASE_WEB_URL
                     yield matter
                 else:
                     continue
@@ -253,6 +253,7 @@ class LegistarAPIBillScraper(LegistarAPIScraper):
             url = self.BASE_URL + '/matters/{}'.format(matter_id)
             self.warning('Bill could not be found in web interface: {}'.format(url))
             if scrape_restricted:
+                matter['legistar_url'] = self.BASE_WEB_URL
                 return matter
             else:
                 return None
