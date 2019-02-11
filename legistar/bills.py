@@ -214,9 +214,17 @@ def dateBound(creation_date):
 
 
 class LegistarAPIBillScraper(LegistarAPIScraper):
-    # Make parameter optional, as it is in events.py
-    def matters(self, since_datetime=None):
+    def __init__(self, *args, **kwargs):
+        '''
+        Initialize the Bill scraper with a `scrape_restricted` property.
+        Do not collect private bills (i.e., bills with 'MatterRestrictViewViaWeb'
+        set as True in the API), unless the scrapers have access to them, e.g., via a token.
+        '''
+        super().__init__(*args, **kwargs)
 
+        self.scrape_restricted = False
+
+    def matters(self, since_datetime=None):
         # scrape from oldest to newest. This makes resuming big
         # scraping jobs easier because upon a scrape failure we can
         # import everything scraped and then scrape everything newer
@@ -236,7 +244,8 @@ class LegistarAPIBillScraper(LegistarAPIScraper):
             except KeyError:
                 url = matters_url + '/{}'.format(matter['MatterId'])
                 self.warning('Bill could not be found in web interface: {}'.format(url))
-                continue
+                if not self.scrape_restricted:
+                    continue
             else:
                 matter['legistar_url'] = legistar_url
 
@@ -250,7 +259,8 @@ class LegistarAPIBillScraper(LegistarAPIScraper):
         except KeyError:
             url = self.BASE_URL + '/matters/{}'.format(matter_id)
             self.warning('Bill could not be found in web interface: {}'.format(url))
-            return None
+            if not self.scrape_restricted:
+                return None
         else:
             matter['legistar_url'] = legistar_url
 
