@@ -349,34 +349,21 @@ class LegistarAPIBillScraper(LegistarAPIScraper):
         else:
             return []
 
-    def text(self, matter_id, latest_version_value=None):
-        '''Historically, we have determined the latest version of a bill
-        by finding the version with the highest value (either numerical or otherwise).
-
-        However, the `MatterVersion` field on the matter detail page
-        most accurately identifies the latest version of a bill.
-        This proves to be true for Metro, in particular.
-
-        Other municipalities may share this characteristic with Metro.
-        Until we know more, the `text` function accepts `latest_version_value`,
-        i.e., matter['MatterVersion'], as an optional argument.
-        '''
+    def text(self, matter_id):
         version_route = '/matters/{0}/versions'
         text_route = '/matters/{0}/texts/{1}'
 
         versions = self.endpoint(version_route, matter_id)
+        matter = self.matter(matter_id)
+        latest_version_value = matter['MatterVersion']
 
-        if latest_version_value:
-            latest_version = next(
-                version for version
-                in versions
-                if version['Value'] == latest_version_value)
-        else:
-            latest_version = max(
-                versions, key=lambda x: self._version_rank(x['Value']))
+        latest_version = next(
+            version['Key'] for version
+            in versions
+            if version['Value'] == latest_version_value)
 
         text_url = self.BASE_URL + \
-            text_route.format(matter_id, latest_version['Key'])
+            text_route.format(matter_id, latest_version)
         response = self.get(text_url, stream=True)
         if int(response.headers['Content-Length']) < 21052630:
             return response.json()
