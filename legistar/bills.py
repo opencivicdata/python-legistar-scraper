@@ -351,24 +351,25 @@ class LegistarAPIBillScraper(LegistarAPIScraper):
 
     def text(self, matter_id, latest_version_value=None):
         '''Historically, we have determined the latest version of a bill
-        by finding the version with the highest value (either numerical or otherwise).
-        
-        However, the `MatterVersion` field on the matter detail page 
-        most accurately identifies the latest version of a bill. 
+        by finding the version with the highest value (either numerical or alphabetical).
+
+        However, the `MatterVersion` field on the matter detail page
+        most accurately identifies the latest version of a bill.
         This proves to be true for Metro, in particular.
+
         Other municipalities may share this characteristic with Metro.
         Until we know more, the `text` function accepts `latest_version_value`,
-        i.e., matter['MatterVersion'], as an optional argument.  
-        '''
+        i.e., matter['MatterVersion'], as an optional argument.'''
+
         version_route = '/matters/{0}/versions'
         text_route = '/matters/{0}/texts/{1}'
 
         versions = self.endpoint(version_route, matter_id)
 
-        if latest_version_value: 
+        if latest_version_value:
             latest_version = next(
-                version for version 
-                in versions 
+                version for version
+                in versions
                 if version['Value'] == latest_version_value)
         else:
             latest_version = max(
