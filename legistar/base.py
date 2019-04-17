@@ -13,6 +13,18 @@ import lxml.etree as etree
 import pytz
 
 
+class CachingMixin(object):
+
+    NEVER_CACHE = []
+
+    def should_cache_response(self, response):
+        if any(response.url.startswith(url) for url in self.NEVER_CACHE):
+            self.info('Not caching {}'.format(response.url))
+            return False
+
+        return super().should_cache_response(response)
+
+
 class LegistarSession(object):
 
     def request(self, method, url, **kwargs):
@@ -68,7 +80,7 @@ class LegistarSession(object):
         return all_range
 
 
-class LegistarScraper(LegistarSession, scrapelib.Scraper):
+class LegistarScraper(LegistarSession, CachingMixin, scrapelib.Scraper):
     date_format = '%m/%d/%Y'
 
     def __init__(self, *args, **kwargs):
@@ -254,7 +266,7 @@ def fieldKey(x):
     return field
 
 
-class LegistarAPIScraper(scrapelib.Scraper):
+class LegistarAPIScraper(CachingMixin, scrapelib.Scraper):
     date_format = '%Y-%m-%dT%H:%M:%S'
 
     def __init__(self, *args, **kwargs):

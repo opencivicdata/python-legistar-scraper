@@ -214,6 +214,7 @@ def dateBound(creation_date):
 
 
 class LegistarAPIBillScraper(LegistarAPIScraper):
+
     def __init__(self, *args, **kwargs):
         '''
         Initialize the Bill scraper with a `scrape_restricted` property.
@@ -223,6 +224,10 @@ class LegistarAPIBillScraper(LegistarAPIScraper):
         super().__init__(*args, **kwargs)
 
         self.scrape_restricted = False
+
+    @property
+    def NEVER_CACHE(self):
+        return [self.BASE_WEB_URL + '/gateway.aspx']
 
     def matters(self, since_datetime=None):
         # scrape from oldest to newest. This makes resuming big
@@ -384,7 +389,7 @@ class LegistarAPIBillScraper(LegistarAPIScraper):
     def legislation_detail_url(self, matter_id):
         gateway_url = self.BASE_WEB_URL + '/gateway.aspx?m=l&id={0}'
 
-        legislation_detail_route = requests.head(
+        legislation_detail_route = self.head(
             gateway_url.format(matter_id)).headers['Location']
 
         return urljoin(self.BASE_WEB_URL, legislation_detail_route)
