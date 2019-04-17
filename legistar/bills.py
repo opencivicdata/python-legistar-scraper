@@ -383,8 +383,11 @@ class LegistarAPIBillScraper(LegistarAPIScraper):
     def legislation_detail_url(self, matter_id):
         gateway_url = self.BASE_WEB_URL + '/gateway.aspx?m=l&id={0}'
 
+        # we want to supress any session level params for this head request
+        # since they could lead to an additonal level of redirect
         legislation_detail_route = self.head(
-            gateway_url.format(matter_id)).headers['Location']
+            gateway_url.format(matter_id),
+            params={k: None for k in self.params}).headers['Location']
 
         return urljoin(self.BASE_WEB_URL, legislation_detail_route)
 
