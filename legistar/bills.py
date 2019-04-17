@@ -2,7 +2,6 @@ from .base import LegistarScraper, LegistarAPIScraper
 from lxml.etree import tostring
 from collections import deque
 from functools import partialmethod
-import requests
 from urllib.parse import urljoin
 
 
@@ -384,7 +383,7 @@ class LegistarAPIBillScraper(LegistarAPIScraper):
     def legislation_detail_url(self, matter_id):
         gateway_url = self.BASE_WEB_URL + '/gateway.aspx?m=l&id={0}'
 
-        legislation_detail_route = requests.head(
+        legislation_detail_route = self.head(
             gateway_url.format(matter_id)).headers['Location']
 
         return urljoin(self.BASE_WEB_URL, legislation_detail_route)
