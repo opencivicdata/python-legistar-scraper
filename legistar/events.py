@@ -283,7 +283,8 @@ class LegistarAPIEventScraper(LegistarAPIScraper):
         chronological order.
         '''
         web_scraper = LegistarEventsScraper(
-            requests_per_minute=self.requests_per_minute)
+            requests_per_minute=self.requests_per_minute,
+            retry_attempts=self.retry_attempts)
 
         if self.cache_storage:
             web_scraper.cache_storage = self.cache_storage
