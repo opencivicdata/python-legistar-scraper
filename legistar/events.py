@@ -5,23 +5,25 @@ from collections import deque
 import lxml.html
 import pytz
 import icalendar
-import requests
 
 from .base import LegistarScraper, LegistarAPIScraper
 
 
 class LegistarEventsScraper(LegistarScraper):
     def eventPages(self, since):
-        # Directly use the requests library here, so that we do not
-        # use a cached page, which may have expired .NET state values,
-        # even in fastmode (which uses the cache).
-        response = requests.get(self.EVENTSPAGE, verify=False)
+        response = self.get(self.EVENTSPAGE, verify=False)
         entry = response.text
         page = lxml.html.fromstring(entry)
         page.make_links_absolute(self.EVENTSPAGE)
 
         for page in self.eventSearch(page, since):
             yield page
+
+    def should_cache_response(self, response):
+        # Never cache the top level events page, because that may result in
+        # expired .NET state values.
+        return (super().should_cache_response(response) and
+                response.url != self.EVENTSPAGE)
 
     def eventSearch(self, page, since):
         payload = self.sessionSecrets(page)
