@@ -13,7 +13,7 @@ import lxml.etree as etree
 import pytz
 
 
-class LegistarSession(object):
+class LegistarSession(requests.Session):
 
     def request(self, method, url, **kwargs):
         response = super(LegistarSession, self).request(method, url, **kwargs)
@@ -68,7 +68,7 @@ class LegistarSession(object):
         return all_range
 
 
-class LegistarScraper(LegistarSession, scrapelib.Scraper):
+class LegistarScraper(scrapelib.Scraper, LegistarSession):
     date_format = '%m/%d/%Y'
 
     def __init__(self, *args, **kwargs):
