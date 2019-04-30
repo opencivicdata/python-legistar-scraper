@@ -29,8 +29,9 @@ class LegistarSession(requests.Session):
             raise scrapelib.HTTPError(response)
 
         if not response.text:
-            response.status_code = 520
-            raise scrapelib.HTTPError(response)
+            if response.request.method.lower() in {'get', 'post'}:
+                response.status_code = 520
+                raise scrapelib.HTTPError(response)
 
         if payload:
             self._range_error(response, payload)
