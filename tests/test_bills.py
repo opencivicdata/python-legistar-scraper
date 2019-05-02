@@ -12,7 +12,7 @@ def test_topics(api_bill_scraper, matter_index, all_indexes):
         m.get(all_matcher, json=all_indexes, status_code=200)
 
         matter_topics = api_bill_scraper.topics('some_id')
-        all_topics = api_bill_scraper.topics()
+        all_topics = list(api_bill_scraper.topics())
 
         # Assert only matter indexes are returned when matter ID passed
         assert len(matter_index) == len(matter_topics)

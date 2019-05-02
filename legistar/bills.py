@@ -272,11 +272,14 @@ class LegistarAPIBillScraper(LegistarAPIScraper):
 
     code_sections = partialmethod(endpoint, 'matters/{0}/codesections')
 
-    def topics(self, *args):
+    def topics(self, *args, **kwargs):
         if args:
             return self.endpoint('/matters/{0}/indexes', *args)
         else:
-            return self.endpoint('/matterindexes')
+            matter_indexes_url = self.BASE_URL + '/matterindexes'
+            return self.pages(matter_indexes_url,
+                              params=kwargs,
+                              item_key="MatterIndexId")
 
     def attachments(self, matter_id):
         attachments = self.endpoint('/matters/{0}/attachments', matter_id)
