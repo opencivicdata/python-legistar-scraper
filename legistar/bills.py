@@ -270,8 +270,13 @@ class LegistarAPIBillScraper(LegistarAPIScraper):
         response = self.get(url.format(*args))
         return response.json()
 
-    topics = partialmethod(endpoint, '/matters/{0}/indexes')
     code_sections = partialmethod(endpoint, 'matters/{0}/codesections')
+
+    def topics(self, *args):
+        if args:
+            return self.endpoint('/matters/{0}/indexes', *args)
+        else:
+            return self.endpoint('/matterindexes')
 
     def attachments(self, matter_id):
         attachments = self.endpoint('/matters/{0}/attachments', matter_id)
