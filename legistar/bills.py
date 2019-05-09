@@ -276,10 +276,10 @@ class LegistarAPIBillScraper(LegistarAPIScraper):
         if args:
             return self.endpoint('/matters/{0}/indexes', *args)
         else:
-            matter_indexes_url = self.BASE_URL + '/matterindexes'
+            matter_indexes_url = self.BASE_URL + '/indexes'
             return self.pages(matter_indexes_url,
                               params=kwargs,
-                              item_key="MatterIndexId")
+                              item_key="IndexId")
 
     def attachments(self, matter_id):
         attachments = self.endpoint('/matters/{0}/attachments', matter_id)
