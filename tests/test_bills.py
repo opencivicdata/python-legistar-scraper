@@ -5,10 +5,10 @@ import requests_mock
 
 def test_topics(api_bill_scraper, matter_index, all_indexes):
     with requests_mock.Mocker() as m:
-        matter_matcher = re.compile(r'/indexes')
+        matter_matcher = re.compile(r'/matters/5036/indexes')
         m.get(matter_matcher, json=matter_index, status_code=200)
 
-        all_matcher = re.compile(r'/matterindexes')
+        all_matcher = re.compile(r'/metro/indexes')
         m.get(all_matcher, json=all_indexes, status_code=200)
 
         matter_topics = api_bill_scraper.topics(5036)
