@@ -76,6 +76,9 @@ class LegistarScraper(scrapelib.Scraper, LegistarSession):
         super(LegistarScraper, self).__init__(*args, **kwargs)
 
     def lxmlize(self, url, payload=None):
+        '''
+        Gets page and returns as XML
+        '''
         if payload:
             response = self.post(url, payload, verify=False)
         else:
