@@ -154,12 +154,7 @@ class LegistarAPIEventScraper(LegistarAPIScraper):
 
             api_event['status'] = self._event_status(api_event)
 
-            #if self._not_in_web_interface(api_event):
-            #    continue
-
-            #else:
-            # None if entire web calendar scraped but API event not found
-            ##### @TODO remove conditional block, continue if none
+            ##### @TODO what if there is no valid url?
             web_event = self.web_detail(api_event)
 
             if web_event:
