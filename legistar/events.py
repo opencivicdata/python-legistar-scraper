@@ -5,6 +5,7 @@ from collections import deque
 import lxml.html
 import pytz
 import icalendar
+import scrapelib
 
 from .base import LegistarScraper, LegistarAPIScraper
 
@@ -129,16 +130,7 @@ class LegistarEventsScraper(LegistarScraper):
 class LegistarAPIEventScraper(LegistarAPIScraper):
 
     def events(self, since_datetime=None):
-        # Set attribute equal to an instance of our generator yielding events
-        # scraped from the Legistar web interface. This allows us to pause
-        # and resume iteration as needed.
-
-        # Instantiate dictionary where events from generator are stored as they
-        # are scraped.
-        self._scraped_events = {}
-
-        self._webscraper = LegistarScraper()
-        self._webscraper.BASE_URL = self.WEB_URL
+        self._init_webscraper()
 
         for api_event in self.api_events(since_datetime):
 
@@ -154,9 +146,8 @@ class LegistarAPIEventScraper(LegistarAPIScraper):
 
             api_event['status'] = self._event_status(api_event)
 
-            ##### @TODO what if there is no valid url?
             web_event = self.web_detail(api_event)
-
+ 
             if web_event:
                 yield api_event, web_event
 
@@ -191,6 +182,21 @@ class LegistarAPIEventScraper(LegistarAPIScraper):
         yield from self.pages(events_url,
                               params=params,
                               item_key="EventId")
+
+    def _init_webscraper(self):
+
+        self._webscraper = LegistarScraper(
+            requests_per_minute=self.requests_per_minute,
+            retry_attempts=0)
+
+        if self.cache_storage:
+            self._webscraper.cache_storage = self.cache_storage
+
+        if self.requests_per_minute == 0:
+            self._webscraper.cache_write_only = False
+
+        self._webscraper.BASE_URL = self.WEB_URL
+
 
     def agenda(self, event):
         agenda_url = (self.BASE_URL +
@@ -265,7 +271,14 @@ class LegistarAPIEventScraper(LegistarAPIScraper):
         '''
         insite_url = event['EventInSiteURL']
 
-        event_page = self._webscraper.lxmlize(insite_url)
+        try:
+            event_page = self._webscraper.lxmlize(insite_url)
+        except scrapelib.HTTPError as e:
+            if e.response.status_code == 410:
+                return None
+            else:
+                raise
+
         div_id = 'ctl00_ContentPlaceHolder1_pageTop1'
         detail_div = event_page.xpath(".//div[@id='%s']" % div_id)[0]
 
@@ -275,7 +288,7 @@ class LegistarAPIEventScraper(LegistarAPIScraper):
 
     def addDocs(self, e, events, doc_type):
         try:
-            if events[doc_type] != 'Not\xa0available':
+            if doc_type in events and events[doc_type] != 'Not\xa0available':
                 e.add_document(note=events[doc_type]['label'],
                                url=events[doc_type]['url'],
                                media_type="application/pdf")
