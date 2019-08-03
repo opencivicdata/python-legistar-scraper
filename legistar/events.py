@@ -12,16 +12,7 @@ from .base import LegistarScraper, LegistarAPIScraper, LegistarSession
 class LegistarEventsScraper(LegistarScraper):
     def eventPages(self, since):
 
-        # We are using the LegistarSession instead of the self.lxmlize
-        # and or self.get methods because we need to be sure that we
-        # get the first page directly from InSite and not from a cache
-        # in order that we have a valid ASP secrets
-        session = LegistarSession()
-        response = session.get(self.EVENTSPAGE)
-        entry = response.text
-        page = lxml.html.fromstring(entry)
-        page.make_links_absolute(self.EVENTSPAGE)
-
+        page = self.lxmlize(self.EVENTSPAGE)
         for page in self.eventSearch(page, since):
             yield page
 
@@ -30,6 +21,14 @@ class LegistarEventsScraper(LegistarScraper):
         # expired .NET state values.
         return (super().should_cache_response(response) and
                 response.url != self.EVENTSPAGE)
+
+    def key_for_request(method, url, **kwargs):
+        # avoid attempting to pull top level events page from cache by
+        # making sure the key for that page is None
+        if url == self.EVENTSPAGE:
+            return None
+
+        return super().key_for_request(method, url, **kwargs)
 
     def eventSearch(self, page, since):
         payload = self.sessionSecrets(page)
