@@ -6,12 +6,18 @@ import lxml.html
 import pytz
 import icalendar
 
-from .base import LegistarScraper, LegistarAPIScraper
+from .base import LegistarScraper, LegistarAPIScraper, LegistarSession
 
 
 class LegistarEventsScraper(LegistarScraper):
     def eventPages(self, since):
-        response = self.get(self.EVENTSPAGE, verify=False)
+
+        # We are using the LegistarSession instead of the self.lxmlize
+        # and or self.get methods because we need to be sure that we
+        # get the first page directly from InSite and not from a cache
+        # in order that we have a valid ASP secrets
+        session = LegistarSession()
+        response = session.get(self.EVENTSPAGE)
         entry = response.text
         page = lxml.html.fromstring(entry)
         page.make_links_absolute(self.EVENTSPAGE)
