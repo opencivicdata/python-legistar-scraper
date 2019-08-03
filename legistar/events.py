@@ -2,11 +2,10 @@ import time
 import datetime
 from collections import deque
 
-import lxml.html
 import pytz
 import icalendar
 
-from .base import LegistarScraper, LegistarAPIScraper, LegistarSession
+from .base import LegistarScraper, LegistarAPIScraper
 
 
 class LegistarEventsScraper(LegistarScraper):
@@ -22,7 +21,7 @@ class LegistarEventsScraper(LegistarScraper):
         return (super().should_cache_response(response) and
                 response.url != self.EVENTSPAGE)
 
-    def key_for_request(method, url, **kwargs):
+    def key_for_request(self, method, url, **kwargs):
         # avoid attempting to pull top level events page from cache by
         # making sure the key for that page is None
         if url == self.EVENTSPAGE:
