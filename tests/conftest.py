@@ -29,9 +29,18 @@ def fixtures_directory():
 
 
 @pytest.fixture
-def api_bill_scraper():
+def metro_api_bill_scraper():
     scraper = LegistarAPIBillScraper()
     scraper.BASE_URL = 'https://webapi.legistar.com/v1/metro'
+    scraper.retry_attempts = 0
+    scraper.requests_per_minute = 0
+    return scraper
+
+
+@pytest.fixture
+def chicago_api_bill_scraper():
+    scraper = LegistarAPIBillScraper()
+    scraper.BASE_URL = 'https://webapi.legistar.com/v1/chicago'
     scraper.retry_attempts = 0
     scraper.requests_per_minute = 0
     return scraper
