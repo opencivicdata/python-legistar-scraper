@@ -3,6 +3,7 @@ from lxml.etree import tostring
 from collections import deque
 from functools import partialmethod
 from urllib.parse import urljoin
+import requests
 
 
 class LegistarBillScraper(LegistarScraper):
@@ -299,7 +300,14 @@ class LegistarAPIBillScraper(LegistarAPIScraper):
     def votes(self, history_id):
         url = self.BASE_URL + '/eventitems/{0}/votes'.format(history_id)
 
-        response = self.get(url)
+        try:
+            response = self.get(url)
+        except requests.HTTPError as e:
+            if e.response.status_code == 404:
+                return []
+            else:
+                raise
+
         if self._missing_votes(response):
             return []
         else:
@@ -316,7 +324,30 @@ class LegistarAPIBillScraper(LegistarAPIScraper):
                               action['MatterHistoryActionBodyName'])),
                          key=lambda action: action['MatterHistoryActionDate'])
 
-        return actions
+        # sometimes there are exact duplicates of actions. while this
+        # is a a data entry problem that ideally the source system
+        # would fix, they ain't always the way the world works.
+        #
+        # so, remove adjacent duplicate items.
+        uniq_actions = []
+
+        previous_key = None
+        for action in actions:
+            # these are the attributes that pupa uses for
+            # checking for duplicate vote events
+            current_key = (action['MatterHistoryActionName'],
+                           action['MatterHistoryActionBodyName'])
+            if current_key != previous_key:
+                uniq_actions.append(action)
+                previous_key = current_key
+            else:
+                self.warning('"{0} by {1}" appears more than once in {2}/matters/{3}/histories. Duplicate actions have been removed.'.format(
+                    current_key[0],
+                    current_key[1],
+                    self.BASE_URL,
+                    matter_id))
+
+        return uniq_actions
 
     def sponsors(self, matter_id):
         spons = self.endpoint('/matters/{0}/sponsors', matter_id)

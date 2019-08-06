@@ -29,9 +29,18 @@ def fixtures_directory():
 
 
 @pytest.fixture
-def api_bill_scraper():
+def metro_api_bill_scraper():
     scraper = LegistarAPIBillScraper()
     scraper.BASE_URL = 'https://webapi.legistar.com/v1/metro'
+    scraper.retry_attempts = 0
+    scraper.requests_per_minute = 0
+    return scraper
+
+
+@pytest.fixture
+def chicago_api_bill_scraper():
+    scraper = LegistarAPIBillScraper()
+    scraper.BASE_URL = 'https://webapi.legistar.com/v1/chicago'
     scraper.retry_attempts = 0
     scraper.requests_per_minute = 0
     return scraper
@@ -48,6 +57,22 @@ def matter_index(fixtures_directory):
 @pytest.fixture
 def all_indexes(fixtures_directory):
     fixture_file = os.path.join(fixtures_directory, 'metro', 'all_indexes.json')
+    with open(fixture_file, 'r') as f:
+        fixture = json.load(f)
+    return fixture
+
+
+@pytest.fixture
+def dupe_event(fixtures_directory):
+    fixture_file = os.path.join(fixtures_directory, 'chicago', 'dupe_event.json')
+    with open(fixture_file, 'r') as f:
+        fixture = json.load(f)
+    return fixture
+
+
+@pytest.fixture
+def no_dupe_event(fixtures_directory):
+    fixture_file = os.path.join(fixtures_directory, 'chicago', 'no_dupe_event.json')
     with open(fixture_file, 'r') as f:
         fixture = json.load(f)
     return fixture
