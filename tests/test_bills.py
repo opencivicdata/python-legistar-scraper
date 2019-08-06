@@ -44,3 +44,17 @@ def test_404_votes(chicago_api_bill_scraper):
         m.get(re.compile(r'.*'), status_code=404)
         votes = chicago_api_bill_scraper.votes('408134')
         assert votes == []
+
+
+def test_500_votes(chicago_api_bill_scraper):
+    with requests_mock.Mocker() as m:
+        m.get(re.compile(r'.*'),
+              json={'InnerException':
+                    {'ExceptionMessage':
+                     "The cast to value type 'System.Int32' failed "
+                     "because the materialized value is null. Either "
+                     "the result type's generic parameter or the query "
+                     "must use a nullable type."}},
+              status_code=500)
+        votes = chicago_api_bill_scraper.votes('408134')
+        assert votes == []
