@@ -60,3 +60,19 @@ def all_indexes(fixtures_directory):
     with open(fixture_file, 'r') as f:
         fixture = json.load(f)
     return fixture
+
+
+@pytest.fixture
+def dupe_event(fixtures_directory):
+    fixture_file = os.path.join(fixtures_directory, 'chicago', 'dupe_event.json')
+    with open(fixture_file, 'r') as f:
+        fixture = json.load(f)
+    return fixture
+
+
+@pytest.fixture
+def no_dupe_event(fixtures_directory):
+    fixture_file = os.path.join(fixtures_directory, 'chicago', 'no_dupe_event.json')
+    with open(fixture_file, 'r') as f:
+        fixture = json.load(f)
+    return fixture

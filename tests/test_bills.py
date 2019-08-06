@@ -21,18 +21,26 @@ def test_topics(metro_api_bill_scraper, matter_index, all_indexes):
         assert len(all_indexes) == len(all_topics)
 
 
-def test_duplicate_events(chicago_api_bill_scraper, caplog):
-    chicago_api_bill_scraper.history('38768')
-    assert 'appears more than once' in caplog.text
+def test_duplicate_events(chicago_api_bill_scraper, caplog, dupe_event):
+    with requests_mock.Mocker() as m:
+        event_matcher = re.compile('/matters/38768/histories')
+        m.get(event_matcher, json=dupe_event, status_code=200)
+
+        chicago_api_bill_scraper.history('38768')
+        assert 'appears more than once' in caplog.text
 
 
-def test_no_duplicate(chicago_api_bill_scraper, caplog):
-    chicago_api_bill_scraper.history('38769')
-    assert 'appears more than once' not in caplog.text
+def test_no_duplicate(chicago_api_bill_scraper, caplog, no_dupe_event):
+    with requests_mock.Mocker() as m:
+        event_matcher = re.compile('/matters/38769/histories')
+        m.get(event_matcher, json=no_dupe_event, status_code=200)
+
+        chicago_api_bill_scraper.history('38769')
+        assert 'appears more than once' not in caplog.text
 
 
 def test_404_votes(chicago_api_bill_scraper):
-    votes = chicago_api_bill_scraper.votes('408134')
-    assert votes == []
-
-    assert chicago_api_bill_scraper.votes('200942')
+    with requests_mock.Mocker() as m:
+        m.get(re.compile(r'.*'), status_code=404)
+        votes = chicago_api_bill_scraper.votes('408134')
+        assert votes == []
