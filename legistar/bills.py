@@ -435,16 +435,30 @@ class LegistarAPIBillScraper(LegistarAPIScraper):
         return urljoin(self.BASE_WEB_URL, legislation_detail_route)
 
     def _missing_votes(self, response):
-        # Handle no individual votes from vote event
+        '''
+        Check to see if a response has the particular status code and
+        error message that corresponds to inaccessible eventitem votes.
+
+        see `accept_response` for more discussion of why we are doing this.
+        '''
         missing = (response.status_code == 500 and
                    response.json().get('InnerException', {}).get('ExceptionMessage', '') == "The cast to value type 'System.Int32' failed because the materialized value is null. Either the result type's generic parameter or the query must use a nullable type.") # noqa : 501
         return missing
 
     def accept_response(self, response, **kwargs):
         '''
-        If we hit a missing votes page we don't need to keep retrying it.
-        This overrides a method that controls whether the scraper
-        should retry on an error.
+        Sometimes there ought to be votes on an eventitem but when we
+        visit the votes page, the API returns a 500 status code and a
+        particular error message.
+
+        Typically, on 500 errors, we'll retry a few times because the
+        errors are often transient. In this particular case, the errors
+        are never transient.
+
+        This happens frequently. If we retried on all those
+        cases, it would really slow down the scraping. To avoid that
+        we short circuit scrapelib's retry mechanism for this particular
+        error.
         '''
         accept = (super().accept_response(response) or
                   self._missing_votes(response))
