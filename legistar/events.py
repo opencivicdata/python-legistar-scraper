@@ -157,7 +157,7 @@ class LegistarAPIEventScraper(LegistarAPIScraper):
             api_event['status'] = self._event_status(api_event)
 
             web_event = self.web_detail(api_event)
- 
+
             if web_event:
                 yield api_event, web_event
 
@@ -206,7 +206,6 @@ class LegistarAPIEventScraper(LegistarAPIScraper):
             self._webscraper.cache_write_only = False
 
         self._webscraper.BASE_URL = self.WEB_URL
-
 
     def agenda(self, event):
         agenda_url = (self.BASE_URL +
