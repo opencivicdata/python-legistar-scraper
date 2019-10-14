@@ -33,6 +33,10 @@ class LegistarSession(requests.Session):
                 response.status_code = 520
                 raise scrapelib.HTTPError(response)
 
+        if 'This record no longer exists. It might have been deleted.' in response.text:
+            response.status_code = 410
+            raise scrapelib.HTTPError(response)
+
         if payload:
             self._range_error(response, payload)
 

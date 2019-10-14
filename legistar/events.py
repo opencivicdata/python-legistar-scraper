@@ -293,6 +293,7 @@ class LegistarAPIEventScraper(LegistarAPIScraper):
         detail_div = event_page.xpath(".//div[@id='%s']" % div_id)[0]
 
         event_page_details = self._webscraper.parseDetails(detail_div)
+        event_page_details['Meeting Details'] = {'url': insite_url}
 
         return event_page_details
 
