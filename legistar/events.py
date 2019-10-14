@@ -71,22 +71,21 @@ class LegistarEventsScraper(LegistarScraper):
             no_events_in_year = True
 
             for page in self.eventPages(year):
-                no_events_in_year = False
                 events_table = page.xpath("//table[@class='rgMasterTable']")[0]
                 for event, _, _ in self.parseDataTable(events_table):
+                    ical_url = event['iCalendar']['url']
+                    if ical_url in scraped_events:
+                        continue
+                    else:
+                        scraped_events.append(ical_url)
+
                     if follow_links and type(event["Meeting Details"]) == dict:
-                        detail_url = event["Meeting Details"]['url']
-                        if detail_url in scraped_events:
-                            continue
-                        else:
-                            scraped_events.append(detail_url)
-
-                        agenda = self.agenda(detail_url)
-
+                        agenda = self.agenda(event["Meeting Details"]['url'])
                     else:
                         agenda = None
 
                     yield event, agenda
+                    no_events_in_year = False
 
             if no_events_in_year:  # Bail from scrape if no results returned from year
                 break
