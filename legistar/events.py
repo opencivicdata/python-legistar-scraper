@@ -298,7 +298,7 @@ class LegistarAPIEventScraper(LegistarAPIScraper):
 
     def addDocs(self, e, events, doc_type):
         try:
-            if doc_type in events and events[doc_type] != 'Not\xa0available':
+            if events[doc_type] != 'Not\xa0available':
                 e.add_document(note=events[doc_type]['label'],
                                url=events[doc_type]['url'],
                                media_type="application/pdf")
