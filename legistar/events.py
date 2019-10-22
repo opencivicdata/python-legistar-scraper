@@ -140,10 +140,10 @@ class LegistarEventsScraper(LegistarScraper):
 class LegistarAPIEventScraperBase(LegistarAPIScraper):
 
     def __init__(self, *args, **kwargs):
-        super().__init__(self, *args, **kwargs)
+        super().__init__(*args, **kwargs)
         self._webscraper = self._init_webscraper()
 
-     def _init_webscraper(self):
+    def _init_webscraper(self):
         webscraper = LegistarScraper(
             requests_per_minute=self.requests_per_minute,
             retry_attempts=0)
@@ -339,7 +339,7 @@ class LegistarAPIEventScraperZip(LegistarAPIEventScraperBase):
     the listing page and attempts to zip API and web events together
     '''
     def __init__(self, *args, **kwargs):
-        super().__init__(self, *args, **kwargs)
+        super().__init__(*args, **kwargs)
 
         # Set attribute equal to an instance of our generator yielding events
         # scraped from the Legistar web interface. This allows us to pause
