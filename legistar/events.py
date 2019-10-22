@@ -138,13 +138,14 @@ class LegistarEventsScraper(LegistarScraper):
 
 
 class LegistarAPIEventScraperBase(LegistarAPIScraper):
+    webscraper_class = LegistarScraper
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._webscraper = self._init_webscraper()
 
     def _init_webscraper(self):
-        webscraper = LegistarScraper(
+        webscraper = self.webscraper_class(
             requests_per_minute=self.requests_per_minute,
             retry_attempts=0)
 
@@ -338,6 +339,8 @@ class LegistarAPIEventScraperZip(LegistarAPIEventScraperBase):
     event listing page, like NYC's 'Meeting Topic.' This scraper visits
     the listing page and attempts to zip API and web events together
     '''
+    webscraper_class = LegistarEventsScraper
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
@@ -360,7 +363,7 @@ class LegistarAPIEventScraperZip(LegistarAPIEventScraperBase):
 
         return webscraper
 
-    def _get_web_event(self):
+    def _get_web_event(self, api_event):
         if self._not_in_web_interface(api_event):
             return None
         else:
@@ -389,8 +392,8 @@ class LegistarAPIEventScraperZip(LegistarAPIEventScraperBase):
         '''Generator yielding events from Legistar in roughly reverse
         chronological order.
         '''
-        for event, _ in self._web_scraper.events(follow_links=False):
-            event_key = self._event_key(event, web_scraper)
+        for event, _ in self._webscraper.events(follow_links=False):
+            event_key = self._event_key(event, self._webscraper)
             yield event_key, event
 
     def _event_key(self, event, web_scraper):
