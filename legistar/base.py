@@ -33,6 +33,10 @@ class LegistarSession(requests.Session):
                 response.status_code = 520
                 raise scrapelib.HTTPError(response)
 
+        if 'This record no longer exists. It might have been deleted.' in response.text:
+            response.status_code = 410
+            raise scrapelib.HTTPError(response)
+
         if payload:
             self._range_error(response, payload)
 
@@ -76,6 +80,9 @@ class LegistarScraper(scrapelib.Scraper, LegistarSession):
         super(LegistarScraper, self).__init__(*args, **kwargs)
 
     def lxmlize(self, url, payload=None):
+        '''
+        Gets page and returns as XML
+        '''
         if payload:
             response = self.post(url, payload, verify=False)
         else:
