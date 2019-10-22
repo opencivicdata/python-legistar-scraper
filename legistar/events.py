@@ -1,3 +1,4 @@
+from abc import ABCMeta, abstractmethod
 import time
 import datetime
 from collections import deque
@@ -137,7 +138,7 @@ class LegistarEventsScraper(LegistarScraper):
         return value
 
 
-class LegistarAPIEventScraperBase(LegistarAPIScraper):
+class LegistarAPIEventScraperBase(LegistarAPIScraper, metaclass=ABCMeta):
     webscraper_class = LegistarScraper
 
     def __init__(self, *args, **kwargs):
@@ -159,8 +160,9 @@ class LegistarAPIEventScraperBase(LegistarAPIScraper):
 
         return webscraper
 
+    @abstractmethod
     def _get_web_event(self, api_event):
-        raise NotImplementedError('_get_web_event must be implemented on child classes')
+        pass
 
     def api_events(self, since_datetime=None):
         # scrape from oldest to newest. This makes resuming big
