@@ -89,9 +89,9 @@ class LegistarEventsScraper(LegistarScraper):
                     yield event, agenda
                     no_events_in_year = False
 
-            # Bail from scrape if no results returned from year, _unless_ it's
-            # next year, as there may not be events scheduled that far into
-            # the future.
+            # We search for events for older and older years. If older year doesn't
+            # have any events associated with it, we can go ahead and stop looking
+            # further back
             if no_events_in_year and year <= current_year:
                 break
 
