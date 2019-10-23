@@ -89,7 +89,10 @@ class LegistarEventsScraper(LegistarScraper):
                     yield event, agenda
                     no_events_in_year = False
 
-            if no_events_in_year:  # Bail from scrape if no results returned from year
+            # Bail from scrape if no results returned from year, _unless_ it's
+            # next year, as there may not be events scheduled that far into
+            # the future.
+            if no_events_in_year and year <= current_year:
                 break
 
     def agenda(self, detail_url):
