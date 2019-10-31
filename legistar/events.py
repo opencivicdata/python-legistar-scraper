@@ -144,6 +144,7 @@ class LegistarEventsScraper(LegistarScraper):
 
 class LegistarAPIEventScraperBase(LegistarAPIScraper, metaclass=ABCMeta):
     webscraper_class = LegistarScraper
+    WEB_RETRY_EVENTS = 3
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -152,7 +153,7 @@ class LegistarAPIEventScraperBase(LegistarAPIScraper, metaclass=ABCMeta):
     def _init_webscraper(self):
         webscraper = self.webscraper_class(
             requests_per_minute=self.requests_per_minute,
-            retry_attempts=0)
+            retry_attempts=self.WEB_RETRY_EVENTS)
 
         if self.cache_storage:
             webscraper.cache_storage = self.cache_storage
