@@ -264,6 +264,7 @@ def fieldKey(x):
 
 class LegistarAPIScraper(scrapelib.Scraper):
     date_format = '%Y-%m-%dT%H:%M:%S'
+    utc_timestamp_format = '%Y-%m-%dT%H:%M:%S.%f'
 
     def __init__(self, *args, **kwargs):
         super(LegistarAPIScraper, self).__init__(*args, **kwargs)
@@ -273,6 +274,17 @@ class LegistarAPIScraper(scrapelib.Scraper):
     def toTime(self, text):
         time = datetime.datetime.strptime(text, self.date_format)
         time = pytz.timezone(self.TIMEZONE).localize(time)
+        return time
+
+    def to_utc_timestamp(self, text):
+        try:
+            time = datetime.datetime.strptime(text, self.utc_timestamp_format)
+        except ValueError as e:
+            if 'does not match format' in str(e):
+                time = datetime.datetime.strptime(text, self.date_format)
+            else:
+                raise
+        time = pytz.timezone('UTC').localize(time)
         return time
 
     def search(self, route, item_key, search_conditions):
