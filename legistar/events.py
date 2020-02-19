@@ -203,7 +203,15 @@ class LegistarAPIEventScraperBase(LegistarAPIScraper, metaclass=ABCMeta):
             if not time_str:  # If we don't have an event time, skip it
                 continue
 
-            start_time = time.strptime(time_str, '%I:%M %p')
+            try:
+                # Start times are entered manually. Sometimes, they don't
+                # conform to this format. Log events with invalid start times,
+                # but don't interrupt the scrape for them.
+                start_time = time.strptime(time_str, self.time_string_format)
+            except ValueError:
+                event_url = '{0}/events/{1}'.format(self.BASE_URL, api_event['EventId'])
+                self.logger.error('API event has invalid start time "{0}": {1}'.format(time_str, event_url))
+                continue
 
             start = self.toTime(api_event['EventDate'])
             api_event['start'] = start.replace(hour=start_time.tm_hour,

@@ -264,6 +264,7 @@ def fieldKey(x):
 
 class LegistarAPIScraper(scrapelib.Scraper):
     date_format = '%Y-%m-%dT%H:%M:%S'
+    time_string_format = '%I:%M %p'
     utc_timestamp_format = '%Y-%m-%dT%H:%M:%S.%f'
 
     def __init__(self, *args, **kwargs):
