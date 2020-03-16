@@ -79,6 +79,32 @@ class LegistarScraper(scrapelib.Scraper, LegistarSession):
     def __init__(self, *args, **kwargs):
         super(LegistarScraper, self).__init__(*args, **kwargs)
 
+    @property
+    def ecomment_dict(self):
+        """
+        Parse event IDs and eComment links from JavaScript file with lines like:
+        activateEcomment('750', '138A085F-0AC1-4A33-B2F3-AC3D6D9F710B', 'https://metro.granicusideas.com/meetings/750-finance-budget-and-audit-committee-on-2020-03-16-5-00-pm-test');
+        """
+        if not getattr(self, '_ecomment_dict', None):
+            ecomment_dict = {}
+
+            script = requests.get('https://metro.granicusideas.com/meetings.js')
+
+            lines = [line.strip() for line in script.text.splitlines()
+                     if line.strip().startswith('activateEcomment')]
+
+            for line in lines:
+                event_id, _, ecomment_url = line.split(',')
+
+                formatted_event_id = event_id.replace("'", '').replace('activateEcomment(', '').strip()
+                formatted_ecomment_url = ecomment_url.replace("'", '').replace(");", '').strip()
+
+                ecomment_dict[formatted_event_id] = formatted_ecomment_url
+
+            self._ecomment_dict = ecomment_dict
+
+        return self._ecomment_dict
+
     def lxmlize(self, url, payload=None):
         '''
         Gets page and returns as XML
@@ -139,6 +165,8 @@ class LegistarScraper(scrapelib.Scraper, LegistarSession):
                 for link in field_2.xpath('.//a'):
                     value.append({'label': link.text_content().strip(),
                                   'url': self._get_link_address(link)})
+            elif key == 'eComment':
+                value = self._get_ecomment_link(field_2) or field_2.text_content().strip()
             elif 'href' in field_2.attrib:
                 value = {'label': field_2.text_content().strip(),
                          'url': self._get_link_address(field_2)}
@@ -216,6 +244,10 @@ class LegistarScraper(scrapelib.Scraper, LegistarSession):
             url = link.attrib['href']
 
         return url
+
+    def _get_ecomment_link(self, link):
+        event_id = link.attrib['data-event-id']
+        return self.ecomment_dict.get(event_id, None)
 
     def _stringify(self, field):
         for br in field.xpath("*//br"):
