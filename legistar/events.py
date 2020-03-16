@@ -2,6 +2,7 @@ from abc import ABCMeta, abstractmethod
 import time
 import datetime
 from collections import deque
+import requests
 
 import pytz
 import icalendar
@@ -11,6 +12,32 @@ from .base import LegistarScraper, LegistarAPIScraper
 
 
 class LegistarEventsScraper(LegistarScraper):
+    @property
+    def ecomment_dict(self):
+        """
+        Parse event IDs and eComment links from JavaScript file with lines like:
+        activateEcomment('750', '138A085F-0AC1-4A33-B2F3-AC3D6D9F710B', 'https://metro.granicusideas.com/meetings/750-finance-budget-and-audit-committee-on-2020-03-16-5-00-pm-test');
+        """
+        if not getattr(self, '_ecomment_dict', None):
+            ecomment_dict = {}
+
+            script = requests.get('https://metro.granicusideas.com/meetings.js')
+
+            lines = [line.strip() for line in script.text.splitlines()
+                     if line.strip().startswith('activateEcomment')]
+
+            for line in lines:
+                event_id, _, ecomment_url = line.split(',')
+
+                formatted_event_id = event_id.replace("'", '').replace('activateEcomment(', '').strip()
+                formatted_ecomment_url = ecomment_url.replace("'", '').replace(");", '').strip()
+
+                ecomment_dict[formatted_event_id] = formatted_ecomment_url
+
+            self._ecomment_dict = ecomment_dict
+
+        return self._ecomment_dict
+
     def eventPages(self, since):
 
         page = self.lxmlize(self.EVENTSPAGE)
@@ -141,9 +168,19 @@ class LegistarEventsScraper(LegistarScraper):
         value = icalendar.Calendar.from_ical(ical_text)
         return value
 
+    def parseCommentDetails(self, detail_div):
+        for key, field_1, field_2 in self._getDetailFields(detail_div):
+            if key == 'eComment':
+                value = self._get_ecomment_link(field_2) or field_2.text_content().strip()
+                return {key: value}
+
+    def _get_ecomment_link(self, link):
+        event_id = link.attrib['data-event-id']
+        return self.ecomment_dict.get(event_id, None)
+
 
 class LegistarAPIEventScraperBase(LegistarAPIScraper, metaclass=ABCMeta):
-    webscraper_class = LegistarScraper
+    webscraper_class = LegistarEventsScraper
     WEB_RETRY_EVENTS = 3
 
     def __init__(self, *args, **kwargs):
@@ -161,6 +198,10 @@ class LegistarAPIEventScraperBase(LegistarAPIScraper, metaclass=ABCMeta):
         webscraper.cache_write_only = self.cache_write_only
 
         webscraper.BASE_URL = self.WEB_URL
+        webscraper.EVENTSPAGE = self.EVENTSPAGE
+        webscraper.BASE_URL = self.WEB_URL
+        webscraper.TIMEZONE = self.TIMEZONE
+        webscraper.date_format = '%m/%d/%Y'
 
         return webscraper
 
@@ -342,6 +383,9 @@ class LegistarAPIEventScraper(LegistarAPIEventScraperBase):
         detail_div = event_page.xpath(".//div[@id='%s']" % div_id)[0]
 
         event_page_details = self._webscraper.parseDetails(detail_div)
+
+        event_page_details.update(self._webscraper.parseCommentDetails(detail_div))
+
         event_page_details['Meeting Details'] = {'url': insite_url}
 
         return event_page_details
@@ -353,8 +397,6 @@ class LegistarAPIEventScraperZip(LegistarAPIEventScraperBase):
     event listing page, like NYC's 'Meeting Topic.' This scraper visits
     the listing page and attempts to zip API and web events together
     '''
-    webscraper_class = LegistarEventsScraper
-
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
@@ -366,16 +408,6 @@ class LegistarAPIEventScraperZip(LegistarAPIEventScraperBase):
         # Instantiate dictionary where events from generator are stored as they
         # are scraped.
         self._scraped_events = {}
-
-    def _init_webscraper(self):
-        webscraper = super()._init_webscraper()
-
-        webscraper.EVENTSPAGE = self.EVENTSPAGE
-        webscraper.BASE_URL = self.WEB_URL
-        webscraper.TIMEZONE = self.TIMEZONE
-        webscraper.date_format = '%m/%d/%Y'
-
-        return webscraper
 
     def _get_web_event(self, api_event):
         if self._not_in_web_interface(api_event):

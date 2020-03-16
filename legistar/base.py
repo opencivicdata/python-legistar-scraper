@@ -79,32 +79,6 @@ class LegistarScraper(scrapelib.Scraper, LegistarSession):
     def __init__(self, *args, **kwargs):
         super(LegistarScraper, self).__init__(*args, **kwargs)
 
-    @property
-    def ecomment_dict(self):
-        """
-        Parse event IDs and eComment links from JavaScript file with lines like:
-        activateEcomment('750', '138A085F-0AC1-4A33-B2F3-AC3D6D9F710B', 'https://metro.granicusideas.com/meetings/750-finance-budget-and-audit-committee-on-2020-03-16-5-00-pm-test');
-        """
-        if not getattr(self, '_ecomment_dict', None):
-            ecomment_dict = {}
-
-            script = requests.get('https://metro.granicusideas.com/meetings.js')
-
-            lines = [line.strip() for line in script.text.splitlines()
-                     if line.strip().startswith('activateEcomment')]
-
-            for line in lines:
-                event_id, _, ecomment_url = line.split(',')
-
-                formatted_event_id = event_id.replace("'", '').replace('activateEcomment(', '').strip()
-                formatted_ecomment_url = ecomment_url.replace("'", '').replace(");", '').strip()
-
-                ecomment_dict[formatted_event_id] = formatted_ecomment_url
-
-            self._ecomment_dict = ecomment_dict
-
-        return self._ecomment_dict
-
     def lxmlize(self, url, payload=None):
         '''
         Gets page and returns as XML
@@ -145,28 +119,31 @@ class LegistarScraper(scrapelib.Scraper, LegistarSession):
             next_page = page.xpath(
                 "//a[@class='rgCurrentPage']/following-sibling::a[1]")
 
-    def parseDetails(self, detail_div):
-        """
-        Parse the data in the top section of a detail page.
-        """
+    def _getDetailFields(self, detail_div):
         detail_query = ".//*[starts-with(@id, 'ctl00_ContentPlaceHolder1_lbl')"\
                        "     or starts-with(@id, 'ctl00_ContentPlaceHolder1_hyp')"\
                        "     or starts-with(@id, 'ctl00_ContentPlaceHolder1_Label')]"
         fields = detail_div.xpath(detail_query)
-        details = {}
 
-        for field_key, field in itertools.groupby(fields,
-                                                  fieldKey):
+        for field_key, field in itertools.groupby(fields, fieldKey):
             field = list(field)
             field_1, field_2 = field[0], field[-1]
             key = field_1.text_content().replace(':', '').strip()
+
+            yield key, field_1, field_2
+
+    def parseDetails(self, detail_div):
+        """
+        Parse the data in the top section of a detail page.
+        """
+        details = {}
+
+        for key, field_1, field_2 in self._getDetailFields(detail_div):
             if field_2.find('.//a') is not None:
                 value = []
                 for link in field_2.xpath('.//a'):
                     value.append({'label': link.text_content().strip(),
                                   'url': self._get_link_address(link)})
-            elif key == 'eComment':
-                value = self._get_ecomment_link(field_2) or field_2.text_content().strip()
             elif 'href' in field_2.attrib:
                 value = {'label': field_2.text_content().strip(),
                          'url': self._get_link_address(field_2)}
@@ -244,10 +221,6 @@ class LegistarScraper(scrapelib.Scraper, LegistarSession):
             url = link.attrib['href']
 
         return url
-
-    def _get_ecomment_link(self, link):
-        event_id = link.attrib['data-event-id']
-        return self.ecomment_dict.get(event_id, None)
 
     def _stringify(self, field):
         for br in field.xpath("*//br"):
