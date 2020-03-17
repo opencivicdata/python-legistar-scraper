@@ -2,6 +2,7 @@ from abc import ABCMeta, abstractmethod
 import time
 import datetime
 from collections import deque
+import esprima
 
 import pytz
 import icalendar
@@ -11,6 +12,49 @@ from .base import LegistarScraper, LegistarAPIScraper
 
 
 class LegistarEventsScraper(LegistarScraper):
+    ECOMMENT_JS_URL = 'https://metro.granicusideas.com/meetings.js'
+
+    @property
+    def ecomment_dict(self):
+        """
+        Parse event IDs and eComment links from JavaScript file with lines like:
+        activateEcomment('750', '138A085F-0AC1-4A33-B2F3-AC3D6D9F710B', 'https://metro.granicusideas.com/meetings/750-finance-budget-and-audit-committee-on-2020-03-16-5-00-pm-test');
+        """
+        if not getattr(self, '_ecomment_dict', None):
+            ecomment_dict = {}
+
+            response = self.get(self.ECOMMENT_JS_URL)
+            tree = esprima.parseScript(response.text)
+
+            try:
+                # The next two lines will raise a ValueError if there is not
+                # exactly one item in either array.
+                statement, = [node for node in tree.body if node.type == 'ExpressionStatement']
+                arguments, = statement.expression.arguments
+
+                for call in arguments.body.body:
+                    if call.expression.callee.name == 'activateEcomment':
+                        event_id, _, ecomment_url = call.expression.arguments
+
+                        # Defensively check that the event ID and eComment URL
+                        # look the way we expect.
+                        #
+                        # int() coercion will raise a ValueError if event_id is
+                        # not an integer. Both lines will raise AssertionErrors
+                        # if the condition is not met.
+                        assert int(event_id.value) >= 0
+                        assert ecomment_url.value.startswith('https')
+
+                        ecomment_dict[event_id.value] = ecomment_url.value
+
+            except (ValueError, AssertionError):
+                message = 'JavaScript file at {} does not match expected format'.format(self.ECOMMENT_JS_URL)
+                raise ValueError(message)
+
+            self._ecomment_dict = ecomment_dict
+
+        return self._ecomment_dict
+
     def eventPages(self, since):
 
         page = self.lxmlize(self.EVENTSPAGE)
@@ -141,9 +185,17 @@ class LegistarEventsScraper(LegistarScraper):
         value = icalendar.Calendar.from_ical(ical_text)
         return value
 
+    def _parse_detail(self, key, field_1, field_2):
+        if key == 'eComment':
+            return self._get_ecomment_link(field_2) or field_2.text_content().strip()
+
+    def _get_ecomment_link(self, link):
+        event_id = link.attrib['data-event-id']
+        return self.ecomment_dict.get(event_id, None)
+
 
 class LegistarAPIEventScraperBase(LegistarAPIScraper, metaclass=ABCMeta):
-    webscraper_class = LegistarScraper
+    webscraper_class = LegistarEventsScraper
     WEB_RETRY_EVENTS = 3
 
     def __init__(self, *args, **kwargs):
@@ -161,6 +213,10 @@ class LegistarAPIEventScraperBase(LegistarAPIScraper, metaclass=ABCMeta):
         webscraper.cache_write_only = self.cache_write_only
 
         webscraper.BASE_URL = self.WEB_URL
+        webscraper.EVENTSPAGE = self.EVENTSPAGE
+        webscraper.BASE_URL = self.WEB_URL
+        webscraper.TIMEZONE = self.TIMEZONE
+        webscraper.date_format = '%m/%d/%Y'
 
         return webscraper
 
@@ -353,8 +409,6 @@ class LegistarAPIEventScraperZip(LegistarAPIEventScraperBase):
     event listing page, like NYC's 'Meeting Topic.' This scraper visits
     the listing page and attempts to zip API and web events together
     '''
-    webscraper_class = LegistarEventsScraper
-
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
@@ -366,16 +420,6 @@ class LegistarAPIEventScraperZip(LegistarAPIEventScraperBase):
         # Instantiate dictionary where events from generator are stored as they
         # are scraped.
         self._scraped_events = {}
-
-    def _init_webscraper(self):
-        webscraper = super()._init_webscraper()
-
-        webscraper.EVENTSPAGE = self.EVENTSPAGE
-        webscraper.BASE_URL = self.WEB_URL
-        webscraper.TIMEZONE = self.TIMEZONE
-        webscraper.date_format = '%m/%d/%Y'
-
-        return webscraper
 
     def _get_web_event(self, api_event):
         if self._not_in_web_interface(api_event):
