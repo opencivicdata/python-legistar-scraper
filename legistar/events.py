@@ -2,6 +2,7 @@ from abc import ABCMeta, abstractmethod
 import time
 import datetime
 from collections import deque
+import esprima
 import requests
 
 import pytz
@@ -12,6 +13,8 @@ from .base import LegistarScraper, LegistarAPIScraper
 
 
 class LegistarEventsScraper(LegistarScraper):
+    ECOMMENT_JS_URL = 'https://metro.granicusideas.com/meetings.js'
+
     @property
     def ecomment_dict(self):
         """
@@ -21,18 +24,33 @@ class LegistarEventsScraper(LegistarScraper):
         if not getattr(self, '_ecomment_dict', None):
             ecomment_dict = {}
 
-            script = requests.get('https://metro.granicusideas.com/meetings.js')
+            response = requests.get(self.ECOMMENT_JS_URL)
+            tree = esprima.parseScript(response.text)
 
-            lines = [line.strip() for line in script.text.splitlines()
-                     if line.strip().startswith('activateEcomment')]
+            try:
+                # The next two lines will raise a ValueError if there is not
+                # exactly one item in either array.
+                statement, = [node for node in tree.body if node.type == 'ExpressionStatement']
+                arguments, = statement.expression.arguments
 
-            for line in lines:
-                event_id, _, ecomment_url = line.split(',')
+                for call in arguments.body.body:
+                    if call.expression.callee.name == 'activateEcomment':
+                        event_id, _, ecomment_url = call.expression.arguments
 
-                formatted_event_id = event_id.replace("'", '').replace('activateEcomment(', '').strip()
-                formatted_ecomment_url = ecomment_url.replace("'", '').replace(");", '').strip()
+                        # Defensively check that the event ID and eComment URL
+                        # look the way we expect.
+                        #
+                        # int() coercion will raise a ValueError if event_id is
+                        # not an integer. Both lines will raise AssertionErrors
+                        # if the condition is not met.
+                        assert int(event_id.value) >= 0
+                        assert ecomment_url.value.startswith('https')
 
-                ecomment_dict[formatted_event_id] = formatted_ecomment_url
+                        ecomment_dict[event_id.value] = ecomment_url.value
+
+            except (ValueError, AssertionError):
+                message = 'JavaScript file at {} does not match expected format'.format(self.ECOMMENT_JS_URL)
+                raise ValueError(message)
 
             self._ecomment_dict = ecomment_dict
 
@@ -168,11 +186,9 @@ class LegistarEventsScraper(LegistarScraper):
         value = icalendar.Calendar.from_ical(ical_text)
         return value
 
-    def parseCommentDetails(self, detail_div):
-        for key, field_1, field_2 in self._getDetailFields(detail_div):
-            if key == 'eComment':
-                value = self._get_ecomment_link(field_2) or field_2.text_content().strip()
-                return {key: value}
+    def _parse_detail(self, key, field_1, field_2):
+        if key == 'eComment':
+            return self._get_ecomment_link(field_2) or field_2.text_content().strip()
 
     def _get_ecomment_link(self, link):
         event_id = link.attrib['data-event-id']
@@ -383,9 +399,6 @@ class LegistarAPIEventScraper(LegistarAPIEventScraperBase):
         detail_div = event_page.xpath(".//div[@id='%s']" % div_id)[0]
 
         event_page_details = self._webscraper.parseDetails(detail_div)
-
-        event_page_details.update(self._webscraper.parseCommentDetails(detail_div))
-
         event_page_details['Meeting Details'] = {'url': insite_url}
 
         return event_page_details

@@ -19,6 +19,7 @@ setup(name='legistar',
                         'pytz',
                         'icalendar',
                         'scrapelib',
+                        'esprima'
                         ],
       classifiers=["Development Status :: 4 - Beta",
                    "Intended Audience :: Developers",

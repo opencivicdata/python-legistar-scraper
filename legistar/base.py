@@ -119,40 +119,45 @@ class LegistarScraper(scrapelib.Scraper, LegistarSession):
             next_page = page.xpath(
                 "//a[@class='rgCurrentPage']/following-sibling::a[1]")
 
-    def _getDetailFields(self, detail_div):
+    def parseDetails(self, detail_div):
+        """
+        Parse the data in the top section of a detail page.
+        """
         detail_query = ".//*[starts-with(@id, 'ctl00_ContentPlaceHolder1_lbl')"\
                        "     or starts-with(@id, 'ctl00_ContentPlaceHolder1_hyp')"\
                        "     or starts-with(@id, 'ctl00_ContentPlaceHolder1_Label')]"
         fields = detail_div.xpath(detail_query)
 
+        details = {}
+
         for field_key, field in itertools.groupby(fields, fieldKey):
             field = list(field)
             field_1, field_2 = field[0], field[-1]
+
             key = field_1.text_content().replace(':', '').strip()
 
-            yield key, field_1, field_2
-
-    def parseDetails(self, detail_div):
-        """
-        Parse the data in the top section of a detail page.
-        """
-        details = {}
-
-        for key, field_1, field_2 in self._getDetailFields(detail_div):
             if field_2.find('.//a') is not None:
                 value = []
                 for link in field_2.xpath('.//a'):
                     value.append({'label': link.text_content().strip(),
                                   'url': self._get_link_address(link)})
+
             elif 'href' in field_2.attrib:
                 value = {'label': field_2.text_content().strip(),
                          'url': self._get_link_address(field_2)}
+
+            elif self._parse_detail(key, field_1, field_2):
+                value = self._parse_detail(key, field_1, field_2)
+
             else:
                 value = field_2.text_content().strip()
 
             details[key] = value
 
         return details
+
+    def _parse_detail(self, key, field_1, field_2):
+        return None
 
     def parseDataTable(self, table):
         """
