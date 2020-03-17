@@ -156,9 +156,6 @@ class LegistarScraper(scrapelib.Scraper, LegistarSession):
 
         return details
 
-    def _parse_detail(self, key, field_1, field_2):
-        return None
-
     def parseDataTable(self, table):
         """
         Legistar uses the same kind of data table in a number of
@@ -226,6 +223,13 @@ class LegistarScraper(scrapelib.Scraper, LegistarSession):
             url = link.attrib['href']
 
         return url
+
+    def _parse_detail(self, key, field_1, field_2):
+        """
+        Perform custom parsing on a given key and field from a detail table.
+        Available for override on web scraper base classes.
+        """
+        return None
 
     def _stringify(self, field):
         for br in field.xpath("*//br"):

@@ -3,7 +3,6 @@ import time
 import datetime
 from collections import deque
 import esprima
-import requests
 
 import pytz
 import icalendar
@@ -24,7 +23,7 @@ class LegistarEventsScraper(LegistarScraper):
         if not getattr(self, '_ecomment_dict', None):
             ecomment_dict = {}
 
-            response = requests.get(self.ECOMMENT_JS_URL)
+            response = self.get(self.ECOMMENT_JS_URL)
             tree = esprima.parseScript(response.text)
 
             try:
