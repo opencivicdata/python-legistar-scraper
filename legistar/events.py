@@ -20,36 +20,19 @@ class LegistarEventsScraper(LegistarScraper):
         Parse event IDs and eComment links from JavaScript file with lines like:
         activateEcomment('750', '138A085F-0AC1-4A33-B2F3-AC3D6D9F710B', 'https://metro.granicusideas.com/meetings/750-finance-budget-and-audit-committee-on-2020-03-16-5-00-pm-test');
         """
-        if not getattr(self, '_ecomment_dict', None):
+        if getattr(self, '_ecomment_dict', None) is None:
             ecomment_dict = {}
 
+            # Define a callback to apply to each node, e.g.,
+            # https://esprima.readthedocs.io/en/latest/syntactic-analysis.html#example-console-calls-removal
+            def is_activateEcomment(node, metadata):
+                if node.callee and node.callee.name == 'activateEcomment':
+                    event_id, _, comment_url = node.arguments
+                    ecomment_dict[event_id.value] = comment_url.value
+
             response = self.get(self.ECOMMENT_JS_URL)
-            tree = esprima.parseScript(response.text)
 
-            try:
-                # The next two lines will raise a ValueError if there is not
-                # exactly one item in either array.
-                statement, = [node for node in tree.body if node.type == 'ExpressionStatement']
-                arguments, = statement.expression.arguments
-
-                for call in arguments.body.body:
-                    if call.expression.callee.name == 'activateEcomment':
-                        event_id, _, ecomment_url = call.expression.arguments
-
-                        # Defensively check that the event ID and eComment URL
-                        # look the way we expect.
-                        #
-                        # int() coercion will raise a ValueError if event_id is
-                        # not an integer. Both lines will raise AssertionErrors
-                        # if the condition is not met.
-                        assert int(event_id.value) >= 0
-                        assert ecomment_url.value.startswith('https')
-
-                        ecomment_dict[event_id.value] = ecomment_url.value
-
-            except (ValueError, AssertionError):
-                message = 'JavaScript file at {} does not match expected format'.format(self.ECOMMENT_JS_URL)
-                raise ValueError(message)
+            esprima.parse(response.text, delegate=is_activateEcomment)
 
             self._ecomment_dict = ecomment_dict
 
