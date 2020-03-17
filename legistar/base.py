@@ -127,21 +127,28 @@ class LegistarScraper(scrapelib.Scraper, LegistarSession):
                        "     or starts-with(@id, 'ctl00_ContentPlaceHolder1_hyp')"\
                        "     or starts-with(@id, 'ctl00_ContentPlaceHolder1_Label')]"
         fields = detail_div.xpath(detail_query)
+
         details = {}
 
-        for field_key, field in itertools.groupby(fields,
-                                                  fieldKey):
+        for field_key, field in itertools.groupby(fields, fieldKey):
             field = list(field)
             field_1, field_2 = field[0], field[-1]
+
             key = field_1.text_content().replace(':', '').strip()
+
             if field_2.find('.//a') is not None:
                 value = []
                 for link in field_2.xpath('.//a'):
                     value.append({'label': link.text_content().strip(),
                                   'url': self._get_link_address(link)})
+
             elif 'href' in field_2.attrib:
                 value = {'label': field_2.text_content().strip(),
                          'url': self._get_link_address(field_2)}
+
+            elif self._parse_detail(key, field_1, field_2):
+                value = self._parse_detail(key, field_1, field_2)
+
             else:
                 value = field_2.text_content().strip()
 
@@ -216,6 +223,13 @@ class LegistarScraper(scrapelib.Scraper, LegistarSession):
             url = link.attrib['href']
 
         return url
+
+    def _parse_detail(self, key, field_1, field_2):
+        """
+        Perform custom parsing on a given key and field from a detail table.
+        Available for override on web scraper base classes.
+        """
+        return None
 
     def _stringify(self, field):
         for br in field.xpath("*//br"):
