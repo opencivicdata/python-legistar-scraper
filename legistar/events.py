@@ -12,7 +12,10 @@ from .base import LegistarScraper, LegistarAPIScraper
 
 
 class LegistarEventsScraper(LegistarScraper):
-    ECOMMENT_JS_URL = 'https://metro.granicusideas.com/meetings.js'
+    ECOMMENT_JS_URLS = (
+        'https://metro.granicusideas.com/meetings.js',
+        'https://metro.granicusideas.com/meetings.js?scope=past'
+    )
 
     @property
     def ecomment_dict(self):
@@ -30,9 +33,9 @@ class LegistarEventsScraper(LegistarScraper):
                     event_id, _, comment_url = node.arguments
                     ecomment_dict[event_id.value] = comment_url.value
 
-            response = self.get(self.ECOMMENT_JS_URL)
-
-            esprima.parse(response.text, delegate=is_activateEcomment)
+            for url in self.ECOMMENT_JS_URLS:
+                response = self.get(url)
+                esprima.parse(response.text, delegate=is_activateEcomment)
 
             self._ecomment_dict = ecomment_dict
 
