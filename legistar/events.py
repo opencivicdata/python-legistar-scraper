@@ -218,7 +218,9 @@ class LegistarAPIEventScraperBase(LegistarAPIScraper, metaclass=ABCMeta):
         params = {'$orderby': 'EventLastModifiedUtc'}
 
         if since_datetime:
-            # Minutes are often published after an event occurs – without a
+            since_iso = since_datetime.isoformat()
+
+            # Minutes are often published after an event occurs – without a
             # corresponding event modification. Query all update fields so later
             # changes are always caught by our scraper, particularly when
             # scraping narrower windows of time.
@@ -227,9 +229,11 @@ class LegistarAPIEventScraperBase(LegistarAPIScraper, metaclass=ABCMeta):
                              'EventAgendaLastPublishedUTC',
                              'EventMinutesLastPublishedUTC')
 
-            since_fmt = " gt datetime'{}'".format(since_datetime.isoformat())
-            since_filter = ' or '.join(field + since_fmt
-                                       for field in update_fields)
+            since_fmt = "{field} gt datetime'{since_datetime}'"
+            since_filter =\
+                ' or '.join(since_fmt.format(field=field,
+                                             since_datetime=since_iso)
+                            for field in update_fields)
 
             params['$filter'] = since_filter
 

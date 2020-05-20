@@ -232,6 +232,8 @@ class LegistarAPIBillScraper(LegistarAPIScraper):
         params = {'$orderby': 'MatterLastModifiedUtc'}
 
         if since_datetime:
+            since_iso = since_datetime.isoformat()
+
             update_fields = ('MatterLastModifiedUtc',
                              'MatterIntroDate',
                              'MatterPassedDate',
@@ -253,8 +255,10 @@ class LegistarAPIBillScraper(LegistarAPIScraper):
                              'MatterAgendaDate')
 
             since_fmt = "{field} gt datetime'{since_datetime}'"
-            since_filter = ' or '.join(since_fmt.format(field=field, since_datetime=since_datetime.isoformat())
-                                       for field in update_fields)
+            since_filter =\
+                ' or '.join(since_fmt.format(field=field,
+                                             since_datetime=since_iso)
+                            for field in update_fields)
 
             params['$filter'] = since_filter
 
