@@ -252,8 +252,8 @@ class LegistarAPIBillScraper(LegistarAPIScraper):
                              'MatterEnactmentDate',
                              'MatterAgendaDate')
 
-            since_fmt = " gt datetime'{}'".format(since_datetime.isoformat())
-            since_filter = ' or '.join(field + since_fmt
+            since_fmt = "{field} gt datetime'{since_datetime}'"
+            since_filter = ' or '.join(since_fmt.format(field=field, since_datetime=since_datetime.isoformat())
                                        for field in update_fields)
 
             params['$filter'] = since_filter
