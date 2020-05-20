@@ -222,12 +222,14 @@ class LegistarAPIEventScraperBase(LegistarAPIScraper, metaclass=ABCMeta):
             # corresponding event modification. Query all update fields so later
             # changes are always caught by our scraper, particularly when
             # scraping narrower windows of time.
-            update_fields = ('EventLastModifiedUtc',
+            update_fields = ('EventDate',
+                             'EventLastModifiedUtc',
                              'EventAgendaLastPublishedUTC',
                              'EventMinutesLastPublishedUTC')
 
             since_fmt = " gt datetime'{}'".format(since_datetime.isoformat())
-            since_filter = ' or '.join(field + since_fmt for field in update_fields)
+            since_filter = ' or '.join(field + since_fmt
+                                       for field in update_fields)
 
             params['$filter'] = since_filter
 
