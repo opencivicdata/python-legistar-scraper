@@ -232,7 +232,35 @@ class LegistarAPIBillScraper(LegistarAPIScraper):
         params = {'$orderby': 'MatterLastModifiedUtc'}
 
         if since_datetime:
-            params['$filter'] = "MatterLastModifiedUtc gt datetime'{since_datetime}'".format(since_datetime=since_datetime.isoformat())
+            since_iso = since_datetime.isoformat()
+
+            update_fields = ('MatterLastModifiedUtc',
+                             'MatterIntroDate',
+                             'MatterPassedDate',
+                             'MatterDate1',
+                             'MatterDate2',
+                             # 'MatterEXDate1', # can't use all 17 search
+                                                # terms, this one always
+                                                # seems to be not set
+                             'MatterEXDate2',
+                             'MatterEXDate3',
+                             'MatterEXDate4',
+                             'MatterEXDate5',
+                             'MatterEXDate6',
+                             'MatterEXDate7',
+                             'MatterEXDate8',
+                             'MatterEXDate9',
+                             'MatterEXDate10',
+                             'MatterEnactmentDate',
+                             'MatterAgendaDate')
+
+            since_fmt = "{field} gt datetime'{since_datetime}'"
+            since_filter =\
+                ' or '.join(since_fmt.format(field=field,
+                                             since_datetime=since_iso)
+                            for field in update_fields)
+
+            params['$filter'] = since_filter
 
         matters_url = self.BASE_URL + '/matters'
 
