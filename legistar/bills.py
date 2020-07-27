@@ -269,11 +269,13 @@ class LegistarAPIBillScraper(LegistarAPIScraper):
                                  item_key="MatterId"):
             try:
                 legistar_url = self.legislation_detail_url(matter['MatterId'])
+
             except KeyError:
                 url = matters_url + '/{}'.format(matter['MatterId'])
                 self.warning('Bill could not be found in web interface: {}'.format(url))
                 if not self.scrape_restricted:
                     continue
+
             else:
                 matter['legistar_url'] = legistar_url
 
@@ -450,17 +452,30 @@ class LegistarAPIBillScraper(LegistarAPIScraper):
     def legislation_detail_url(self, matter_id):
         gateway_url = self.BASE_WEB_URL + '/gateway.aspx?m=l&id={0}'
 
-        # we want to supress any session level params for this head request
+        # We want to supress any session level params for this head request,
         # since they could lead to an additonal level of redirect.
         #
         # Per
         # http://docs.python-requests.org/en/master/user/advanced/, we
         # have to do this by setting session level params to None
-        legislation_detail_route = self.head(
+        response = self.head(
             gateway_url.format(matter_id),
-            params={k: None for k in self.params}).headers['Location']
+            params={k: None for k in self.params}
+        )
 
-        return urljoin(self.BASE_WEB_URL, legislation_detail_route)
+        # If the gateway URL redirects, the matter is publicly viewable. Grab
+        # its detail URL from the response headers.
+        if response.status_code == 302:
+            legislation_detail_route = response.headers['Location']
+            return urljoin(self.BASE_WEB_URL, legislation_detail_route)
+
+        # If the status code is anything but a 200 or 302, something is wrong.
+        # Raise an HTTPError to interrupt the scrape.
+        elif response.status_code != 200:
+            raise scrapelib.HTTPError(response)
+
+        # If the gateway URL returns a 200, it has not redirected, i.e., the
+        # matter is not publicly viewable. Return nothing.
 
     def _missing_votes(self, response):
         '''

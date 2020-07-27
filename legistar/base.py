@@ -24,7 +24,7 @@ class LegistarSession(requests.Session):
         return response
 
     def _check_errors(self, response, payload):
-        if response.url.endswith('Error.aspx'):
+        if response.url.endswith('Error.aspx') or 'gateway.aspx' in response.url:
             response.status_code = 503
             raise scrapelib.HTTPError(response)
 
