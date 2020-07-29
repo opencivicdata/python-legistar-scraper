@@ -4,6 +4,7 @@ from collections import deque
 from functools import partialmethod
 from urllib.parse import urljoin
 import requests
+import scrapelib
 
 
 class LegistarBillScraper(LegistarScraper):
@@ -270,7 +271,10 @@ class LegistarAPIBillScraper(LegistarAPIScraper):
             try:
                 legistar_url = self.legislation_detail_url(matter['MatterId'])
 
-            except KeyError:
+            except scrapelib.HTTPError as e:
+                if e.response.status_code > 403:
+                    raise
+
                 url = matters_url + '/{}'.format(matter['MatterId'])
                 self.warning('Bill could not be found in web interface: {}'.format(url))
                 if not self.scrape_restricted:
@@ -286,11 +290,15 @@ class LegistarAPIBillScraper(LegistarAPIScraper):
 
         try:
             legistar_url = self.legislation_detail_url(matter_id)
-        except KeyError:
+        except scrapelib.HTTPError as e:
+            if e.response.status_code > 403:
+                raise
+
             url = self.BASE_URL + '/matters/{}'.format(matter_id)
             self.warning('Bill could not be found in web interface: {}'.format(url))
             if not self.scrape_restricted:
                 return None
+
         else:
             matter['legistar_url'] = legistar_url
 
@@ -450,7 +458,7 @@ class LegistarAPIBillScraper(LegistarAPIScraper):
             return response.json()
 
     def legislation_detail_url(self, matter_id):
-        gateway_url = self.BASE_WEB_URL + '/gateway.aspx?m=l&id={0}'
+        gateway_url = self.BASE_WEB_URL + '/gateway.aspx?m=l&id={0}'.format(matter_id)
 
         # We want to supress any session level params for this head request,
         # since they could lead to an additonal level of redirect.
@@ -459,7 +467,7 @@ class LegistarAPIBillScraper(LegistarAPIScraper):
         # http://docs.python-requests.org/en/master/user/advanced/, we
         # have to do this by setting session level params to None
         response = self.head(
-            gateway_url.format(matter_id),
+            gateway_url,
             params={k: None for k in self.params}
         )
 
@@ -469,13 +477,18 @@ class LegistarAPIBillScraper(LegistarAPIScraper):
             legislation_detail_route = response.headers['Location']
             return urljoin(self.BASE_WEB_URL, legislation_detail_route)
 
-        # If the status code is anything but a 200 or 302, something is wrong.
-        # Raise an HTTPError to interrupt the scrape.
-        elif response.status_code != 200:
+        # If the gateway URL returns a 200, it has not redirected, i.e., the
+        # matter is not publicly viewable. Return an unauthorized response.
+        elif response.status_code == 200:
+            response.status_code = 403
             raise scrapelib.HTTPError(response)
 
-        # If the gateway URL returns a 200, it has not redirected, i.e., the
-        # matter is not publicly viewable. Return nothing.
+        # If the status code is anything but a 200 or 302, something is wrong.
+        # Raise an HTTPError to interrupt the scrape.
+        else:
+            self.error('{0} returned an unexpected status code: {1}'.format(gateway_url, response.status_code))
+            response.status_code = 500
+            raise scrapelib.HTTPError(response)
 
     def _missing_votes(self, response):
         '''
@@ -504,5 +517,6 @@ class LegistarAPIBillScraper(LegistarAPIScraper):
         error.
         '''
         accept = (super().accept_response(response) or
-                  self._missing_votes(response))
+                  self._missing_votes(response) or
+                  response.status_code <= 403)
         return accept
