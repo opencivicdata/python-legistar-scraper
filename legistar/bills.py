@@ -414,16 +414,38 @@ class LegistarAPIBillScraper(LegistarAPIScraper):
 
     def relations(self, matter_id):
         relations = self.endpoint('/matters/{0}/relations', matter_id)
+
         if relations:
-            highest_flag = max(int(relation['MatterRelationFlag'])
-                               for relation in relations)
+            return self._filter_relations(relations)
 
-            relations = [relation for relation in relations
-                         if relation['MatterRelationFlag'] == highest_flag]
-
-            return relations
         else:
             return []
+
+    def _filter_relations(self, relations):
+        '''
+        Sometimes, many versions of a bill are related. This method returns the
+        most recent version of each relation. Override this method to apply a
+        different filter or return the full array of relations.
+        '''
+        # Sort relations such that the latest version of each matter
+        # ID is returned first.
+        sorted_relations = sorted(
+            relations,
+            key=lambda x: (
+                x['MatterRelationMatterId'],
+                x['MatterRelationFlag']
+            ),
+            reverse=True
+        )
+
+        seen_relations = set()
+
+        for relation in sorted_relations:
+            relation_id = relation['MatterRelationMatterId']
+
+            if relation_id not in seen_relations:
+                yield relation
+                seen_relations.add(relation_id)
 
     def text(self, matter_id, latest_version_value=None):
         '''Historically, we have determined the latest version of a bill
