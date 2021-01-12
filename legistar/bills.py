@@ -438,15 +438,14 @@ class LegistarAPIBillScraper(LegistarAPIScraper):
             reverse=True
         )
 
-        # Assumes that there will not be more than 10 versions of a relation.
-        seen_relations = deque([], maxlen=10)
+        seen_relations = set()
 
         for relation in sorted_relations:
             relation_id = relation['MatterRelationMatterId']
 
             if relation_id not in seen_relations:
                 yield relation
-                seen_relations.append(relation_id)
+                seen_relations.add(relation_id)
 
     def text(self, matter_id, latest_version_value=None):
         '''Historically, we have determined the latest version of a bill
