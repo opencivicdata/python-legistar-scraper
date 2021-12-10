@@ -17,6 +17,11 @@ class LegistarEventsScraper(LegistarScraper):
         'https://metro.granicusideas.com/meetings.js?scope=past'
     )
 
+    def __init__(self, *args, event_info_key='Meeting Details', **kwargs):
+        super().__init__(*args, **kwargs)
+        self.event_info_key = event_info_key
+
+
     @property
     def ecomment_dict(self):
         """
@@ -111,8 +116,8 @@ class LegistarEventsScraper(LegistarScraper):
                     else:
                         scraped_events.append(ical_url)
 
-                    if follow_links and type(event["Meeting Details"]) == dict:
-                        agenda = self.agenda(event["Meeting Details"]['url'])
+                    if follow_links and type(event[self.event_info_key]) == dict:
+                        agenda = self.agenda(event[self.event_info_key]['url'])
                     else:
                         agenda = None
 
