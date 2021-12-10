@@ -17,12 +17,9 @@ class LegistarEventsScraper(LegistarScraper):
         'https://metro.granicusideas.com/meetings.js?scope=past'
     )
 
-    def __init__(self, *args, verbose_keys=True, **kwargs):
+    def __init__(self, *args, event_info_key='Meeting Details', **kwargs):
         super().__init__(*args, **kwargs)
-        if verbose_keys:
-            self.event_info_key = 'Meeting Details'
-        else:
-            self.event_info_key = 'Details'
+        self.event_info_key = event_info_key
 
 
     @property
