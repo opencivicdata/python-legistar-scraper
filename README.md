@@ -5,6 +5,11 @@ Python Legistar Scraper
 
 Scrapes municipal data from Legistar sites.
 
+## To install
+```bash
+pip install scraper-legistar
+```
+
 ## Contributing
 
 ### Local installation
