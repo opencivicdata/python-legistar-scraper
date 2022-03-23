@@ -1,7 +1,7 @@
 Python Legistar Scraper
 =======================
 
-[![Build Status](https://travis-ci.org/opencivicdata/python-legistar-scraper.svg?branch=master)](https://travis-ci.org/opencivicdata/python-legistar-scraper)
+[![tests](https://github.com/opencivicdata/python-legistar-scraper/actions/workflows/pythonapp.yml/badge.svg)](https://github.com/opencivicdata/python-legistar-scraper/actions/workflows/pythonapp.yml)
 
 Scrapes municipal data from Legistar sites.
 
