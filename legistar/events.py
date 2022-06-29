@@ -108,7 +108,7 @@ class LegistarEventsScraper(LegistarScraper):
             no_events_in_year = True
 
             for page in self.eventPages(year):
-                events_table = page.xpath("//table[@class='rgMasterTable']")[0]
+                events_table = page.xpath("//div[@id='ctl00_ContentPlaceHolder1_MultiPageCalendar']//table[@class='rgMasterTable']")[0]
                 for event, _, _ in self.parseDataTable(events_table):
                     ical_url = event['iCalendar']['url']
                     if ical_url in scraped_events:
