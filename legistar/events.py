@@ -223,7 +223,11 @@ class LegistarAPIEventScraperBase(LegistarAPIScraper, metaclass=ABCMeta):
         params = {'$orderby': 'EventLastModifiedUtc'}
 
         if since_datetime:
-            since_iso = since_datetime.isoformat()
+            # We include events three days before the given start date
+            # to make sure we grab updated fields (e.g. audio recordings)
+            # that don't update the last modified timestamp.
+            backwards_window = datetime.timedelta(hours=72)
+            since_iso = (since_datetime - backwards_window).isoformat()
 
             # Minutes are often published after an event occurs – without a
             # corresponding event modification. Query all update fields so later
