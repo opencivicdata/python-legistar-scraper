@@ -13,10 +13,10 @@ import lxml.etree as etree
 import pytz
 
 
-class LegistarSession(requests.Session):
+class LegistarSession(scrapelib.Scraper):
 
     def request(self, method, url, **kwargs):
-        response = super(LegistarSession, self).request(method, url, **kwargs)
+        response = super().request(method, url, **kwargs)
         payload = kwargs.get('data')
 
         self._check_errors(response, payload)
@@ -34,6 +34,10 @@ class LegistarSession(requests.Session):
                 raise scrapelib.HTTPError(response)
 
         if 'This record no longer exists. It might have been deleted.' in response.text:
+            response.status_code = 410
+            raise scrapelib.HTTPError(response)
+
+        if 'The page you requested was removed.' in response.text:
             response.status_code = 410
             raise scrapelib.HTTPError(response)
 
@@ -72,12 +76,20 @@ class LegistarSession(requests.Session):
                      json.loads(payload[range_var])['value'] == 'All')
         return all_range
 
+    def accept_response(self, response, **kwargs):
+        '''
+        This overrides a method that controls whether
+        the scraper should retry on an error. We don't
+        want to retry if the API returns a 400
+        '''
+        return response.status_code < 401 or response.status_code == 410
 
-class LegistarScraper(scrapelib.Scraper, LegistarSession):
+
+class LegistarScraper(LegistarSession):
     date_format = '%m/%d/%Y'
 
     def __init__(self, *args, **kwargs):
-        super(LegistarScraper, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     def lxmlize(self, url, payload=None):
         '''
@@ -349,6 +361,7 @@ class LegistarAPIScraper(scrapelib.Scraper):
         while page_num == 0 or len(response.json()) == 1000:
             params['$skip'] = page_num * 1000
             response = self.get(url, params=params)
+
             response.raise_for_status()
 
             for item in response.json():
