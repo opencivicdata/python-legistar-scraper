@@ -61,7 +61,7 @@ class LegistarEventsScraper(LegistarScraper):
         return (super().should_cache_response(response) and
                 response.url != self.EVENTSPAGE)
 
-    def key_for_request(self, method, url, **kwargs):
+    def key_for_request(self, method, url, params):
         # avoid attempting to pull top level events page from cache by
         # making sure the key for that page is None
         #
@@ -70,7 +70,7 @@ class LegistarEventsScraper(LegistarScraper):
         if url == self.EVENTSPAGE:
             return None
 
-        return super().key_for_request(method, url, **kwargs)
+        return super().key_for_request(method, url, params)
 
     def eventSearch(self, page, since):
         payload = self.sessionSecrets(page)
