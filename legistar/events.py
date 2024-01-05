@@ -55,22 +55,8 @@ class LegistarEventsScraper(LegistarScraper):
     def should_cache_response(self, response):
         # Never cache the top level events page, because that may result in
         # expired .NET state values.
-        #
-        # works in concert with `key_for_request` to stop a request
-        # from using the cache
         return (super().should_cache_response(response) and
                 response.url != self.EVENTSPAGE)
-
-    def key_for_request(self, method, url, params):
-        # avoid attempting to pull top level events page from cache by
-        # making sure the key for that page is None
-        #
-        # works in concert with `should_cache_response` to stop a request
-        # from using the cache
-        if url == self.EVENTSPAGE:
-            return None
-
-        return super().key_for_request(method, url, params)
 
     def eventSearch(self, page, since):
         payload = self.sessionSecrets(page)
