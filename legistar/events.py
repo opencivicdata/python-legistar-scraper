@@ -238,39 +238,46 @@ class LegistarAPIEventScraperBase(LegistarAPIScraper, metaclass=ABCMeta):
                               params=params,
                               item_key="EventId")
 
-    def events(self, since_datetime=None, api_events=None):
+    def events(self, since_datetime=None):
+        for api_event in self.api_events(since_datetime=since_datetime):
+            if event := self.event(api_event):
+                yield event
 
-        for api_event in api_events or self.api_events(since_datetime=since_datetime):
+    def event(self, api_event):
+        time_str = api_event["EventTime"]
+        if not time_str:  # If we don't have an event time, skip it
+            return
+        try:
+            # Start times are entered manually. Sometimes, they don't
+            # conform to this format. Log  events with invalid start times,
+            # but don't interrupt the scrape for them.
+            start_time = time.strptime(time_str, self.time_string_format)
+        except ValueError:
+            event_url = "{0}/events/{1}".format(self.BASE_URL, api_event["EventId"])
+            self.logger.error(
+                'API event has invalid start time "{0}": {1}'.format(
+                    time_str, event_url
+                )
+            )
+            return
 
-            time_str = api_event['EventTime']
-            if not time_str:  # If we don't have an event time, skip it
-                continue
+        start = self.toTime(api_event["EventDate"])
+        api_event["start"] = start.replace(
+            hour=start_time.tm_hour, minute=start_time.tm_min
+        )
 
-            try:
-                # Start times are entered manually. Sometimes, they don't
-                # conform to this format. Log events with invalid start times,
-                # but don't interrupt the scrape for them.
-                start_time = time.strptime(time_str, self.time_string_format)
-            except ValueError:
-                event_url = '{0}/events/{1}'.format(self.BASE_URL, api_event['EventId'])
-                self.logger.error('API event has invalid start time "{0}": {1}'.format(time_str, event_url))
-                continue
+        api_event["status"] = self._event_status(api_event)
 
-            start = self.toTime(api_event['EventDate'])
-            api_event['start'] = start.replace(hour=start_time.tm_hour,
-                                               minute=start_time.tm_min)
+        web_event = self._get_web_event(api_event)
 
-            api_event['status'] = self._event_status(api_event)
+        if web_event:
+            return api_event, web_event
 
-            web_event = self._get_web_event(api_event)
-
-            if web_event:
-                yield api_event, web_event
-
-            else:
-                event_url = '{0}/events/{1}'.format(self.BASE_URL, api_event['EventId'])
-                self.warning('API event could not be found in web interface: {0}'.format(event_url))
-                continue
+        else:
+            event_url = "{0}/events/{1}".format(self.BASE_URL, api_event["EventId"])
+            self.warning(
+                "API event could not be found in web interface: {0}".format(event_url)
+            )
 
     def agenda(self, event):
         agenda_url = (self.BASE_URL +
