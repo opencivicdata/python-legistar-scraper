@@ -238,8 +238,9 @@ class LegistarAPIEventScraperBase(LegistarAPIScraper, metaclass=ABCMeta):
                               params=params,
                               item_key="EventId")
 
-    def events(self, since_datetime=None):
-        for api_event in self.api_events(since_datetime=since_datetime):
+    def events(self, since_datetime=None, api_events=None):
+
+        for api_event in api_events or self.api_events(since_datetime=since_datetime):
 
             time_str = api_event['EventTime']
             if not time_str:  # If we don't have an event time, skip it
