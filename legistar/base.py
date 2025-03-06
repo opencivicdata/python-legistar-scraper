@@ -341,7 +341,8 @@ class LegistarAPIScraper(scrapelib.Scraper):
         except requests.HTTPError as e:
             if e.response.status_code == 400:
                 raise ValueError(e.response.json()['Message'])
-            raise
+            if not self.accept_response(e.response):
+                raise
 
     def pages(self, url, params=None, item_key=None):
         if params is None:
