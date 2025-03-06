@@ -268,6 +268,11 @@ class LegistarScraper(scrapelib.Scraper, LegistarSession):
 
         return(payload)
 
+    def accept_response(self, response, **kwargs):
+        if response.status_code == 410:
+            return True
+        return super().accept_response(response, **kwargs)
+
 
 def fieldKey(x):
     field_id = x.attrib['id']
