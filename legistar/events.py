@@ -386,6 +386,13 @@ class LegistarAPIEventScraper(LegistarAPIEventScraperBase):
         except scrapelib.HTTPError as e:
             if e.response.status_code == 410:
                 return None
+            elif e.response.status_code == 503:
+                # Events with draft agendas sometimes have an EventInSiteURL
+                # that resolves to a 503 status code
+                self.logger.error(
+                    f"Error while fetching event detail at {insite_url}: {e}"
+                )
+                return None
             else:
                 raise
 
