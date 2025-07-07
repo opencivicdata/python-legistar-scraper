@@ -268,6 +268,11 @@ class LegistarScraper(scrapelib.Scraper, LegistarSession):
 
         return(payload)
 
+    def accept_response(self, response, **kwargs):
+        if response.status_code == 410:
+            return True
+        return super().accept_response(response, **kwargs)
+
 
 def fieldKey(x):
     field_id = x.attrib['id']
@@ -336,7 +341,8 @@ class LegistarAPIScraper(scrapelib.Scraper):
         except requests.HTTPError as e:
             if e.response.status_code == 400:
                 raise ValueError(e.response.json()['Message'])
-            raise
+            if not self.accept_response(e.response):
+                raise
 
     def pages(self, url, params=None, item_key=None):
         if params is None:
@@ -359,9 +365,10 @@ class LegistarAPIScraper(scrapelib.Scraper):
             page_num += 1
 
     def accept_response(self, response, **kwargs):
-        '''
+        """
         This overrides a method that controls whether
         the scraper should retry on an error. We don't
-        want to retry if the API returns a 400
-        '''
-        return response.status_code < 401
+        want to retry if the API returns a 400, except for
+        410, which means the record no longer exists.
+        """
+        return response.status_code < 401 or response.status_code == 410
