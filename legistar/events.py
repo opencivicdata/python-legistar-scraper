@@ -196,7 +196,7 @@ class LegistarAPIEventScraper(LegistarAPIScraper):
 
         return webscraper
 
-    def api_events(self, since_datetime=None):
+    def api_events(self, since_datetime=None, override_params=None):
         # scrape from oldest to newest. This makes resuming big
         # scraping jobs easier because upon a scrape failure we can
         # import everything scraped and then scrape everything newer
@@ -226,6 +226,8 @@ class LegistarAPIEventScraper(LegistarAPIScraper):
                             for field in update_fields)
 
             params['$filter'] = since_filter
+            
+        params.update(override_params or {})
 
         events_url = self.BASE_URL + '/events/'
 
@@ -413,8 +415,8 @@ class WebCalendarMixin:
     """
     Sometimes, it's desirable to retrieve information from the web calendar,
     in addition to the API. This mixin extends the base functionality to get
-    event information from both the detail page, if accessible, and the web
-    calendar listing.
+    event information from both the detail page linked to in the API and the
+    web calendar listing.
     """
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -430,14 +432,12 @@ class WebCalendarMixin:
         
     def _get_web_event(self, api_event):
         if self._not_in_web_interface(api_event):
-            event_detail = {}
-        else:
-            # None if detail link does not exist or cannot be found.
-            event_detail = super()._get_web_event(api_event) or {}
+            return None
         
-        # Sometimes events can appear on the calendar before their detail links
-        # become available. None if entire web calendar scraped but event not
-        # found.
+        # None if detail link does not exist or cannot be found.
+        event_detail = super()._get_web_event(api_event) or {}
+        
+        # None if entire web calendar scraped but event not found.
         event_listing = self.web_results(api_event) or {}
         
         return (event_listing | event_detail) or None
