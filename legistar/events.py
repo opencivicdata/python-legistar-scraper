@@ -196,7 +196,7 @@ class LegistarAPIEventScraper(LegistarAPIScraper):
 
         return webscraper
 
-    def api_events(self, since_datetime=None, override_params=None):
+    def api_events(self, since_datetime=None):
         # scrape from oldest to newest. This makes resuming big
         # scraping jobs easier because upon a scrape failure we can
         # import everything scraped and then scrape everything newer
@@ -226,8 +226,6 @@ class LegistarAPIEventScraper(LegistarAPIScraper):
                             for field in update_fields)
 
             params['$filter'] = since_filter
-            
-        params.update(override_params or {})
 
         events_url = self.BASE_URL + '/events/'
 
