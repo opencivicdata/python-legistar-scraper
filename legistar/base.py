@@ -186,7 +186,7 @@ class LegistarScraper(scrapelib.Scraper, LegistarSession):
                     if field.find('.//a') is not None:
                         address = self._get_link_address(field.find('.//a'))
                         if address:
-                            if key in ['', 'ics'] and 'View.ashx?M=IC' in address:
+                            if key.strip() in ['', 'ics'] and 'View.ashx?M=IC' in address:
                                 key = 'iCalendar'
                                 value = {'url': address}
                             else:
