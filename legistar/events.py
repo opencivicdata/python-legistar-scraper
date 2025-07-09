@@ -466,7 +466,6 @@ class WebCalendarMixin:
         '''
         for event, _ in self._webscraper.events(follow_links=False):
             event_key = self._event_key(event)
-            print(event_key, event)
             yield event_key, event
 
     def _event_key(self, event):
