@@ -1,4 +1,3 @@
-from abc import ABCMeta, abstractmethod
 import time
 import datetime
 from collections import deque
@@ -73,7 +72,7 @@ class LegistarEventsScraper(LegistarScraper):
         # we might revisit the same event. So, we keep track of
         # the last few events we've visited in order to
         # make sure we are not revisiting
-        scraped_events = deque([], maxlen=10)
+        scraped_events = deque([], maxlen=100)
 
         current_year = self.now().year
 
@@ -93,7 +92,7 @@ class LegistarEventsScraper(LegistarScraper):
         for year in range(current_year + 1, since_year, -1):
             no_events_in_year = True
 
-            for page in self.eventPages(year):
+            for idx, page in enumerate(self.eventPages(year)):
                 events_table = page.xpath("//div[@id='ctl00_ContentPlaceHolder1_MultiPageCalendar']//table[@class='rgMasterTable']")[0]
                 for event, _, _ in self.parseDataTable(events_table):
                     ical_url = event['iCalendar']['url']
@@ -171,7 +170,7 @@ class LegistarEventsScraper(LegistarScraper):
         return self.ecomment_dict.get(event_id, None)
 
 
-class LegistarAPIEventScraperBase(LegistarAPIScraper, metaclass=ABCMeta):
+class LegistarAPIEventScraper(LegistarAPIScraper):
     webscraper_class = LegistarEventsScraper
     WEB_RETRY_EVENTS = 3
 
@@ -196,10 +195,6 @@ class LegistarAPIEventScraperBase(LegistarAPIScraper, metaclass=ABCMeta):
         webscraper.date_format = '%m/%d/%Y'
 
         return webscraper
-
-    @abstractmethod
-    def _get_web_event(self, api_event):
-        pass
 
     def api_events(self, since_datetime=None):
         # scrape from oldest to newest. This makes resuming big
@@ -315,25 +310,6 @@ class LegistarAPIEventScraperBase(LegistarAPIScraper, metaclass=ABCMeta):
             self._suppress_item_matter(item, minutes_url)
             yield item
 
-    def _suppress_item_matter(self, item, agenda_url):
-        '''
-        Agenda items in Legistar do not always display links to
-        associated matter files even if the same agenda item
-        in the API references a Matter File. The agenda items
-        we scrape should honor the suppression on the Legistar
-        agendas.
-
-        This is also practical because matter files that are hidden
-        in the Legistar Agenda do not seem to available for scraping
-        on Legistar or through the API
-
-        Since we are not completely sure that the same suppression
-        logic should be used for all Legislative Bodies, this method
-        is currently just a hook for being overridden in particular
-        scrapers. As of now, at least LA Metro uses this hook.
-        '''
-        pass
-
     def rollcalls(self, event):
         for item in self.agenda(event):
             if item['EventItemRollCallFlag']:
@@ -354,6 +330,25 @@ class LegistarAPIEventScraperBase(LegistarAPIScraper, metaclass=ABCMeta):
         except ValueError:
             pass
 
+    def _suppress_item_matter(self, item, agenda_url):
+        '''
+        Agenda items in Legistar do not always display links to
+        associated matter files even if the same agenda item
+        in the API references a Matter File. The agenda items
+        we scrape should honor the suppression on the Legistar
+        agendas.
+
+        This is also practical because matter files that are hidden
+        in the Legistar Agenda do not seem to available for scraping
+        on Legistar or through the API
+
+        Since we are not completely sure that the same suppression
+        logic should be used for all Legislative Bodies, this method
+        is currently just a hook for being overridden in particular
+        scrapers. As of now, at least LA Metro uses this hook.
+        '''
+        pass
+
     def _event_status(self, event):
         '''Events can have a status of tentative, confirmed, cancelled, or
         passed (http://docs.opencivicdata.org/en/latest/data/event.html). By
@@ -367,11 +362,20 @@ class LegistarAPIEventScraperBase(LegistarAPIScraper, metaclass=ABCMeta):
             status = 'confirmed'
 
         return status
-
-
-class LegistarAPIEventScraper(LegistarAPIEventScraperBase):
+    
+    def _not_in_web_interface(self, event):
+        '''Occasionally, an event will appear in the API before it appears in
+        the web interface. This method checks attributes of the API event that
+        tell uswhether the given event is one of those cases, returning True if
+        so, and False otherwise. Available for override in jurisdictional
+        scrapers.
+        '''
+        return False
 
     def _get_web_event(self, api_event):
+        if self._not_in_web_interface(api_event):
+            return None
+        
         return self.web_detail(api_event)
 
     def web_detail(self, event):
@@ -405,12 +409,12 @@ class LegistarAPIEventScraper(LegistarAPIEventScraperBase):
         return event_page_details
 
 
-class LegistarAPIEventScraperZip(LegistarAPIEventScraperBase):
-    '''
-    There are some inSite sites that have information that only appears
-    event listing page, like NYC's 'Meeting Topic.' This scraper visits
-    the listing page and attempts to zip API and web events together
-    '''
+class WebCalendarFallbackMixin:
+    """
+    Sometimes, events are visible on the web calendar before their detail
+    link is accessible. Use this mixin to scrape to check the web calendar
+    for events if their detail link cannot be accessed.
+    """
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
@@ -422,20 +426,35 @@ class LegistarAPIEventScraperZip(LegistarAPIEventScraperBase):
         # Instantiate dictionary where events from generator are stored as they
         # are scraped.
         self._scraped_events = {}
-
+        
     def _get_web_event(self, api_event):
         if self._not_in_web_interface(api_event):
             return None
-        else:
-            # None if entire web calendar scraped but API event not found
-            return self.web_results(api_event)
+        
+        web_event = None
+        
+        if not self._detail_page_not_available(api_event):
+            web_event = super()._get_web_event(api_event)
+            
+        if web_event is None:
+            web_event = self.web_results(api_event)
+        
+        return web_event
+    
+    def _detail_page_not_available(self, api_event):
+        """
+        Sometimes, we can know from the API event that a detail link is
+        not available or will be invalid, so we can skip trying to access
+        it. Available for override in jurisdictional scrapers.
+        """
+        return False
 
     def web_results(self, event):
         api_key = (event['EventBodyName'].strip(),
                    event['start'])
 
-        # Check the cache of events we've already scraped from the web interface
-        # for the API event at hand.
+        # Check the cache of events we've already scraped from the web
+        # interface for the API event at hand.
         if api_key in self._scraped_events:
             return self._scraped_events[api_key]
 
@@ -453,29 +472,21 @@ class LegistarAPIEventScraperZip(LegistarAPIEventScraperBase):
         chronological order.
         '''
         for event, _ in self._webscraper.events(follow_links=False):
-            event_key = self._event_key(event, self._webscraper)
+            event_key = self._event_key(event)
             yield event_key, event
 
-    def _event_key(self, event, web_scraper):
+    def _event_key(self, event):
         '''Since Legistar InSite contains more information about events than
         are available in the API, we need to scrape both. Then, we have
         to line them up. This method makes a key that should be
         uniquely identify every event and will allow us to link
         events from the two data sources.
         '''
-        response = web_scraper.get(event['iCalendar']['url'], verify=False)
-        event_time = web_scraper.ical(response.text).subcomponents[0]['DTSTART'].dt
+        response = self._webscraper.get(event['iCalendar']['url'], verify=False)
+        event_time = self._webscraper.ical(response.text).subcomponents[0]['DTSTART'].dt
         event_time = pytz.timezone(self.TIMEZONE).localize(event_time)
 
         key = (event['Name']['label'],
                event_time)
 
         return key
-
-    def _not_in_web_interface(self, event):
-        '''Occasionally, an event will appear in the API, but not in the web
-        interface. This method checks attributes of the API event that tell us
-        whether the given event is one of those cases, returning True if so, and
-        False otherwise. Available for override in jurisdictional scrapers.
-        '''
-        return False
