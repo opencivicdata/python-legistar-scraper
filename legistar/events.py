@@ -72,7 +72,7 @@ class LegistarEventsScraper(LegistarScraper):
         # we might revisit the same event. So, we keep track of
         # the last few events we've visited in order to
         # make sure we are not revisiting
-        scraped_events = deque([], maxlen=10)
+        scraped_events = deque([], maxlen=100)
 
         current_year = self.now().year
 
@@ -92,7 +92,7 @@ class LegistarEventsScraper(LegistarScraper):
         for year in range(current_year + 1, since_year, -1):
             no_events_in_year = True
 
-            for page in self.eventPages(year):
+            for idx, page in enumerate(self.eventPages(year)):
                 events_table = page.xpath("//div[@id='ctl00_ContentPlaceHolder1_MultiPageCalendar']//table[@class='rgMasterTable']")[0]
                 for event, _, _ in self.parseDataTable(events_table):
                     ical_url = event['iCalendar']['url']
@@ -409,12 +409,11 @@ class LegistarAPIEventScraper(LegistarAPIScraper):
         return event_page_details
 
 
-class WebCalendarMixin:
+class WebCalendarFallbackMixin:
     """
-    Sometimes, it's desirable to retrieve information from the web calendar,
-    in addition to the API. This mixin extends the base functionality to get
-    event information from both the detail page linked to in the API and the
-    web calendar listing.
+    Sometimes, events are visible on the web calendar before their detail
+    link is accessible. Use this mixin to scrape to check the web calendar
+    for events if their detail link cannot be accessed.
     """
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -432,20 +431,30 @@ class WebCalendarMixin:
         if self._not_in_web_interface(api_event):
             return None
         
-        # None if detail link does not exist or cannot be found.
-        event_detail = super()._get_web_event(api_event) or {}
+        web_event = None
         
-        # None if entire web calendar scraped but event not found.
-        event_listing = self.web_results(api_event) or {}
+        if not self._detail_page_not_available(api_event):
+            web_event = super()._get_web_event(api_event)
+            
+        if web_event is None:
+            web_event = self.web_results(api_event)
         
-        return (event_listing | event_detail) or None
+        return web_event
+    
+    def _detail_page_not_available(self, api_event):
+        """
+        Sometimes, we can know from the API event that a detail link is
+        not available or will be invalid, so we can skip trying to access
+        it. Available for override in jurisdictional scrapers.
+        """
+        return False
 
     def web_results(self, event):
         api_key = (event['EventBodyName'].strip(),
                    event['start'])
 
-        # Check the cache of events we've already scraped from the web interface
-        # for the API event at hand.
+        # Check the cache of events we've already scraped from the web
+        # interface for the API event at hand.
         if api_key in self._scraped_events:
             return self._scraped_events[api_key]
 
