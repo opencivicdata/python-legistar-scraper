@@ -12,7 +12,8 @@ class LegistarAPIBillScraper(LegistarAPIScraper):
         '''
         Initialize the Bill scraper with a `scrape_restricted` property.
         Do not collect private bills (i.e., bills with 'MatterRestrictViewViaWeb'
-        set as True in the API), unless the scrapers have access to them, e.g., via a token.
+        set as True in the API), unless the scrapers have access to them,
+        e.g., via a token.
         '''
         super().__init__(*args, **kwargs)
 
@@ -34,8 +35,8 @@ class LegistarAPIBillScraper(LegistarAPIScraper):
                              'MatterDate1',
                              'MatterDate2',
                              # 'MatterEXDate1', # can't use all 17 search
-                                                # terms, this one always
-                                                # seems to be not set
+                             # terms, this one always
+                             # seems to be not set
                              'MatterEXDate2',
                              'MatterEXDate3',
                              'MatterEXDate4',
@@ -147,12 +148,14 @@ class LegistarAPIBillScraper(LegistarAPIScraper):
     def history(self, matter_id):
         actions = self.endpoint('/matters/{0}/histories', matter_id)
         for action in actions:
-            action['MatterHistoryActionName'] = action['MatterHistoryActionName'].strip()
+            action['MatterHistoryActionName'] = (
+                action['MatterHistoryActionName'].strip()
+            )
 
         actions = sorted((action for action in actions
-                          if (action['MatterHistoryActionDate'] and
-                              action['MatterHistoryActionName'] and
-                              action['MatterHistoryActionBodyName'])),
+                          if (action['MatterHistoryActionDate']
+                              and action['MatterHistoryActionName']
+                              and action['MatterHistoryActionBodyName'])),
                          key=lambda action: action['MatterHistoryActionDate'])
 
         # sometimes there are exact duplicates of actions. while this
@@ -172,11 +175,14 @@ class LegistarAPIBillScraper(LegistarAPIScraper):
                 uniq_actions.append(action)
                 previous_key = current_key
             else:
-                self.warning('"{0} by {1}" appears more than once in {2}/matters/{3}/histories. Duplicate actions have been removed.'.format(
-                    current_key[0],
-                    current_key[1],
-                    self.BASE_URL,
-                    matter_id))
+                self.warning(
+                    '"{0} by {1}" appears more than once in '
+                    '{2}/matters/{3}/histories. Duplicate actions have been '
+                    'removed.'.format(
+                        current_key[0],
+                        current_key[1],
+                        self.BASE_URL,
+                        matter_id))
 
         return uniq_actions
 
@@ -242,7 +248,8 @@ class LegistarAPIBillScraper(LegistarAPIScraper):
 
     def text(self, matter_id, latest_version_value=None):
         '''Historically, we have determined the latest version of a bill
-        by finding the version with the highest value (either numerical or alphabetical).
+        by finding the version with the highest value (either numerical
+        or alphabetical).
 
         However, the `MatterVersion` field on the matter detail page
         most accurately identifies the latest version of a bill.
@@ -301,7 +308,11 @@ class LegistarAPIBillScraper(LegistarAPIScraper):
         # If the status code is anything but a 200 or 302, something is wrong.
         # Raise an HTTPError to interrupt the scrape.
         else:
-            self.error('{0} returned an unexpected status code: {1}'.format(gateway_url, response.status_code))
+            self.error(
+                '{0} returned an unexpected status code: {1}'.format(
+                    gateway_url, response.status_code
+                )
+            )
             response.status_code = 500
             raise scrapelib.HTTPError(response)
 
@@ -312,8 +323,13 @@ class LegistarAPIBillScraper(LegistarAPIScraper):
 
         see `accept_response` for more discussion of why we are doing this.
         '''
-        missing = (response.status_code == 500 and
-                   response.json().get('InnerException', {}).get('ExceptionMessage', '') == "The cast to value type 'System.Int32' failed because the materialized value is null. Either the result type's generic parameter or the query must use a nullable type.") # noqa : 501
+        missing = (response.status_code == 500
+                   and response.json().get('InnerException', {}).get(
+                       'ExceptionMessage', '') == (
+                       "The cast to value type 'System.Int32' failed because the "
+                       "materialized value is null. Either the result type's "
+                       "generic parameter or the query must use a nullable type."
+                   ))
         return missing
 
     def accept_response(self, response, **kwargs):
@@ -331,7 +347,7 @@ class LegistarAPIBillScraper(LegistarAPIScraper):
         we short circuit scrapelib's retry mechanism for this particular
         error.
         '''
-        accept = (super().accept_response(response) or
-                  self._missing_votes(response) or
-                  response.status_code <= 403)
+        accept = (super().accept_response(response)
+                  or self._missing_votes(response)
+                  or response.status_code <= 403)
         return accept

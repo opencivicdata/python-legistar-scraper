@@ -12,7 +12,10 @@ def save_page(page, jurisdiction, outfile):
     test_directory = os.path.abspath(os.path.dirname(__file__))
     project_directory = os.path.join(test_directory, '..')
 
-    with open(os.path.join(project_directory, 'tests', 'fixtures', jurisdiction, outfile), 'wb') as f:
+    fixture_path = os.path.join(
+        project_directory, 'tests', 'fixtures', jurisdiction, outfile
+    )
+    with open(fixture_path, 'wb') as f:
         f.write(lxml.html.tostring(page))
 
 

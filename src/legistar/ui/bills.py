@@ -15,14 +15,14 @@ class LegistarBillScraper(LegistarScraper):
         scraped_leg = deque([], maxlen=10)
 
         for page in self.search_legislation(search_text, created_after,
-                                           created_before):
+                                            created_before):
             for legislation_summary in self.parse_search_results(page):
                 if not legislation_summary['url'] in scraped_leg:
                     yield legislation_summary
                     scraped_leg.append(legislation_summary['url'])
 
     def search_legislation(self, search_text='', created_after=None,
-                          created_before=None):
+                           created_before=None):
         """
         Submit a search query on the legislation search page, and return a list
         of summary results.
@@ -53,7 +53,8 @@ class LegistarBillScraper(LegistarScraper):
 
         # Return up to one million search results
         payload['ctl00_ContentPlaceHolder1_lstMax_ClientState'] = '{"value":"1000000"}'
-        payload['ctl00_ContentPlaceHolder1_lstYearsAdvanced_ClientState'] = '{"value":"All"}'
+        payload['ctl00_ContentPlaceHolder1_lstYearsAdvanced_ClientState'] = (
+            '{"value":"All"}')
         payload['ctl00$ContentPlaceHolder1$btnSearch'] = 'Search Legislation'
 
         payload.update(self.session_secrets(page))
@@ -98,7 +99,9 @@ class LegistarBillScraper(LegistarScraper):
 
             page = self.lxmlize(self.LEGISLATION_URL, payload)
 
-            if 'simple search' not in page.xpath("//input[@id='ctl00_ContentPlaceHolder1_btnSwitch']")[0].value.lower():
+            search_button = page.xpath(
+                "//input[@id='ctl00_ContentPlaceHolder1_btnSwitch']")[0]
+            if 'simple search' not in search_button.value.lower():
                 raise ValueError('Not on the advanced search page')
 
             return page

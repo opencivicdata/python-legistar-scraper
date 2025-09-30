@@ -67,8 +67,8 @@ class LegistarSession(requests.Session):
 
     def _range_is_all(self, payload):
         range_var = 'ctl00_ContentPlaceHolder1_lstYears_ClientState'
-        all_range = (range_var in payload and
-                     json.loads(payload[range_var])['value'] == 'All')
+        all_range = (range_var in payload
+                     and json.loads(payload[range_var])['value'] == 'All')
         return all_range
 
 
@@ -185,7 +185,8 @@ class LegistarScraper(scrapelib.Scraper, LegistarSession):
                     if field.find('.//a') is not None:
                         address = self._get_link_address(field.find('.//a'))
                         if address:
-                            if key.strip() in ['', 'ics'] and 'View.ashx?M=IC' in address:
+                            if (key.strip() in ['', 'ics']
+                                    and 'View.ashx?M=IC' in address):
                                 key = 'iCalendar'
                                 value = {'url': address}
                             else:
@@ -210,10 +211,10 @@ class LegistarScraper(scrapelib.Scraper, LegistarSession):
         url = None
         if 'onclick' in link.attrib:
             onclick = link.attrib['onclick']
-            if (onclick is not None and
-                onclick.startswith(("radopen('",
-                                    "window.open",
-                                    "OpenTelerikWindow"))):
+            if (onclick is not None
+                    and onclick.startswith(("radopen('",
+                                            "window.open",
+                                            "OpenTelerikWindow"))):
                 onclick_path = onclick.split("'")[1]
                 if not onclick_path.startswith("/"):
                     onclick_path = "/" + onclick_path

@@ -10,7 +10,9 @@ from src.legistar.ui.people import LegistarPersonScraper
 
 @pytest.mark.parametrize('jurisdiction', ['chicago', 'metro', 'nyc'])
 def test_parse_bills(project_directory, jurisdiction):
-    bills_fixture = os.path.join(project_directory, 'tests', 'fixtures', jurisdiction, 'bills.html')
+    bills_fixture = os.path.join(
+        project_directory, 'tests', 'fixtures', jurisdiction, 'bills.html'
+    )
 
     scraper = LegistarBillScraper()
     scraper.BASE_URL = '{}.legistar.com'.format(jurisdiction)
@@ -23,7 +25,9 @@ def test_parse_bills(project_directory, jurisdiction):
 
 @pytest.mark.parametrize('jurisdiction', ['chicago', 'metro', 'nyc'])
 def test_parse_events(project_directory, mocker, jurisdiction):
-    events_fixture = os.path.join(project_directory, 'tests', 'fixtures', jurisdiction, 'events.html')
+    events_fixture = os.path.join(
+        project_directory, 'tests', 'fixtures', jurisdiction, 'events.html'
+    )
 
     scraper = LegistarEventsScraper()
     scraper.BASE_URL = '{}.legistar.com'.format(jurisdiction)
@@ -37,12 +41,14 @@ def test_parse_events(project_directory, mocker, jurisdiction):
 
 @pytest.mark.parametrize('jurisdiction', ['chicago', 'metro', 'nyc'])
 def test_parse_people(project_directory, mocker, jurisdiction):
-    events_fixture = os.path.join(project_directory, 'tests', 'fixtures', jurisdiction, 'people.html')
+    people_fixture = os.path.join(
+        project_directory, 'tests', 'fixtures', jurisdiction, 'people.html'
+    )
 
     scraper = LegistarPersonScraper()
     scraper.BASE_URL = '{}.legistar.com'.format(jurisdiction)
 
-    with open(events_fixture, 'r') as f:
+    with open(people_fixture, 'r') as f:
         page = lxml.html.fromstring(f.read())
         mocker.patch.object(scraper, 'pages', return_value=page)
         result = next(scraper.council_members(follow_links=False))

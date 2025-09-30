@@ -44,10 +44,12 @@ class LegistarAPIScraper(scrapelib.Scraper):
                     This is necessary for proper pagination. examples
                     might be MatterId or EventId
         search_conditions -- a string in the OData format for the
-                             your search conditions http://www.odata.org/documentation/odata-version-3-0/url-conventions/#url5.1.2
+                             your search conditions
+                             http://www.odata.org/documentation/odata-version-3-0/url-conventions/#url5.1.2
 
                              It would be nice if we could provide a
-                             friendly search API. Something like https://github.com/tuomur/python-odata
+                             friendly search API. Something like
+                             https://github.com/tuomur/python-odata
 
 
         Examples:

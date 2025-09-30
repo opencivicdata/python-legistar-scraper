@@ -118,16 +118,16 @@ class LegistarAPIEventScraperBase(LegistarAPIScraper, metaclass=ABCMeta):
             )
 
     def agenda(self, event):
-        agenda_url = (self.BASE_URL +
-                      '/events/{}/eventitems'.format(event['EventId']))
+        agenda_url = (self.BASE_URL
+                      + '/events/{}/eventitems'.format(event['EventId']))
 
         response = self.get(agenda_url)
 
         # If an event item does not have a value for
         # EventItemAgendaSequence, it is not on the agenda
         filtered_items = (item for item in response.json()
-                          if (item['EventItemTitle'] and
-                              item['EventItemAgendaSequence']))
+                          if (item['EventItemTitle']
+                              and item['EventItemAgendaSequence']))
         sorted_items = sorted(filtered_items,
                               key=lambda item: item['EventItemAgendaSequence'])
 
@@ -136,16 +136,16 @@ class LegistarAPIEventScraperBase(LegistarAPIScraper, metaclass=ABCMeta):
             yield item
 
     def minutes(self, event):
-        minutes_url = (self.BASE_URL +
-                       '/events/{}/eventitems'.format(event['EventId']))
+        minutes_url = (self.BASE_URL
+                       + '/events/{}/eventitems'.format(event['EventId']))
 
         response = self.get(minutes_url)
 
         # If an event item does not have a value for
         # EventItemMinutesSequence, it is not in the minutes
         filtered_items = (item for item in response.json()
-                          if (item['EventItemTitle'] and
-                              item['EventItemMinutesSequence']))
+                          if (item['EventItemTitle']
+                              and item['EventItemMinutesSequence']))
         sorted_items = sorted(filtered_items,
                               key=lambda item: item['EventItemMinutesSequence'])
 
