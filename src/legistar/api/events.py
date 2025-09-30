@@ -20,7 +20,8 @@ class LegistarAPIEventScraperBase(LegistarAPIScraper, metaclass=ABCMeta):
     def _init_webscraper(self):
         webscraper = self.webscraper_class(
             requests_per_minute=self.requests_per_minute,
-            retry_attempts=self.WEB_RETRY_EVENTS)
+            retry_attempts=self.WEB_RETRY_EVENTS,
+        )
 
         if self.cache_storage:
             webscraper.cache_storage = self.cache_storage
@@ -31,7 +32,7 @@ class LegistarAPIEventScraperBase(LegistarAPIScraper, metaclass=ABCMeta):
         webscraper.EVENTSPAGE = self.EVENTSPAGE
         webscraper.BASE_URL = self.WEB_URL
         webscraper.TIMEZONE = self.TIMEZONE
-        webscraper.date_format = '%m/%d/%Y'
+        webscraper.date_format = "%m/%d/%Y"
 
         return webscraper
 
@@ -44,7 +45,7 @@ class LegistarAPIEventScraperBase(LegistarAPIScraper, metaclass=ABCMeta):
         # scraping jobs easier because upon a scrape failure we can
         # import everything scraped and then scrape everything newer
         # then the last event we scraped
-        params = {'$orderby': 'EventLastModifiedUtc'}
+        params = {"$orderby": "EventLastModifiedUtc"}
 
         if since_datetime:
             # We include events three days before the given start date
@@ -57,24 +58,24 @@ class LegistarAPIEventScraperBase(LegistarAPIScraper, metaclass=ABCMeta):
             # corresponding event modification. Query all update fields so later
             # changes are always caught by our scraper, particularly when
             # scraping narrower windows of time.
-            update_fields = ('EventDate',
-                             'EventLastModifiedUtc',
-                             'EventAgendaLastPublishedUTC',
-                             'EventMinutesLastPublishedUTC')
+            update_fields = (
+                "EventDate",
+                "EventLastModifiedUtc",
+                "EventAgendaLastPublishedUTC",
+                "EventMinutesLastPublishedUTC",
+            )
 
             since_fmt = "{field} gt datetime'{since_datetime}'"
-            since_filter =\
-                ' or '.join(since_fmt.format(field=field,
-                                             since_datetime=since_iso)
-                            for field in update_fields)
+            since_filter = " or ".join(
+                since_fmt.format(field=field, since_datetime=since_iso)
+                for field in update_fields
+            )
 
-            params['$filter'] = since_filter
+            params["$filter"] = since_filter
 
-        events_url = self.BASE_URL + '/events/'
+        events_url = self.BASE_URL + "/events/"
 
-        yield from self.pages(events_url,
-                              params=params,
-                              item_key="EventId")
+        yield from self.pages(events_url, params=params, item_key="EventId")
 
     def events(self, since_datetime=None):
         for api_event in self.api_events(since_datetime=since_datetime):
@@ -118,43 +119,47 @@ class LegistarAPIEventScraperBase(LegistarAPIScraper, metaclass=ABCMeta):
             )
 
     def agenda(self, event):
-        agenda_url = (self.BASE_URL
-                      + '/events/{}/eventitems'.format(event['EventId']))
+        agenda_url = self.BASE_URL + "/events/{}/eventitems".format(event["EventId"])
 
         response = self.get(agenda_url)
 
         # If an event item does not have a value for
         # EventItemAgendaSequence, it is not on the agenda
-        filtered_items = (item for item in response.json()
-                          if (item['EventItemTitle']
-                              and item['EventItemAgendaSequence']))
-        sorted_items = sorted(filtered_items,
-                              key=lambda item: item['EventItemAgendaSequence'])
+        filtered_items = (
+            item
+            for item in response.json()
+            if (item["EventItemTitle"] and item["EventItemAgendaSequence"])
+        )
+        sorted_items = sorted(
+            filtered_items, key=lambda item: item["EventItemAgendaSequence"]
+        )
 
         for item in sorted_items:
             self._suppress_item_matter(item, agenda_url)
             yield item
 
     def minutes(self, event):
-        minutes_url = (self.BASE_URL
-                       + '/events/{}/eventitems'.format(event['EventId']))
+        minutes_url = self.BASE_URL + "/events/{}/eventitems".format(event["EventId"])
 
         response = self.get(minutes_url)
 
         # If an event item does not have a value for
         # EventItemMinutesSequence, it is not in the minutes
-        filtered_items = (item for item in response.json()
-                          if (item['EventItemTitle']
-                              and item['EventItemMinutesSequence']))
-        sorted_items = sorted(filtered_items,
-                              key=lambda item: item['EventItemMinutesSequence'])
+        filtered_items = (
+            item
+            for item in response.json()
+            if (item["EventItemTitle"] and item["EventItemMinutesSequence"])
+        )
+        sorted_items = sorted(
+            filtered_items, key=lambda item: item["EventItemMinutesSequence"]
+        )
 
         for item in sorted_items:
             self._suppress_item_matter(item, minutes_url)
             yield item
 
     def _suppress_item_matter(self, item, agenda_url):
-        '''
+        """
         Agenda items in Legistar do not always display links to
         associated matter files even if the same agenda item
         in the API references a Matter File. The agenda items
@@ -169,14 +174,15 @@ class LegistarAPIEventScraperBase(LegistarAPIScraper, metaclass=ABCMeta):
         logic should be used for all Legislative Bodies, this method
         is currently just a hook for being overridden in particular
         scrapers. As of now, at least LA Metro uses this hook.
-        '''
+        """
         pass
 
     def rollcalls(self, event):
         for item in self.agenda(event):
-            if item['EventItemRollCallFlag']:
-                rollcall_url = self.BASE_URL + \
-                    '/eventitems/{}/rollcalls'.format(item['EventItemId'])
+            if item["EventItemRollCallFlag"]:
+                rollcall_url = self.BASE_URL + "/eventitems/{}/rollcalls".format(
+                    item["EventItemId"]
+                )
 
                 response = self.get(rollcall_url)
 
@@ -185,24 +191,26 @@ class LegistarAPIEventScraperBase(LegistarAPIScraper, metaclass=ABCMeta):
 
     def add_docs(self, e, events, doc_type):
         try:
-            if events[doc_type] != 'Not\xa0available':
-                e.add_document(note=events[doc_type]['label'],
-                               url=events[doc_type]['url'],
-                               media_type="application/pdf")
+            if events[doc_type] != "Not\xa0available":
+                e.add_document(
+                    note=events[doc_type]["label"],
+                    url=events[doc_type]["url"],
+                    media_type="application/pdf",
+                )
         except ValueError:
             pass
 
     def _event_status(self, event):
-        '''Events can have a status of tentative, confirmed, cancelled, or
+        """Events can have a status of tentative, confirmed, cancelled, or
         passed (http://docs.opencivicdata.org/en/latest/data/event.html). By
         default, set status to passed if the current date and time exceeds the
         event date and time, or confirmed otherwise. Available for override in
         jurisdictional scrapers.
-        '''
-        if datetime.datetime.utcnow().replace(tzinfo=pytz.utc) > event['start']:
-            status = 'passed'
+        """
+        if datetime.datetime.utcnow().replace(tzinfo=pytz.utc) > event["start"]:
+            status = "passed"
         else:
-            status = 'confirmed'
+            status = "confirmed"
 
         return status
 
@@ -213,11 +221,11 @@ class LegistarAPIEventScraper(LegistarAPIEventScraperBase):
         return self.web_detail(api_event)
 
     def web_detail(self, event):
-        '''
+        """
         Grabs the information for an event from the Legistar website
         and returns as a dictionary.
-        '''
-        insite_url = event['EventInSiteURL']
+        """
+        insite_url = event["EventInSiteURL"]
 
         try:
             event_page = self._webscraper.lxmlize(insite_url)
@@ -234,21 +242,22 @@ class LegistarAPIEventScraper(LegistarAPIEventScraperBase):
             else:
                 raise
 
-        div_id = 'ctl00_ContentPlaceHolder1_pageTop1'
+        div_id = "ctl00_ContentPlaceHolder1_pageTop1"
         detail_div = event_page.xpath(".//div[@id='%s']" % div_id)[0]
 
         event_page_details = self._webscraper.parse_details(detail_div)
-        event_page_details['Meeting Details'] = {'url': insite_url}
+        event_page_details["Meeting Details"] = {"url": insite_url}
 
         return event_page_details
 
 
 class LegistarAPIEventScraperZip(LegistarAPIEventScraperBase):
-    '''
+    """
     There are some inSite sites that have information that only appears
     event listing page, like NYC's 'Meeting Topic.' This scraper visits
     the listing page and attempts to zip API and web events together
-    '''
+    """
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
@@ -269,8 +278,7 @@ class LegistarAPIEventScraperZip(LegistarAPIEventScraperBase):
             return self.web_results(api_event)
 
     def web_results(self, event):
-        api_key = (event['EventBodyName'].strip(),
-                   event['start'])
+        api_key = (event["EventBodyName"].strip(), event["start"])
 
         # Check the cache of events we've already scraped from the web interface
         # for the API event at hand.
@@ -287,33 +295,32 @@ class LegistarAPIEventScraperZip(LegistarAPIEventScraperBase):
                     return event
 
     def _scrapeWebCalendar(self):
-        '''Generator yielding events from Legistar in roughly reverse
+        """Generator yielding events from Legistar in roughly reverse
         chronological order.
-        '''
+        """
         for event, _ in self._webscraper.events(follow_links=False):
             event_key = self._event_key(event, self._webscraper)
             yield event_key, event
 
     def _event_key(self, event, web_scraper):
-        '''Since Legistar InSite contains more information about events than
+        """Since Legistar InSite contains more information about events than
         are available in the API, we need to scrape both. Then, we have
         to line them up. This method makes a key that should be
         uniquely identify every event and will allow us to link
         events from the two data sources.
-        '''
-        response = web_scraper.get(event['iCalendar']['url'], verify=False)
-        event_time = web_scraper.ical(response.text).subcomponents[0]['DTSTART'].dt
+        """
+        response = web_scraper.get(event["iCalendar"]["url"], verify=False)
+        event_time = web_scraper.ical(response.text).subcomponents[0]["DTSTART"].dt
         event_time = pytz.timezone(self.TIMEZONE).localize(event_time)
 
-        key = (event['Name']['label'],
-               event_time)
+        key = (event["Name"]["label"], event_time)
 
         return key
 
     def _not_in_web_interface(self, event):
-        '''Occasionally, an event will appear in the API, but not in the web
+        """Occasionally, an event will appear in the API, but not in the web
         interface. This method checks attributes of the API event that tell us
         whether the given event is one of those cases, returning True if so, and
         False otherwise. Available for override in jurisdictional scrapers.
-        '''
+        """
         return False

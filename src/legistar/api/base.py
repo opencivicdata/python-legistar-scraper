@@ -8,9 +8,9 @@ import pytz
 
 
 class LegistarAPIScraper(scrapelib.Scraper):
-    date_format = '%Y-%m-%dT%H:%M:%S'
-    time_string_format = '%I:%M %p'
-    utc_timestamp_format = '%Y-%m-%dT%H:%M:%S.%f'
+    date_format = "%Y-%m-%dT%H:%M:%S"
+    time_string_format = "%I:%M %p"
+    utc_timestamp_format = "%Y-%m-%dT%H:%M:%S.%f"
 
     def __init__(self, *args, **kwargs):
         super(LegistarAPIScraper, self).__init__(*args, **kwargs)
@@ -26,11 +26,11 @@ class LegistarAPIScraper(scrapelib.Scraper):
         try:
             time = datetime.datetime.strptime(text, self.utc_timestamp_format)
         except ValueError as e:
-            if 'does not match format' in str(e):
+            if "does not match format" in str(e):
                 time = datetime.datetime.strptime(text, self.date_format)
             else:
                 raise
-        time = pytz.timezone('UTC').localize(time)
+        time = pytz.timezone("UTC").localize(time)
         return time
 
     def search(self, route, item_key, search_conditions):
@@ -59,15 +59,13 @@ class LegistarAPIScraper(scrapelib.Scraper):
 
         search_url = self.BASE_URL + route
 
-        params = {'$filter': search_conditions}
+        params = {"$filter": search_conditions}
 
         try:
-            yield from self.pages(search_url,
-                                  params=params,
-                                  item_key=item_key)
+            yield from self.pages(search_url, params=params, item_key=item_key)
         except requests.HTTPError as e:
             if e.response.status_code == 400:
-                raise ValueError(e.response.json()['Message'])
+                raise ValueError(e.response.json()["Message"])
             if not self.accept_response(e.response):
                 raise
 
@@ -80,7 +78,7 @@ class LegistarAPIScraper(scrapelib.Scraper):
         page_num = 0
         response = None
         while page_num == 0 or len(response.json()) == 1000:
-            params['$skip'] = page_num * 1000
+            params["$skip"] = page_num * 1000
             response = self.get(url, params=params)
             response.raise_for_status()
 

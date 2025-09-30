@@ -44,7 +44,8 @@ dev = [
     "pytest-mock",
     "requests-mock",
     "flake8",
-    "flake8-pyproject"
+    "flake8-pyproject",
+    "black",
 ]
 test = [
     "pytest",
