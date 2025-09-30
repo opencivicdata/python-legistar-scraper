@@ -3,9 +3,9 @@ import sys
 
 import lxml
 
-from legistar.bills import LegistarBillScraper
-from legistar.events import LegistarEventsScraper
-from legistar.people import LegistarPersonScraper
+from src.legistar.ui.bills import LegistarBillScraper
+from src.legistar.ui.events import LegistarEventsScraper
+from src.legistar.ui.people import LegistarPersonScraper
 
 
 def save_page(page, jurisdiction, outfile):
@@ -20,7 +20,7 @@ def refresh_bills(jurisdiction):
     s = LegistarBillScraper()
     s.LEGISLATION_URL = 'https://{}.legistar.com/Legislation.aspx'.format(jurisdiction)
 
-    page = next(s.searchLegislation('bus'))
+    page = next(s.search_legislation('bus'))
 
     save_page(page, jurisdiction, 'bills.html')
 
@@ -29,7 +29,7 @@ def refresh_events(jurisdiction):
     s = LegistarEventsScraper()
     s.EVENTSPAGE = 'https://{}.legistar.com/Calendar.aspx'.format(jurisdiction)
 
-    page = next(s.eventPages('2018-01-01'))
+    page = next(s.event_pages('2018-01-01'))
 
     save_page(page, jurisdiction, 'events.html')
 

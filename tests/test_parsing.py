@@ -3,9 +3,9 @@ import os
 import lxml
 import pytest
 
-from legistar.bills import LegistarBillScraper
-from legistar.events import LegistarEventsScraper
-from legistar.people import LegistarPersonScraper
+from src.legistar.ui.bills import LegistarBillScraper
+from src.legistar.ui.events import LegistarEventsScraper
+from src.legistar.ui.people import LegistarPersonScraper
 
 
 @pytest.mark.parametrize('jurisdiction', ['chicago', 'metro', 'nyc'])
@@ -17,7 +17,7 @@ def test_parse_bills(project_directory, jurisdiction):
 
     with open(bills_fixture, 'r') as f:
         page = lxml.html.fromstring(f.read())
-        result = next(scraper.parseSearchResults(page))
+        result = next(scraper.parse_search_results(page))
         print(result)
 
 
@@ -30,7 +30,7 @@ def test_parse_events(project_directory, mocker, jurisdiction):
 
     with open(events_fixture, 'r') as f:
         page = lxml.html.fromstring(f.read())
-        mocker.patch.object(scraper, 'eventPages', return_value=page)
+        mocker.patch.object(scraper, 'event_pages', return_value=page)
         result, _ = next(scraper.events(follow_links=False))
         print(result)
 
@@ -45,5 +45,5 @@ def test_parse_people(project_directory, mocker, jurisdiction):
     with open(events_fixture, 'r') as f:
         page = lxml.html.fromstring(f.read())
         mocker.patch.object(scraper, 'pages', return_value=page)
-        result = next(scraper.councilMembers(follow_links=False))
+        result = next(scraper.council_members(follow_links=False))
         print(result)

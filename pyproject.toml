@@ -1,0 +1,95 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "legistar"
+dynamic = ["version"]
+description = "Mixin classes for legistar scrapers"
+readme = "README.md"
+license = {text = "BSD"}
+authors = [
+    {name = "Forest Gregg", email = "fgregg@datamade.us"}
+]
+maintainers = [
+    {name = "Forest Gregg", email = "fgregg@datamade.us"}
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: BSD License",
+    "Natural Language :: English",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+dependencies = [
+    "requests",
+    "lxml",
+    "pytz",
+    "icalendar",
+    "scrapelib",
+    "esprima"
+]
+requires-python = ">=3.8"
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "pytest-mock",
+    "requests-mock",
+    "flake8"
+]
+test = [
+    "pytest",
+    "pytest-mock",
+    "requests-mock"
+]
+
+[project.urls]
+Homepage = "http://github.com/opencivicdata/python-legistar-scraper/"
+Repository = "http://github.com/opencivicdata/python-legistar-scraper/"
+Issues = "http://github.com/opencivicdata/python-legistar-scraper/issues"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.dynamic]
+version = {attr = "legistar.__version__"}
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = "-v -p no:warnings"
+norecursedirs = [".env"]
+
+[tool.flake8]
+max-line-length = 88
+max-complexity = 10
+exclude = [
+    ".git",
+    "__pycache__",
+    "build",
+    "dist",
+    ".env",
+    ".venv",
+    "venv",
+    "*.egg-info"
+]
+ignore = [
+    "E203",  # whitespace before ':' (conflicts with black)
+    "W503",  # line break before binary operator (PEP 8 recommends this)
+]
+per-file-ignores = [
+    "__init__.py:F401",  # imported but unused (common in __init__.py files)
+]

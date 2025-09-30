@@ -1,11 +1,10 @@
 import datetime
 import itertools
 import traceback
-from collections import defaultdict, deque
+from collections import defaultdict
 import re
 import requests
 import json
-import logging
 
 import scrapelib
 import lxml.html
@@ -62,7 +61,7 @@ class LegistarSession(requests.Session):
                 # contain the correct payload data.  This comes as a
                 # result of not updating the payload via sessionSecrets:
                 # so, we do that here.
-                payload.update(self.sessionSecrets(page))
+                payload.update(self.session_secrets(page))
 
                 raise scrapelib.HTTPError(response)
 
@@ -106,7 +105,7 @@ class LegistarScraper(scrapelib.Scraper, LegistarSession):
             if payload is None:
                 payload = {}
 
-            payload.update(self.sessionSecrets(page))
+            payload.update(self.session_secrets(page))
 
             event_target = next_page[0].attrib['href'].split("'")[1]
 
@@ -119,7 +118,7 @@ class LegistarScraper(scrapelib.Scraper, LegistarSession):
             next_page = page.xpath(
                 "//a[@class='rgCurrentPage']/following-sibling::a[1]")
 
-    def parseDetails(self, detail_div):
+    def parse_details(self, detail_div):
         """
         Parse the data in the top section of a detail page.
         """
@@ -130,7 +129,7 @@ class LegistarScraper(scrapelib.Scraper, LegistarSession):
 
         details = {}
 
-        for field_key, field in itertools.groupby(fields, fieldKey):
+        for field_key, field in itertools.groupby(fields, field_key):
             field = list(field)
             field_1, field_2 = field[0], field[-1]
 
@@ -156,7 +155,7 @@ class LegistarScraper(scrapelib.Scraper, LegistarSession):
 
         return details
 
-    def parseDataTable(self, table):
+    def parse_data_table(self, table):
         """
         Legistar uses the same kind of data table in a number of
         places. This will return a list of dictionaries using the
@@ -239,13 +238,13 @@ class LegistarScraper(scrapelib.Scraper, LegistarSession):
                 em.text = "--em--" + em.text + "--em--"
         return field.text_content().replace('&nbsp;', ' ').strip()
 
-    def toTime(self, text):
+    def to_time(self, text):
         time = datetime.datetime.strptime(text, self.date_format)
         time = pytz.timezone(self.TIMEZONE).localize(time)
         return time
 
-    def toDate(self, text):
-        return self.toTime(text).date().isoformat()
+    def to_date(self, text):
+        return self.to_time(text).date().isoformat()
 
     def now(self):
         return datetime.datetime.utcnow().replace(tzinfo=pytz.utc)
@@ -254,7 +253,7 @@ class LegistarScraper(scrapelib.Scraper, LegistarSession):
         month, day, year = text.split('/')
         return "%d-%02d-%02d" % (int(year), int(month), int(day))
 
-    def sessionSecrets(self, page):
+    def session_secrets(self, page):
 
         payload = {}
         payload['__EVENTARGUMENT'] = None
@@ -266,7 +265,7 @@ class LegistarScraper(scrapelib.Scraper, LegistarSession):
         except IndexError:
             pass
 
-        return(payload)
+        return payload
 
     def accept_response(self, response, **kwargs):
         if response.status_code == 410:
@@ -274,101 +273,9 @@ class LegistarScraper(scrapelib.Scraper, LegistarSession):
         return super().accept_response(response, **kwargs)
 
 
-def fieldKey(x):
+def field_key(x):
     field_id = x.attrib['id']
     field = re.split(r'hyp|lbl|Label', field_id)[-1]
     field = field.split('Prompt')[0]
     field = field.rstrip('X21')
     return field
-
-
-class LegistarAPIScraper(scrapelib.Scraper):
-    date_format = '%Y-%m-%dT%H:%M:%S'
-    time_string_format = '%I:%M %p'
-    utc_timestamp_format = '%Y-%m-%dT%H:%M:%S.%f'
-
-    def __init__(self, *args, **kwargs):
-        super(LegistarAPIScraper, self).__init__(*args, **kwargs)
-        self.logger = logging.getLogger("legistar")
-        self.warning = self.logger.warning
-
-    def toTime(self, text):
-        time = datetime.datetime.strptime(text, self.date_format)
-        time = pytz.timezone(self.TIMEZONE).localize(time)
-        return time
-
-    def to_utc_timestamp(self, text):
-        try:
-            time = datetime.datetime.strptime(text, self.utc_timestamp_format)
-        except ValueError as e:
-            if 'does not match format' in str(e):
-                time = datetime.datetime.strptime(text, self.date_format)
-            else:
-                raise
-        time = pytz.timezone('UTC').localize(time)
-        return time
-
-    def search(self, route, item_key, search_conditions):
-        """
-        Base function for searching the Legistar API.
-
-        Arguments:
-
-        route -- The path to search, i.e. /matters/, /events/, etc
-        item_key -- The unique id field for the items that you are searching.
-                    This is necessary for proper pagination. examples
-                    might be MatterId or EventId
-        search_conditions -- a string in the OData format for the
-                             your search conditions http://www.odata.org/documentation/odata-version-3-0/url-conventions/#url5.1.2
-
-                             It would be nice if we could provide a
-                             friendly search API. Something like https://github.com/tuomur/python-odata
-
-
-        Examples:
-        # Search for bills introduced after Jan. 1, 2017
-        search('/matters/', 'MatterId', "MatterIntroDate gt datetime'2017-01-01'")
-        """
-
-        search_url = self.BASE_URL + route
-
-        params = {'$filter': search_conditions}
-
-        try:
-            yield from self.pages(search_url,
-                                  params=params,
-                                  item_key=item_key)
-        except requests.HTTPError as e:
-            if e.response.status_code == 400:
-                raise ValueError(e.response.json()['Message'])
-            if not self.accept_response(e.response):
-                raise
-
-    def pages(self, url, params=None, item_key=None):
-        if params is None:
-            params = {}
-
-        seen = deque([], maxlen=1000)
-
-        page_num = 0
-        response = None
-        while page_num == 0 or len(response.json()) == 1000:
-            params['$skip'] = page_num * 1000
-            response = self.get(url, params=params)
-            response.raise_for_status()
-
-            for item in response.json():
-                if item[item_key] not in seen:
-                    yield item
-                    seen.append(item[item_key])
-
-            page_num += 1
-
-    def accept_response(self, response, **kwargs):
-        """
-        This overrides a method that controls whether
-        the scraper should retry on an error. We don't
-        want to retry if the API returns a 400, except for
-        410, which means the record no longer exists.
-        """
-        return response.status_code < 401 or response.status_code == 410

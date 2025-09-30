@@ -3,8 +3,8 @@ import os
 
 import pytest
 
-from legistar import base
-from legistar.bills import LegistarAPIBillScraper
+from src.legistar.api import base
+from src.legistar.api.bills import LegistarAPIBillScraper
 
 
 @pytest.fixture(scope="module")
