@@ -12,6 +12,14 @@ import lxml.etree as etree
 import pytz
 
 
+def field_key(x):
+    field_id = x.attrib['id']
+    field = re.split(r'hyp|lbl|Label', field_id)[-1]
+    field = field.split('Prompt')[0]
+    field = field.rstrip('X21')
+    return field
+
+
 class LegistarSession(requests.Session):
 
     def request(self, method, url, **kwargs):
@@ -271,11 +279,3 @@ class LegistarScraper(scrapelib.Scraper, LegistarSession):
         if response.status_code == 410:
             return True
         return super().accept_response(response, **kwargs)
-
-
-def field_key(x):
-    field_id = x.attrib['id']
-    field = re.split(r'hyp|lbl|Label', field_id)[-1]
-    field = field.split('Prompt')[0]
-    field = field.rstrip('X21')
-    return field
