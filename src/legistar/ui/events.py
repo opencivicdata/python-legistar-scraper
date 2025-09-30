@@ -97,7 +97,7 @@ class LegistarEventsScraper(LegistarScraper):
 
             for page in self.event_pages(year):
                 events_table = page.xpath(
-                    "//div[@id='ctl00_ContentPlaceHolder1_MultiPageCalendar']//table[@class='rgMasterTable']". # noqa
+                    "//div[@id='ctl00_ContentPlaceHolder1_MultiPageCalendar']//table[@class='rgMasterTable']"  # noqa
                 )[0]
                 for event, _, _ in self.parse_data_table(events_table):
                     ical_url = event["iCalendar"]["url"]
