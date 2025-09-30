@@ -5,10 +5,10 @@ import requests_mock
 
 def test_topics(metro_api_bill_scraper, matter_index, all_indexes):
     with requests_mock.Mocker() as m:
-        matter_matcher = re.compile(r'/matters/5036/indexes')
+        matter_matcher = re.compile(r"/matters/5036/indexes")
         m.get(matter_matcher, json=matter_index, status_code=200)
 
-        all_matcher = re.compile(r'/metro/indexes')
+        all_matcher = re.compile(r"/metro/indexes")
         m.get(all_matcher, json=all_indexes, status_code=200)
 
         matter_topics = metro_api_bill_scraper.topics(5036)
@@ -23,38 +23,42 @@ def test_topics(metro_api_bill_scraper, matter_index, all_indexes):
 
 def test_duplicate_events(chicago_api_bill_scraper, caplog, dupe_event):
     with requests_mock.Mocker() as m:
-        event_matcher = re.compile('/matters/38768/histories')
+        event_matcher = re.compile("/matters/38768/histories")
         m.get(event_matcher, json=dupe_event, status_code=200)
 
-        chicago_api_bill_scraper.history('38768')
-        assert 'appears more than once' in caplog.text
+        chicago_api_bill_scraper.history("38768")
+        assert "appears more than once" in caplog.text
 
 
 def test_no_duplicate(chicago_api_bill_scraper, caplog, no_dupe_event):
     with requests_mock.Mocker() as m:
-        event_matcher = re.compile('/matters/38769/histories')
+        event_matcher = re.compile("/matters/38769/histories")
         m.get(event_matcher, json=no_dupe_event, status_code=200)
 
-        chicago_api_bill_scraper.history('38769')
-        assert 'appears more than once' not in caplog.text
+        chicago_api_bill_scraper.history("38769")
+        assert "appears more than once" not in caplog.text
 
 
 def test_404_votes(chicago_api_bill_scraper):
     with requests_mock.Mocker() as m:
-        m.get(re.compile(r'.*'), status_code=404)
-        votes = chicago_api_bill_scraper.votes('408134')
+        m.get(re.compile(r".*"), status_code=404)
+        votes = chicago_api_bill_scraper.votes("408134")
         assert votes == []
 
 
 def test_500_votes(chicago_api_bill_scraper):
     with requests_mock.Mocker() as m:
-        m.get(re.compile(r'.*'),
-              json={'InnerException':
-                    {'ExceptionMessage':
-                     "The cast to value type 'System.Int32' failed "
-                     "because the materialized value is null. Either "
-                     "the result type's generic parameter or the query "
-                     "must use a nullable type."}},
-              status_code=500)
-        votes = chicago_api_bill_scraper.votes('408134')
+        m.get(
+            re.compile(r".*"),
+            json={
+                "InnerException": {
+                    "ExceptionMessage": "The cast to value type 'System.Int32' failed "
+                    "because the materialized value is null. Either "
+                    "the result type's generic parameter or the query "
+                    "must use a nullable type."
+                }
+            },
+            status_code=500,
+        )
+        votes = chicago_api_bill_scraper.votes("408134")
         assert votes == []
