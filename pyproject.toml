@@ -43,7 +43,8 @@ dev = [
     "pytest",
     "pytest-mock",
     "requests-mock",
-    "flake8"
+    "flake8",
+    "flake8-pyproject"
 ]
 test = [
     "pytest",
