@@ -22,7 +22,7 @@ class LegistarPersonScraper(LegistarScraper):
             )[0]
 
             for councilman, headers, row in self.parse_data_table(table):
-                if follow_links and type(councilman["Person Name"]) == dict:
+                if follow_links and isinstance(councilman["Person Name"], dict):
 
                     detail_url = councilman["Person Name"]["url"]
                     councilman_details = self.lxmlize(detail_url)

@@ -1,9 +1,6 @@
-import time
-import datetime
 from collections import deque
-import esprima
 
-import pytz
+import esprima
 import icalendar
 
 from .base import LegistarScraper
@@ -23,7 +20,11 @@ class LegistarEventsScraper(LegistarScraper):
     def ecomment_dict(self):
         """
         Parse event IDs and eComment links from JavaScript file with lines like:
-        activateEcomment('750', '138A085F-0AC1-4A33-B2F3-AC3D6D9F710B', 'https://metro.granicusideas.com/meetings/750-finance-budget-and-audit-committee-on-2020-03-16-5-00-pm-test');
+        activateEcomment(
+            '750',
+            '138A085F-0AC1-4A33-B2F3-AC3D6D9F710B',
+            'https://metro.granicusideas.com/meetings/750-finance-budget-and-audit-committee-on-2020-03-16-5-00-pm-test'. # noqa
+        );
         """
         if getattr(self, "_ecomment_dict", None) is None:
             ecomment_dict = {}
@@ -96,7 +97,7 @@ class LegistarEventsScraper(LegistarScraper):
 
             for page in self.event_pages(year):
                 events_table = page.xpath(
-                    "//div[@id='ctl00_ContentPlaceHolder1_MultiPageCalendar']//table[@class='rgMasterTable']"
+                    "//div[@id='ctl00_ContentPlaceHolder1_MultiPageCalendar']//table[@class='rgMasterTable']". # noqa
                 )[0]
                 for event, _, _ in self.parse_data_table(events_table):
                     ical_url = event["iCalendar"]["url"]
@@ -105,7 +106,7 @@ class LegistarEventsScraper(LegistarScraper):
                     else:
                         scraped_events.append(ical_url)
 
-                    if follow_links and type(event[self.event_info_key]) == dict:
+                    if follow_links and isinstance(event[self.event_info_key], dict):
                         agenda = self.agenda(event[self.event_info_key]["url"])
                     else:
                         agenda = None
