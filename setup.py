@@ -4,7 +4,7 @@ from legistar import __version__
 
 long_description = ''
 
-setup(name='legistar',
+setup(name='scraper-legistar',
       version=__version__,
       packages=['legistar'],
       author='Forest Gregg',
