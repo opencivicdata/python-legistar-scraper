@@ -173,6 +173,8 @@ class LegistarScraper(scrapelib.Scraper, LegistarSession):
                 keys.append(text_content)
             elif len(inputs) > 0:
                 keys.append(header.xpath('.//input')[0].value)
+            elif header.xpath(".//a"):
+                keys.append(header.xpath('.//a/text()')[0].replace('&nbsp;', ' ').strip())
             else:
                 keys.append(header.xpath('.//img')[0].get('alt'))
 
