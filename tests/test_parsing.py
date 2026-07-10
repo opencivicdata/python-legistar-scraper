@@ -1,11 +1,22 @@
 import os
 
 import lxml
+import lxml.html
 import pytest
 
+from legistar.base import LegistarScraper
 from legistar.bills import LegistarBillScraper
 from legistar.events import LegistarEventsScraper
 from legistar.people import LegistarPersonScraper
+
+
+@pytest.mark.parametrize('markup, expected', [
+    ('<td>Line1<br/>Line2</td>', 'Line1\nLine2'),        # <br> is a direct child of the cell
+    ('<td><font>Line1<br/>Line2</font></td>', 'Line1\nLine2'),  # <br> nested in a child element
+])
+def test_stringify_br_becomes_newline(markup, expected):
+    scraper = LegistarScraper()
+    assert scraper._stringify(lxml.html.fromstring(markup)) == expected
 
 
 @pytest.mark.parametrize('jurisdiction', ['chicago', 'metro', 'nyc'])

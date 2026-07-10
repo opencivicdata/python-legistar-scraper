@@ -232,9 +232,9 @@ class LegistarScraper(scrapelib.Scraper, LegistarSession):
         return None
 
     def _stringify(self, field):
-        for br in field.xpath("*//br"):
+        for br in field.xpath(".//br"):
             br.tail = "\n" + br.tail if br.tail else "\n"
-        for em in field.xpath("*//em"):
+        for em in field.xpath(".//em"):
             if em.text:
                 em.text = "--em--" + em.text + "--em--"
         return field.text_content().replace('&nbsp;', ' ').strip()
