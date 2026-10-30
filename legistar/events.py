@@ -386,9 +386,10 @@ class LegistarAPIEventScraper(LegistarAPIEventScraperBase):
         except scrapelib.HTTPError as e:
             if e.response.status_code == 410:
                 return None
-            elif e.response.status_code == 503:
+            elif e.response.status_code >= 500:
                 # Events with draft agendas sometimes have an EventInSiteURL
-                # that resolves to a 503 status code
+                # that resolves to a 503 status code. Other server errors
+                # on a single detail page shouldn't stop the whole scrape.
                 self.logger.error(
                     f"Error while fetching event detail at {insite_url}: {e}"
                 )
@@ -397,7 +398,13 @@ class LegistarAPIEventScraper(LegistarAPIEventScraperBase):
                 raise
 
         div_id = 'ctl00_ContentPlaceHolder1_pageTop1'
-        detail_div = event_page.xpath(".//div[@id='%s']" % div_id)[0]
+        detail_divs = event_page.xpath(".//div[@id='%s']" % div_id)
+        if not detail_divs:
+            self.logger.error(
+                f"No event details found on page at {insite_url}"
+            )
+            return None
+        detail_div = detail_divs[0]
 
         event_page_details = self._webscraper.parseDetails(detail_div)
         event_page_details['Meeting Details'] = {'url': insite_url}
